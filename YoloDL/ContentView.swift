@@ -10,10 +10,7 @@ import SwiftUI
 struct ContentView: View {
     @State private var url: String = ""
     var body: some View {
-        VStack {
-            Image(systemName: "globe")
-                .imageScale(.large)
-                .foregroundStyle(.tint)
+        VStack(alignment: .leading, spacing: 12) {
             Text("YoloDL 0.01")
             TextField("Enter source URL", text: $url)
             Button("Download"){ print(url)
