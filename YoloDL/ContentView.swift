@@ -2,40 +2,76 @@
 //  ContentView.swift
 //  YoloDL 0.02
 //
-//  Created by Visa Uotila on 5.3.2026.
+//  Created on 5.3.2026.
 //
 
 import SwiftUI
+
+enum DownloadError: Identifiable {
+    case emptyURL
+    case noFolderSelected
+    
+    var id: String { String(describing: self) }
+}
 
 struct ContentView: View {
     
     let appVersion = "0.02"
     @State private var sourceUrl: String = ""
     @State private var downloadLocation: String = ""
+    @State private var currentError: DownloadError? = nil
+    
+    func chooseFolder(){
+        let folderSelector = NSOpenPanel()
+            folderSelector.canChooseFiles = false
+            folderSelector.canChooseDirectories = true
+            folderSelector.allowsMultipleSelection = false
+            if folderSelector.runModal() == .OK {
+                if let url = folderSelector.url {
+                    downloadLocation = url.path
+            }
+        }
+    }
+    
+    func downloadFiles(){
+        guard !sourceUrl.isEmpty else { handleError(.emptyURL); return }
+        guard !downloadLocation.isEmpty else { handleError(.noFolderSelected); return }
+        let downloadProcess = Process()
+        downloadProcess.executableURL = URL(fileURLWithPath: "/opt/homebrew/bin/yle-dl")
+        downloadProcess.arguments = ["--ffmpeg", "/opt/homebrew/bin/ffmpeg", "--ffprobe", "/opt/homebrew/bin/ffprobe", "--destdir", downloadLocation, sourceUrl]
+        do {
+            try downloadProcess.run()
+        } catch {print(error)}
+    }
+    
+    func handleError(_ error: DownloadError) {
+        currentError = error
+    }
     
     
     
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
+            
             Text("YoloDL \(appVersion)")
+            
             TextField("Enter source URL", text: $sourceUrl)
+            
             Text(downloadLocation.isEmpty ? "No folder selected" : "Download location: \(downloadLocation)")
+            
             Button("Download"){
-                let process = Process()
-                process.executableURL = URL(fileURLWithPath: "/opt/homebrew/bin/yle-dl")
-                process.arguments = ["--ffmpeg", "/opt/homebrew/bin/ffmpeg", "--ffprobe", "/opt/homebrew/bin/ffprobe", "--destdir", downloadLocation, sourceUrl]
-                do {
-                    try process.run()
-                } catch {print(error)}
+                downloadFiles()
             }
-            Button("Choose folder"){
-            let folderSelector = NSOpenPanel()
-                folderSelector.canChooseFiles = false
-                folderSelector.canChooseDirectories = true
-                folderSelector.allowsMultipleSelection = false
-                if folderSelector.runModal() == .OK {
-                    downloadLocation = folderSelector.url!.path
-                }
+            Button("Choose folder") {
+                chooseFolder()
+            }
+        }
+        .alert(item: $currentError) { error in
+            switch error {
+            case .emptyURL:
+                return Alert(title: Text("No download URL"), message: Text("Please input a valid download URL."))
+            case .noFolderSelected:
+                return Alert(title: Text("No destination folder"), message: Text("Please choose a destination folder."))
             }
         }
         .padding()
