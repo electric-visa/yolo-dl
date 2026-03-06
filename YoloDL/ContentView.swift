@@ -7,6 +7,10 @@
 
 import SwiftUI
 
+struct EpisodeMetadata: Codable {
+    let duration_seconds: Int
+}
+
 enum DownloadError: Identifiable {
     case emptyURL
     case noFolderSelected
@@ -17,6 +21,7 @@ enum DownloadError: Identifiable {
 struct ContentView: View {
     
     let appVersion = "0.02"
+    
     @State private var sourceUrl: String = ""
     @State private var downloadLocation: String = ""
     @State private var currentError: DownloadError? = nil
@@ -33,13 +38,38 @@ struct ContentView: View {
         }
     }
     
+    func fetchMetadata() -> Int {
+        let metadataParsing = Process()
+        metadataParsing.executableURL = URL(fileURLWithPath: "/opt/homebrew/bin/yle-dl")
+        metadataParsing.arguments = ["--ffmpeg", "/opt/homebrew/bin/ffmpeg", "--ffprobe", "/opt/homebrew/bin/ffprobe", "--showmetadata", sourceUrl]
+        
+        let pipe = Pipe()
+        metadataParsing.standardOutput = pipe
+        
+        do {
+            try
+            metadataParsing.run()
+            metadataParsing.waitUntilExit()
+        } catch {
+            print(error)
+            return 0
+        }
+            
+            let parsedMetaData = pipe.fileHandleForReading.readDataToEndOfFile()
+            let episodes = try? JSONDecoder().decode([EpisodeMetadata].self, from: parsedMetaData)
+            let totalSeconds = episodes?.reduce(0) { $0 + $1.duration_seconds} ?? 0
+            return totalSeconds
+        }
+    
     func downloadFiles(){
         guard !sourceUrl.isEmpty else { handleError(.emptyURL); return }
         guard !downloadLocation.isEmpty else { handleError(.noFolderSelected); return }
+        let totalSeconds = fetchMetadata()
+        print(totalSeconds)
         let downloadProcess = Process()
         downloadProcess.executableURL = URL(fileURLWithPath: "/opt/homebrew/bin/yle-dl")
         downloadProcess.arguments = ["--ffmpeg", "/opt/homebrew/bin/ffmpeg", "--ffprobe", "/opt/homebrew/bin/ffprobe", "--destdir", downloadLocation, sourceUrl]
-        do {
+       do {
             try downloadProcess.run()
         } catch {print(error)}
     }
@@ -73,8 +103,9 @@ struct ContentView: View {
             }
             Button("Choose folder") {
                 chooseFolder()
+                }
             }
-        }
+    
         .alert(item: $currentError) { error in
             switch error {
             case .emptyURL:
