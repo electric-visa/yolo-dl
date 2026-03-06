@@ -24,6 +24,10 @@ struct ContentView: View {
     
     @State private var sourceUrl: String = ""
     @State private var downloadLocation: String = ""
+    
+    @State private var totalDuration: Int = 0
+    @State private var downloadProgress: Double = 0
+    
     @State private var currentError: DownloadError? = nil
     
     func chooseFolder(){
@@ -64,9 +68,35 @@ struct ContentView: View {
     func downloadFiles(){
         guard !sourceUrl.isEmpty else { handleError(.emptyURL); return }
         guard !downloadLocation.isEmpty else { handleError(.noFolderSelected); return }
-        let totalSeconds = fetchMetadata()
-        print(totalSeconds)
+        
+        totalDuration = fetchMetadata()
+        print(totalDuration)
+        
         let downloadProcess = Process()
+        let progressPipe = Pipe()
+        
+        progressPipe.fileHandleForReading.readabilityHandler = { handle in
+            let output = String(data: handle.availableData, encoding: .utf8) ?? ""
+            for line in output.components(separatedBy: "\r") {
+                guard line.contains("time="), !line.contains("time=N/A"),
+                      let timePart = line.components(separatedBy: "time=").last,
+                      let timeString = timePart.components(separatedBy: " ").first,
+                      timeString != "N/A" else { continue }
+                let components = timeString.components(separatedBy: ":")
+                if components.count == 3 {
+                   let hours = Double(components[0].trimmingCharacters(in: .whitespaces)) ?? 0
+                   let minutes = Double(components[1].trimmingCharacters(in: .whitespaces)) ?? 0
+                   let seconds = Double(components[2].trimmingCharacters(in: .whitespaces)) ?? 0
+                   let currentSeconds = hours * 3600 + minutes * 60 + seconds
+                   
+                    DispatchQueue.main.async {
+                        self.downloadProgress = self.totalDuration > 0 ? currentSeconds / Double(self.totalDuration) : 0
+                    }
+                }
+            }
+        }
+        
+        downloadProcess.standardError = progressPipe
         downloadProcess.executableURL = URL(fileURLWithPath: "/opt/homebrew/bin/yle-dl")
         downloadProcess.arguments = ["--ffmpeg", "/opt/homebrew/bin/ffmpeg", "--ffprobe", "/opt/homebrew/bin/ffprobe", "--destdir", downloadLocation, sourceUrl]
        do {
