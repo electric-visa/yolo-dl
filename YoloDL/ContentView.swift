@@ -59,6 +59,15 @@ struct ContentView: View {
             
             Text(downloadLocation.isEmpty ? "No folder selected" : "Download location: \(downloadLocation)")
             
+            ZStack(alignment: .leading) {
+                Rectangle()
+                    .frame(height: 30)
+                    .opacity(0.2)
+                Rectangle()
+                    .fill(LinearGradient(colors: [.blue, .cyan], startPoint: .leading, endPoint: .trailing))
+                        .frame(width: 100, height: 30)
+            }
+            
             Button("Download"){
                 downloadFiles()
             }
