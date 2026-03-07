@@ -150,6 +150,7 @@ struct ContentView: View {
             Text("YoloDL \(appVersion)")
             
             TextField("Enter source URL", text: $sourceUrl)
+                .disabled(downloadIsActive)
             
             GeometryReader { geometry in
                 ZStack(alignment: .leading) {
@@ -221,12 +222,15 @@ struct ContentView: View {
                 }
             }
             
-            Button("Download"){
+            Button("Download") {
                 downloadFiles()
             }
+            .disabled(downloadIsActive)
+            
             Button("Choose folder") {
                 chooseFolder()
             }
+            .disabled(downloadIsActive)
         }
         
         .alert(item: $currentError) { error in
