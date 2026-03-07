@@ -204,6 +204,7 @@ struct ContentView: View {
             
             Text(downloadLocation.isEmpty ? "No folder selected" : "Download location: \(downloadLocation)")
             
+            #if DEBUG
             Button("Simulate Download") {
                 downloadProgress = 0.0
                 downloadIsActive = true
@@ -223,6 +224,7 @@ struct ContentView: View {
                     }
                 }
             }
+            #endif
             
             Button("Download") {
                 downloadFiles()
