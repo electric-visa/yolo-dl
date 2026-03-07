@@ -23,6 +23,11 @@ struct ContentView: View {
     
     let appVersion = "0.04"
     
+    // Constants to binaries.
+    let pathToYleDl: String = "/opt/homebrew/bin/yle-dl"
+    let pathToFfmpeg: String = "/opt/homebrew/bin/ffmpeg"
+    let pathToFfprobe: String = "/opt/homebrew/bin/ffprobe"
+    
     // Variables to be passed to yle-dl
     @State private var sourceUrl: String = ""
     @State private var downloadLocation: String = ""
@@ -54,8 +59,8 @@ struct ContentView: View {
     // Function to fetch metadata.
     func fetchMetadata() async -> Int {
         let metadataParsing = Process()
-        metadataParsing.executableURL = URL(fileURLWithPath: "/opt/homebrew/bin/yle-dl")
-        metadataParsing.arguments = ["--ffmpeg", "/opt/homebrew/bin/ffmpeg", "--ffprobe", "/opt/homebrew/bin/ffprobe", "--showmetadata", sourceUrl]
+        metadataParsing.executableURL = URL(fileURLWithPath: pathToYleDl)
+        metadataParsing.arguments = ["--ffmpeg", pathToFfmpeg, "--ffprobe", pathToFfprobe, "--showmetadata", sourceUrl]
         
         let pipe = Pipe()
         metadataParsing.standardOutput = pipe
