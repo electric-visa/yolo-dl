@@ -32,13 +32,14 @@ struct ContentView: View {
     @State private var sourceUrl: String = ""
     @State private var downloadLocation: String = ""
     
-    // Variables related to the download process and the progress bar logic.
+    // Variables related to the download process and the progress bar logic & animations.
     @State private var downloadIsActive: Bool = false
     @State private var downloadIsFinished: Bool = false
     @State private var totalDuration: Int = 0
     @State private var downloadProgress: Double = 0
     @State private var shimmerOffset: CGFloat = -1.0
-    let downloadColorsFade: Double = 2.5
+    let progressBarAnimationSpeed: Double = 0.5
+    let progressBarFinishedSpeed: Double = 2.5
     
     // Default error state
     @State private var currentError: DownloadError? = nil
@@ -122,7 +123,7 @@ struct ContentView: View {
                     self.downloadProgress = 1.0
                     self.downloadIsActive = false
                 }
-                DispatchQueue.main.asyncAfter(deadline: .now() + downloadColorsFade) {
+                DispatchQueue.main.asyncAfter(deadline: .now() + progressBarFinishedSpeed) {
                     self.downloadIsFinished = true
                 }
             }
@@ -186,7 +187,7 @@ struct ContentView: View {
                         .blendMode(.screen)
                         .opacity(downloadIsActive ? 1.0 : 0.0)
                 }
-                .animation(.easeInOut(duration: downloadColorsFade), value: downloadProgress)
+                .animation(.easeInOut(duration: progressBarAnimationSpeed), value: downloadProgress)
                 .animation(nil, value: downloadIsFinished)
                 .clipped()
             }
@@ -212,7 +213,7 @@ struct ContentView: View {
                             self.downloadProgress = 1.0
                             self.downloadIsActive = false
                             timer.invalidate()
-                            DispatchQueue.main.asyncAfter(deadline: .now() + downloadColorsFade) {
+                            DispatchQueue.main.asyncAfter(deadline: .now() + progressBarFinishedSpeed) {
                                 self.downloadIsFinished = true
                             }
                         }
