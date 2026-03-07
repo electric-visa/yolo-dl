@@ -112,6 +112,7 @@ struct ContentView: View {
             }
             
             downloadProcess.terminationHandler = { _ in
+                progressPipe.fileHandleForReading.readabilityHandler = nil
                 DispatchQueue.main.async {
                     self.downloadProgress = 1.0
                     self.downloadIsActive = false
