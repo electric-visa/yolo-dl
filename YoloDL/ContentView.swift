@@ -86,13 +86,16 @@ struct ContentView: View {
     // TO BE SPLIT INTO DIFFERENT FUNCTIONS.
     func downloadFiles() {
         Task {
+            // Guards for empty URL and destination folder.
+            // Reset downloadIsFinished state to false.
             guard !sourceUrl.isEmpty else { handleError(.emptyURL); return }
             guard !downloadLocation.isEmpty else { handleError(.noFolderSelected); return }
             downloadIsFinished = false
-            guard totalDuration != 0 else { handleError(.totalDurationIsZero); return }
             
+            // Call metadata parsing with guard for total duration of 0.
             totalDuration = await fetchMetadata()
             print(totalDuration)
+            guard totalDuration != 0 else { handleError(.totalDurationIsZero); return }
             downloadIsActive = true
             
             let downloadProcess = Process()
@@ -130,8 +133,8 @@ struct ContentView: View {
                 }
             }
             downloadProcess.standardError = progressPipe
-            downloadProcess.executableURL = URL(fileURLWithPath: "/opt/homebrew/bin/yle-dl")
-            downloadProcess.arguments = ["--ffmpeg", "/opt/homebrew/bin/ffmpeg", "--ffprobe", "/opt/homebrew/bin/ffprobe", "--destdir", downloadLocation, sourceUrl]
+            downloadProcess.executableURL = URL(fileURLWithPath: pathToYleDl)
+            downloadProcess.arguments = ["--ffmpeg", pathToFfmpeg, "--ffprobe", pathToFfprobe, "--destdir", downloadLocation, sourceUrl]
             do {
                 try downloadProcess.run()
             } catch { print(error) }
