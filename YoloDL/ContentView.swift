@@ -25,21 +25,24 @@ struct ContentView: View {
     @State private var sourceUrl: String = ""
     @State private var downloadLocation: String = ""
     @State private var downloadIsActive: Bool = false
+    @State private var downloadIsFinished: Bool = false
+    
     
     @State private var totalDuration: Int = 0
     @State private var downloadProgress: Double = 0
     @State private var shimmerOffset: CGFloat = -1.0
+    let downloadColorsFade: Double = 2.5
     
     @State private var currentError: DownloadError? = nil
     
     func chooseFolder(){
         let folderSelector = NSOpenPanel()
-            folderSelector.canChooseFiles = false
-            folderSelector.canChooseDirectories = true
-            folderSelector.allowsMultipleSelection = false
-            if folderSelector.runModal() == .OK {
-                if let url = folderSelector.url {
-                    downloadLocation = url.path
+        folderSelector.canChooseFiles = false
+        folderSelector.canChooseDirectories = true
+        folderSelector.allowsMultipleSelection = false
+        if folderSelector.runModal() == .OK {
+            if let url = folderSelector.url {
+                downloadLocation = url.path
             }
         }
     }
@@ -60,16 +63,17 @@ struct ContentView: View {
             print(error)
             return 0
         }
-            
-            let parsedMetaData = pipe.fileHandleForReading.readDataToEndOfFile()
-            let episodes = try? JSONDecoder().decode([EpisodeMetadata].self, from: parsedMetaData)
-            let totalSeconds = episodes?.reduce(0) { $0 + $1.duration_seconds} ?? 0
-            return totalSeconds
-        }
+        
+        let parsedMetaData = pipe.fileHandleForReading.readDataToEndOfFile()
+        let episodes = try? JSONDecoder().decode([EpisodeMetadata].self, from: parsedMetaData)
+        let totalSeconds = episodes?.reduce(0) { $0 + $1.duration_seconds} ?? 0
+        return totalSeconds
+    }
     
     func downloadFiles(){
         guard !sourceUrl.isEmpty else { handleError(.emptyURL); return }
         guard !downloadLocation.isEmpty else { handleError(.noFolderSelected); return }
+        downloadIsFinished = false
         
         totalDuration = fetchMetadata()
         print(totalDuration)
@@ -87,11 +91,11 @@ struct ContentView: View {
                       timeString != "N/A" else { continue }
                 let components = timeString.components(separatedBy: ":")
                 if components.count == 3 {
-                   let hours = Double(components[0].trimmingCharacters(in: .whitespaces)) ?? 0
-                   let minutes = Double(components[1].trimmingCharacters(in: .whitespaces)) ?? 0
-                   let seconds = Double(components[2].trimmingCharacters(in: .whitespaces)) ?? 0
-                   let currentSeconds = hours * 3600 + minutes * 60 + seconds
-                   
+                    let hours = Double(components[0].trimmingCharacters(in: .whitespaces)) ?? 0
+                    let minutes = Double(components[1].trimmingCharacters(in: .whitespaces)) ?? 0
+                    let seconds = Double(components[2].trimmingCharacters(in: .whitespaces)) ?? 0
+                    let currentSeconds = hours * 3600 + minutes * 60 + seconds
+                    
                     DispatchQueue.main.async {
                         self.downloadProgress = self.totalDuration > 0 ? currentSeconds / Double(self.totalDuration) : 0
                     }
@@ -103,6 +107,9 @@ struct ContentView: View {
             DispatchQueue.main.async {
                 self.downloadProgress = 1.0
                 self.downloadIsActive = false
+            }
+            DispatchQueue.main.asyncAfter(deadline: .now() + downloadColorsFade) {
+                self.downloadIsFinished = true
             }
         }
         downloadProcess.standardError = progressPipe
@@ -118,6 +125,8 @@ struct ContentView: View {
     }
     
     
+    var downloadActiveColors: [Color] { [.blue, .cyan] }
+    var downloadFinishedColors: [Color] { [.green, .mint] }
     
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
@@ -134,17 +143,26 @@ struct ContentView: View {
                     Rectangle()
                         .fill(
                             LinearGradient(
-                                colors: [.blue, .cyan],
+                                colors: downloadActiveColors,
                                 startPoint: .leading,
                                 endPoint: .trailing
                             )
                         )
                         .frame(width: geometry.size.width * downloadProgress, height: 30)
-                        .animation(.easeInOut(duration: 0.5), value: downloadProgress)
+                    Rectangle()
+                        .fill(
+                            LinearGradient(
+                                colors: downloadFinishedColors,
+                                startPoint: .leading,
+                                endPoint: .trailing
+                            )
+                        )
+                        .frame(width: geometry.size.width * downloadProgress, height: 30)
+                        .opacity(downloadIsFinished ? 1.0 : 0.0)
                     Rectangle()
                         .fill (
                             LinearGradient(
-                                colors: [.clear, .white.opacity(0.5), .clear],
+                                colors: [.clear, .white.opacity(0.7), .clear],
                                 startPoint: UnitPoint(x: shimmerOffset - 0.5, y: 0),
                                 endPoint: UnitPoint(x: shimmerOffset + 0.5, y: 0)
                             )
@@ -152,9 +170,10 @@ struct ContentView: View {
                         .frame(width: geometry.size.width * downloadProgress, height: 30)
                         .blendMode(.screen)
                         .opacity(downloadIsActive ? 1.0 : 0.0)
-                        .animation(.easeInOut(duration: 0.5), value: downloadProgress)
-                        .clipped()
                 }
+                .animation(.easeInOut(duration: downloadColorsFade), value: downloadProgress)
+                .animation(nil, value: downloadIsFinished)
+                .clipped()
             }
             .frame(height: 30)
             .onAppear {
@@ -169,6 +188,7 @@ struct ContentView: View {
             Button("Simulate Download") {
                 downloadProgress = 0.0
                 downloadIsActive = true
+                downloadIsFinished = false
                 Timer.scheduledTimer(withTimeInterval: 0.08, repeats: true) { timer in
                     DispatchQueue.main.async {
                         if self.downloadProgress < 1.0 {
@@ -177,6 +197,9 @@ struct ContentView: View {
                             self.downloadProgress = 1.0
                             self.downloadIsActive = false
                             timer.invalidate()
+                            DispatchQueue.main.asyncAfter(deadline: .now() + downloadColorsFade) {
+                                self.downloadIsFinished = true
+                            }
                         }
                     }
                 }
