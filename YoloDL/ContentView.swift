@@ -1,6 +1,6 @@
 //
 //  ContentView.swift
-//  YoloDL 0.04
+//  YoloDL 0.05
 //
 //  Created on 5.3.2026.
 //  Last updated on 7.3.2026.
@@ -22,7 +22,7 @@ enum DownloadError: Identifiable {
 
 struct ContentView: View {
     
-    let appVersion = "0.04"
+    let appVersion = "0.05"
     
     // Constants to binaries.
     let pathToYleDl: String = "/opt/homebrew/bin/yle-dl"
