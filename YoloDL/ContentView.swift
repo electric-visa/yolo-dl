@@ -1,8 +1,9 @@
 //
 //  ContentView.swift
-//  YoloDL 0.03
+//  YoloDL 0.04
 //
 //  Created on 5.3.2026.
+//  Last updated on 7.3.2026.
 //
 
 import SwiftUI
@@ -20,7 +21,7 @@ enum DownloadError: Identifiable {
 
 struct ContentView: View {
     
-    let appVersion = "0.03"
+    let appVersion = "0.04"
     
     @State private var sourceUrl: String = ""
     @State private var downloadLocation: String = ""
