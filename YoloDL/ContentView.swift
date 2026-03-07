@@ -23,19 +23,22 @@ struct ContentView: View {
     
     let appVersion = "0.04"
     
+    // Variables to be passed to yle-dl
     @State private var sourceUrl: String = ""
     @State private var downloadLocation: String = ""
+    
+    // Variables related to the download process and the progress bar logic.
     @State private var downloadIsActive: Bool = false
     @State private var downloadIsFinished: Bool = false
-    
-    
     @State private var totalDuration: Int = 0
     @State private var downloadProgress: Double = 0
     @State private var shimmerOffset: CGFloat = -1.0
     let downloadColorsFade: Double = 2.5
     
+    // Default error state
     @State private var currentError: DownloadError? = nil
     
+    // Function to choose the download location.
     func chooseFolder(){
         let folderSelector = NSOpenPanel()
         folderSelector.canChooseFiles = false
@@ -48,7 +51,8 @@ struct ContentView: View {
         }
     }
     
-    func fetchMetadata() -> Int {
+    // Function to fetch metadata.
+    func fetchMetadata() async -> Int {
         let metadataParsing = Process()
         metadataParsing.executableURL = URL(fileURLWithPath: "/opt/homebrew/bin/yle-dl")
         metadataParsing.arguments = ["--ffmpeg", "/opt/homebrew/bin/ffmpeg", "--ffprobe", "/opt/homebrew/bin/ffprobe", "--showmetadata", sourceUrl]
@@ -71,54 +75,58 @@ struct ContentView: View {
         return totalSeconds
     }
     
-    func downloadFiles(){
-        guard !sourceUrl.isEmpty else { handleError(.emptyURL); return }
-        guard !downloadLocation.isEmpty else { handleError(.noFolderSelected); return }
-        downloadIsFinished = false
-        
-        totalDuration = fetchMetadata()
-        print(totalDuration)
-        downloadIsActive = true
-        
-        let downloadProcess = Process()
-        let progressPipe = Pipe()
-        
-        progressPipe.fileHandleForReading.readabilityHandler = { handle in
-            let output = String(data: handle.availableData, encoding: .utf8) ?? ""
-            for line in output.components(separatedBy: "\r") {
-                guard line.contains("time="), !line.contains("time=N/A"),
-                      let timePart = line.components(separatedBy: "time=").last,
-                      let timeString = timePart.components(separatedBy: " ").first,
-                      timeString != "N/A" else { continue }
-                let components = timeString.components(separatedBy: ":")
-                if components.count == 3 {
-                    let hours = Double(components[0].trimmingCharacters(in: .whitespaces)) ?? 0
-                    let minutes = Double(components[1].trimmingCharacters(in: .whitespaces)) ?? 0
-                    let seconds = Double(components[2].trimmingCharacters(in: .whitespaces)) ?? 0
-                    let currentSeconds = hours * 3600 + minutes * 60 + seconds
-                    
-                    DispatchQueue.main.async {
-                        self.downloadProgress = self.totalDuration > 0 ? currentSeconds / Double(self.totalDuration) : 0
+    // Function to download files.
+    // TO BE SPLIT INTO DIFFERENT FUNCTIONS.
+    func downloadFiles() {
+        Task {
+            guard !sourceUrl.isEmpty else { handleError(.emptyURL); return }
+            guard !downloadLocation.isEmpty else { handleError(.noFolderSelected); return }
+            downloadIsFinished = false
+            
+            totalDuration = await fetchMetadata()
+            print(totalDuration)
+            downloadIsActive = true
+            
+            let downloadProcess = Process()
+            let progressPipe = Pipe()
+            
+            progressPipe.fileHandleForReading.readabilityHandler = { handle in
+                let output = String(data: handle.availableData, encoding: .utf8) ?? ""
+                for line in output.components(separatedBy: "\r") {
+                    guard line.contains("time="), !line.contains("time=N/A"),
+                          let timePart = line.components(separatedBy: "time=").last,
+                          let timeString = timePart.components(separatedBy: " ").first,
+                          timeString != "N/A" else { continue }
+                    let components = timeString.components(separatedBy: ":")
+                    if components.count == 3 {
+                        let hours = Double(components[0].trimmingCharacters(in: .whitespaces)) ?? 0
+                        let minutes = Double(components[1].trimmingCharacters(in: .whitespaces)) ?? 0
+                        let seconds = Double(components[2].trimmingCharacters(in: .whitespaces)) ?? 0
+                        let currentSeconds = hours * 3600 + minutes * 60 + seconds
+                        
+                        DispatchQueue.main.async {
+                            self.downloadProgress = self.totalDuration > 0 ? currentSeconds / Double(self.totalDuration) : 0
+                        }
                     }
                 }
             }
-        }
-        
-        downloadProcess.terminationHandler = { _ in
-            DispatchQueue.main.async {
-                self.downloadProgress = 1.0
-                self.downloadIsActive = false
+            
+            downloadProcess.terminationHandler = { _ in
+                DispatchQueue.main.async {
+                    self.downloadProgress = 1.0
+                    self.downloadIsActive = false
+                }
+                DispatchQueue.main.asyncAfter(deadline: .now() + downloadColorsFade) {
+                    self.downloadIsFinished = true
+                }
             }
-            DispatchQueue.main.asyncAfter(deadline: .now() + downloadColorsFade) {
-                self.downloadIsFinished = true
-            }
+            downloadProcess.standardError = progressPipe
+            downloadProcess.executableURL = URL(fileURLWithPath: "/opt/homebrew/bin/yle-dl")
+            downloadProcess.arguments = ["--ffmpeg", "/opt/homebrew/bin/ffmpeg", "--ffprobe", "/opt/homebrew/bin/ffprobe", "--destdir", downloadLocation, sourceUrl]
+            do {
+                try downloadProcess.run()
+            } catch { print(error) }
         }
-        downloadProcess.standardError = progressPipe
-        downloadProcess.executableURL = URL(fileURLWithPath: "/opt/homebrew/bin/yle-dl")
-        downloadProcess.arguments = ["--ffmpeg", "/opt/homebrew/bin/ffmpeg", "--ffprobe", "/opt/homebrew/bin/ffprobe", "--destdir", downloadLocation, sourceUrl]
-       do {
-            try downloadProcess.run()
-        } catch { print(error) }
     }
     
     func handleError(_ error: DownloadError) {
@@ -183,7 +191,7 @@ struct ContentView: View {
                 }
             }
             
-
+            
             Text(downloadLocation.isEmpty ? "No folder selected" : "Download location: \(downloadLocation)")
             
             Button("Simulate Download") {
@@ -211,9 +219,9 @@ struct ContentView: View {
             }
             Button("Choose folder") {
                 chooseFolder()
-                }
             }
-    
+        }
+        
         .alert(item: $currentError) { error in
             switch error {
             case .emptyURL:
