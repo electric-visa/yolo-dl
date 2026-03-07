@@ -15,6 +15,7 @@ struct EpisodeMetadata: Codable {
 enum DownloadError: Identifiable {
     case emptyURL
     case noFolderSelected
+    case totalDurationIsZero
     
     var id: String { String(describing: self) }
 }
@@ -88,6 +89,7 @@ struct ContentView: View {
             guard !sourceUrl.isEmpty else { handleError(.emptyURL); return }
             guard !downloadLocation.isEmpty else { handleError(.noFolderSelected); return }
             downloadIsFinished = false
+            guard totalDuration != 0 else { handleError(.totalDurationIsZero); return }
             
             totalDuration = await fetchMetadata()
             print(totalDuration)
@@ -239,6 +241,8 @@ struct ContentView: View {
                 return Alert(title: Text("No download URL"), message: Text("Please input a valid download URL."))
             case .noFolderSelected:
                 return Alert(title: Text("No destination folder"), message: Text("Please choose a destination folder."))
+            case .totalDurationIsZero:
+                return Alert(title: Text("Error while fetching metadata"),message: Text("Metadata shows the total video duration as 0 seconds. Try again or with a different URL."))
             }
         }
         .padding()
