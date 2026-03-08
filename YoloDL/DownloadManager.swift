@@ -5,7 +5,7 @@
 //  Created by Visa Uotila on 8.3.2026.
 //
 
-import Foundation 
+import Foundation
 import Combine
 
 struct EpisodeMetadata: Codable {
@@ -43,7 +43,12 @@ enum DownloadError: Identifiable {
 }
 
 class DownloadManager: ObservableObject {
-
+    
+    #if DEBUG
+    // Timer variable for a simulation run.
+    var simulationTimer: Timer? = nil
+    #endif
+    
     // Paths to binaries
     let pathToYleDl: String = "/opt/homebrew/bin/yle-dl"
     let pathToFfmpeg: String = "/opt/homebrew/bin/ffmpeg"
@@ -117,7 +122,7 @@ class DownloadManager: ObservableObject {
     // Function to download files. Includes metadata parsing.
     func downloadFiles(downloadLocation: String) {
         Task {
-
+            
             // Revert from a possible cancelled state.
             downloadIsCancelled = false
             
@@ -204,6 +209,7 @@ class DownloadManager: ObservableObject {
     }
     
     // Function to cancel an ongoing download
+    // with additional actions during a debug simulation run.
     func cancelDownload () {
         downloadIsCancelled = true
         activeDownload?.terminate()
@@ -211,35 +217,22 @@ class DownloadManager: ObservableObject {
         appState = .cancelled
         downloadIsActive = false
         downloadProgress = 0.0
+        #if DEBUG
+        simulationTimer?.invalidate()
+        simulationTimer = nil
+        #endif
     }
     
-    // Function for a simulated download to test and/or debug the progress bar.
-    func simulateDownload() {
-        appState = .downloading
+    // Function to reset download parameters for a simulated run
+    // called from DebugWindow
+    func resetForSimulation() {
         downloadProgress = 0.0
         downloadIsActive = true
+        appState = .downloading
         downloadIsFinished = false
-        Timer.scheduledTimer(withTimeInterval: 0.08, repeats: true) { timer in
-            DispatchQueue.main.async {
-                if self.downloadProgress < 1.0 {
-                    self.downloadProgress += 0.01
-                    self.logger?.appendLog("Simulated download progress: \(self.downloadProgress)", from: .stdout)
-                } else {
-                    self.downloadProgress = 1.0
-                    self.downloadIsActive = false
-                    timer.invalidate()
-                    DispatchQueue.main.asyncAfter(deadline: .now() + self.progressBarFinishedSpeed) {
-                        self.downloadIsFinished = true
-                        self.appState = .finished
-                    }
-                }
-            }
-        }
     }
     
-    // Function to simulate metadata failure
-    func simulateMetadataFailure() {
-        totalDuration = 0
-        guard totalDuration != 0 else { handleError(.totalDurationIsZero); return }
+    func setDownloadProgress(to value: Double) {
+        downloadProgress = value
     }
 }
