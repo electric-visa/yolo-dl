@@ -17,6 +17,9 @@ struct YoloDLApp: App {
             ContentView()
                 .environmentObject(downloadManager)
                 .environmentObject(logManager)
+                .onAppear {
+                    downloadManager.logger = logManager
+                }
         }
         #if DEBUG
         Window("Debug Window", id: "debug") {

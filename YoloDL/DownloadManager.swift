@@ -67,6 +67,9 @@ class DownloadManager: ObservableObject {
     // Default AppState
     @Published var appState: AppState = .ready
     
+    // Variable for LogManager.
+    var logger: LogManager? = nil
+    
     // Function to check for valid user inputs.
     // Currently guards for empty URL and destination folder.
     
