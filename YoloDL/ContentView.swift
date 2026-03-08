@@ -12,6 +12,9 @@ struct ContentView: View {
     
     let appVersion = "0.07"
     
+    // Open debug window on startup.
+    @Environment(\.openWindow) var openWindow
+    
     @EnvironmentObject private var manager: DownloadManager
     
     // Variables related to the download process and the progress bar logic & animations.
@@ -114,6 +117,13 @@ struct ContentView: View {
                 chooseFolder()
             }
             .disabled(manager.downloadIsActive)
+        }
+        
+        // Show debug window on startup.
+        .onAppear {
+            #if DEBUG
+            openWindow(id:"debug")
+            #endif
         }
         
         .alert(item: $manager.currentError) { error in
