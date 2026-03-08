@@ -2,7 +2,7 @@
 //  DownloadManager.swift
 //  YoloDL
 //
-//  Created by Visa Uotila on 7.3.2026.
+//  Created by Visa Uotila on 8.3.2026.
 //
 
 import Foundation 
@@ -10,6 +10,28 @@ import Combine
 
 struct EpisodeMetadata: Codable {
     let duration_seconds: Int
+}
+
+enum AppState {
+    case ready
+    case preparing
+    case fetchingMetadata
+    case downloading
+    case finished
+    case cancelled
+    case error
+    
+    var statusText: String {
+        switch self {
+        case .ready: return "Ready"
+        case .preparing: return "Preparing download"
+        case .fetchingMetadata: return "Fetching metadata"
+        case .downloading: return "Downloading"
+        case .finished: return "Finished"
+        case .cancelled: return "Cancelled"
+        case .error: return "An error occurred"
+        }
+    }
 }
 
 enum DownloadError: Identifiable {
@@ -41,6 +63,9 @@ class DownloadManager: ObservableObject {
     
     // Default error state
     @Published var currentError: DownloadError? = nil
+    
+    // Default AppState
+    @Published var appState: AppState = .ready
     
     // Function to check for valid user inputs.
     // Currently guards for empty URL and destination folder.
@@ -93,16 +118,21 @@ class DownloadManager: ObservableObject {
             // Revert from a possible cancelled state.
             downloadIsCancelled = false
             
+            // Validate user inputs.
+            appState = .preparing
             guard validateInputs(downloadLocation: downloadLocation) else { return }
             
             // Reset downloadIsFinished state to false.
             downloadIsFinished = false
             
             // Call metadata parsing with guard for total duration of 0.
+            appState = .fetchingMetadata
             totalDuration = await fetchMetadata()
             print(totalDuration)
+            
             guard totalDuration != 0 else { handleError(.totalDurationIsZero); return }
             downloadIsActive = true
+            appState = .downloading
             
             let downloadProcess = Process()
             activeDownload = downloadProcess
@@ -135,6 +165,7 @@ class DownloadManager: ObservableObject {
                 Task { @MainActor in
                     if !self.downloadIsCancelled {
                         self.resetDownloadState()
+                        self.appState = .finished
                     }
                 }
             }
@@ -148,6 +179,7 @@ class DownloadManager: ObservableObject {
     }
     
     func handleError(_ error: DownloadError) {
+        appState = .error
         currentError = error
     }
     
@@ -156,12 +188,14 @@ class DownloadManager: ObservableObject {
         downloadIsCancelled = true
         activeDownload?.terminate()
         activeDownload = nil
+        appState = .cancelled
         downloadIsActive = false
         downloadProgress = 0.0
     }
     
     // Function for a simulated download to test and/or debug the progress bar.
     func simulateDownload() {
+        appState = .downloading
         downloadProgress = 0.0
         downloadIsActive = true
         downloadIsFinished = false
@@ -175,6 +209,7 @@ class DownloadManager: ObservableObject {
                     timer.invalidate()
                     DispatchQueue.main.asyncAfter(deadline: .now() + self.progressBarFinishedSpeed) {
                         self.downloadIsFinished = true
+                        self.appState = .finished
                     }
                 }
             }

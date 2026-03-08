@@ -3,7 +3,7 @@
 //  YoloDL 0.06
 //
 //  Created on 5.3.2026.
-//  Last updated on 7.3.2026.
+//  Last updated on 8.3.2026.
 //
 
 import SwiftUI
@@ -44,7 +44,10 @@ struct ContentView: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
             
-            Text("YoloDL \(appVersion)")
+            HStack(alignment: .center, spacing: 12) {
+                Text("YoloDL \(appVersion)")
+                Text("\(manager.appState.statusText)")
+            }
             
             TextField("Enter source URL", text: $manager.sourceUrl)
                 .disabled(manager.downloadIsActive)
