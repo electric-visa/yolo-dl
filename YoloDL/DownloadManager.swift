@@ -29,11 +29,12 @@ class DownloadManager: ObservableObject {
     
     // Variables to be passed to yle-dl
     @Published var sourceUrl: String = ""
-    @Published var downloadLocation: String = ""
     
     // Variables and constants related to download & progress bar logic
     @Published private(set) var downloadIsActive: Bool = false
     @Published private(set) var downloadIsFinished: Bool = false
+    private var activeDownload: Process? = nil
+    private var downloadIsCancelled: Bool = false
     @Published private(set) var totalDuration: Int = 0
     @Published private(set) var downloadProgress: Double = 0
     let progressBarFinishedSpeed: Double = 2.5
@@ -44,7 +45,7 @@ class DownloadManager: ObservableObject {
     // Function to check for valid user inputs.
     // Currently guards for empty URL and destination folder.
     
-    func validateInputs() -> Bool {
+    func validateInputs(downloadLocation: String) -> Bool {
         guard !sourceUrl.isEmpty else { handleError(.emptyURL); return false }
         guard !downloadLocation.isEmpty else { handleError(.noFolderSelected); return false }
         return true
@@ -85,12 +86,14 @@ class DownloadManager: ObservableObject {
         return totalSeconds
     }
     
-    // Function to download files.
-    // TO BE SPLIT INTO DIFFERENT FUNCTIONS.
-    func downloadFiles() {
+    // Function to download files. Includes metadata parsing.
+    func downloadFiles(downloadLocation: String) {
         Task {
 
-            guard validateInputs() else { return }
+            // Revert from a possible cancelled state.
+            downloadIsCancelled = false
+            
+            guard validateInputs(downloadLocation: downloadLocation) else { return }
             
             // Reset downloadIsFinished state to false.
             downloadIsFinished = false
@@ -102,6 +105,8 @@ class DownloadManager: ObservableObject {
             downloadIsActive = true
             
             let downloadProcess = Process()
+            activeDownload = downloadProcess
+            
             let progressPipe = Pipe()
             
             progressPipe.fileHandleForReading.readabilityHandler = { handle in
@@ -127,7 +132,10 @@ class DownloadManager: ObservableObject {
             
             downloadProcess.terminationHandler = { _ in
                 progressPipe.fileHandleForReading.readabilityHandler = nil
-                Task { @MainActor in self.resetDownloadState()
+                Task { @MainActor in
+                    if !self.downloadIsCancelled {
+                        self.resetDownloadState()
+                    }
                 }
             }
             downloadProcess.standardError = progressPipe
@@ -141,6 +149,15 @@ class DownloadManager: ObservableObject {
     
     func handleError(_ error: DownloadError) {
         currentError = error
+    }
+    
+    // Function to cancel an ongoing download
+    func cancelDownload () {
+        downloadIsCancelled = true
+        activeDownload?.terminate()
+        activeDownload = nil
+        downloadIsActive = false
+        downloadProgress = 0.0
     }
     
     // Function for a simulated download to test and/or debug the progress bar.

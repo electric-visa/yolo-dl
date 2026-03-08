@@ -1,6 +1,6 @@
 //
 //  ContentView.swift
-//  YoloDL 0.05
+//  YoloDL 0.06
 //
 //  Created on 5.3.2026.
 //  Last updated on 7.3.2026.
@@ -10,7 +10,7 @@ import SwiftUI
 
 struct ContentView: View {
     
-    let appVersion = "0.05"
+    let appVersion = "0.06"
     
     @StateObject private var manager = DownloadManager()
     
@@ -22,6 +22,9 @@ struct ContentView: View {
     // Default error state
     @State private var currentError: DownloadError? = nil
     
+    // Storing previous downloadLocation in AppStorage
+    @AppStorage("lastFolder") private var downloadLocation: String = ""
+    
     // Function to choose the download location.
     func chooseFolder(){
         let folderSelector = NSOpenPanel()
@@ -30,7 +33,7 @@ struct ContentView: View {
         folderSelector.allowsMultipleSelection = false
         if folderSelector.runModal() == .OK {
             if let url = folderSelector.url {
-                manager.downloadLocation = url.path
+                downloadLocation = url.path
             }
         }
     }
@@ -94,7 +97,7 @@ struct ContentView: View {
             }
             
             
-            Text(manager.downloadLocation.isEmpty ? "No folder selected" : "Download location: \(manager.downloadLocation)")
+            Text(downloadLocation.isEmpty ? "No folder selected" : "Download location: \(downloadLocation)")
             
             // Debug functions
             #if DEBUG
@@ -106,10 +109,13 @@ struct ContentView: View {
             }
             #endif
             
-            Button("Download") {
-                manager.downloadFiles()
+            Button(manager.downloadIsActive ? "Stop" : "Download") {
+                if manager.downloadIsActive {
+                    manager.cancelDownload()
+                } else {
+                    manager.downloadFiles(downloadLocation: downloadLocation)
+                }
             }
-            .disabled(manager.downloadIsActive)
             
             Button("Choose folder") {
                 chooseFolder()
