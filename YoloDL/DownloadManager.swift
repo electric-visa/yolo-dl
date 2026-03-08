@@ -125,10 +125,12 @@ class DownloadManager: ObservableObject {
             appState = .preparing
             guard validateInputs(downloadLocation: downloadLocation) else { return }
             
-            // Reset downloadIsFinished state to false.
+            // Reset downloadIsFinished state to false
+            // and flush the log buffer.
             downloadIsFinished = false
+            logger?.clearLog()
             
-            // Call metadata parsing with guard for total duration of 0.
+            // Call metadata parsing and guard for total duration of 0.
             appState = .fetchingMetadata
             totalDuration = await fetchMetadata()
             print(totalDuration)
@@ -137,13 +139,18 @@ class DownloadManager: ObservableObject {
             downloadIsActive = true
             appState = .downloading
             
+            // Declare the download process.
             let downloadProcess = Process()
             activeDownload = downloadProcess
             
+            // Declare the pipe for measuring progress.
             let progressPipe = Pipe()
             
             progressPipe.fileHandleForReading.readabilityHandler = { handle in
                 let output = String(data: handle.availableData, encoding: .utf8) ?? ""
+                DispatchQueue.main.async {
+                    self.logger?.appendLog(output, from: .stderr)
+                }
                 for line in output.components(separatedBy: "\r") {
                     guard line.contains("time="), !line.contains("time=N/A"),
                           let timePart = line.components(separatedBy: "time=").last,
@@ -163,8 +170,17 @@ class DownloadManager: ObservableObject {
                 }
             }
             
+            let outputPipe = Pipe()
+            outputPipe.fileHandleForReading.readabilityHandler = { handle in
+                let output = String(data: handle.availableData, encoding: .utf8) ?? ""
+                DispatchQueue.main.async {
+                    self.logger?.appendLog(output, from: .stdout)
+                }
+            }
+            
             downloadProcess.terminationHandler = { _ in
                 progressPipe.fileHandleForReading.readabilityHandler = nil
+                outputPipe.fileHandleForReading.readabilityHandler = nil
                 Task { @MainActor in
                     if !self.downloadIsCancelled {
                         self.resetDownloadState()
@@ -173,6 +189,7 @@ class DownloadManager: ObservableObject {
                 }
             }
             downloadProcess.standardError = progressPipe
+            downloadProcess.standardOutput = outputPipe
             downloadProcess.executableURL = URL(fileURLWithPath: pathToYleDl)
             downloadProcess.arguments = ["--ffmpeg", pathToFfmpeg, "--ffprobe", pathToFfprobe, "--destdir", downloadLocation, sourceUrl]
             do {
