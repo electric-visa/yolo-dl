@@ -1,6 +1,6 @@
 //
 //  ContentView.swift
-//  YoloDL 0.06
+//  YoloDL 0.07
 //
 //  Created on 5.3.2026.
 //  Last updated on 8.3.2026.
@@ -10,7 +10,7 @@ import SwiftUI
 
 struct ContentView: View {
     
-    let appVersion = "0.06"
+    let appVersion = "0.07"
     
     @StateObject private var manager = DownloadManager()
     
