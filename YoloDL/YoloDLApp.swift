@@ -9,9 +9,18 @@ import SwiftUI
 
 @main
 struct YoloDLApp: App {
+    @StateObject private var manager = DownloadManager()
+    
     var body: some Scene {
         WindowGroup {
             ContentView()
+                .environmentObject(manager)
         }
+        #if DEBUG
+        Window("Debug Window", id: "debug") {
+            DebugWindow()
+                .environmentObject(manager)
+        }
+        #endif
     }
 }

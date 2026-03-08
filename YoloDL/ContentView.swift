@@ -12,7 +12,7 @@ struct ContentView: View {
     
     let appVersion = "0.07"
     
-    @StateObject private var manager = DownloadManager()
+    @EnvironmentObject private var manager: DownloadManager
     
     // Variables related to the download process and the progress bar logic & animations.
     @State private var shimmerOffset: CGFloat = -1.0
@@ -101,16 +101,6 @@ struct ContentView: View {
             
             
             Text(downloadLocation.isEmpty ? "No folder selected" : "Download location: \(downloadLocation)")
-            
-            // Debug functions
-            #if DEBUG
-            Button("Simulate Download") {
-                manager.simulateDownload()
-            }
-            Button("Simulate Metadata Failure") {
-                manager.simulateMetadataFailure()
-            }
-            #endif
             
             Button(manager.downloadIsActive ? "Stop" : "Download") {
                 if manager.downloadIsActive {
