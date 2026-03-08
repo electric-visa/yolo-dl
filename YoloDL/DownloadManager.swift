@@ -223,6 +223,7 @@ class DownloadManager: ObservableObject {
             DispatchQueue.main.async {
                 if self.downloadProgress < 1.0 {
                     self.downloadProgress += 0.01
+                    self.logger?.appendLog("Simulated download progress: \(self.downloadProgress)", from: .stdout)
                 } else {
                     self.downloadProgress = 1.0
                     self.downloadIsActive = false

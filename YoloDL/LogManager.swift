@@ -10,7 +10,7 @@ import Combine
 
 // Struct to handle log parsing.
 
-struct LogEntry {
+struct LogEntry: Identifiable {
     
     enum LogSource {
         case stdout
@@ -20,6 +20,7 @@ struct LogEntry {
     var text: String
     var timestamp: Date = .now
     var source: LogSource
+    var id = UUID()
 }
 
 // LogManager class
