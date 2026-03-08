@@ -41,6 +41,12 @@ struct DebugWindow: View {
                 Divider()
                     .frame(height: 16)
                 Text("\(logManager.logEntries.count) entries in log")
+                Divider()
+                    .frame(height: 16)
+                Button("Copy Log") {
+                    NSPasteboard.general.clearContents()
+                    NSPasteboard.general.setString(logManager.logEntries.map(\.text).joined(separator: "\n"), forType: .string)
+                }
             }
             .padding()
         }
