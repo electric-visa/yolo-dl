@@ -1,6 +1,6 @@
 //
 //  ContentView.swift
-//  YoloDL 0.08
+//  YoloDL 0.09
 //
 //  Created on 5.3.2026.
 //  Last updated on 8.3.2026.
@@ -10,7 +10,7 @@ import SwiftUI
 
 struct ContentView: View {
     
-    let appVersion = "0.08"
+    let appVersion = "0.09"
     
     // Open debug window on startup.
     @Environment(\.openWindow) var openWindow
