@@ -21,11 +21,16 @@ struct YoloDLApp: App {
                     downloadManager.logger = logManager
                 }
         }
+        Window("Log Window", id: "logWindow") {
+            LogWindow()
+                .environmentObject(logManager)
+        }
         #if DEBUG
         Window("Debug Window", id: "debug") {
             DebugWindow()
                 .environmentObject(downloadManager)
-                .environmentObject(logManager)
+                // COMMENTED OUT, MAYBE TO BE USED LATER.
+                // .environmentObject(logManager)
         }
         #endif
     }

@@ -7,7 +7,7 @@
 	objects = {
 
 /* Begin PBXFileReference section */
-		5C790CEB2F599DB90049E87A /* YoloDL.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = YoloDL.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		5C790CEB2F599DB90049E87A /* YoloDL.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; name = YoloDL.app; path = /Users/visa/Development/YoloDL/build/Debug/YoloDL.app; sourceTree = "<absolute>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -33,16 +33,7 @@
 			isa = PBXGroup;
 			children = (
 				5C790CED2F599DB90049E87A /* YoloDL */,
-				5C790CEC2F599DB90049E87A /* Products */,
 			);
-			sourceTree = "<group>";
-		};
-		5C790CEC2F599DB90049E87A /* Products */ = {
-			isa = PBXGroup;
-			children = (
-				5C790CEB2F599DB90049E87A /* YoloDL.app */,
-			);
-			name = Products;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -95,7 +86,7 @@
 			mainGroup = 5C790CE22F599DB90049E87A;
 			minimizedProjectReferenceProxies = 1;
 			preferredProjectObjectVersion = 77;
-			productRefGroup = 5C790CEC2F599DB90049E87A /* Products */;
+			productRefGroup = 5C790CE22F599DB90049E87A;
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
