@@ -8,39 +8,6 @@
 import Foundation
 import Combine
 
-struct EpisodeMetadata: Codable {
-    let duration_seconds: Int
-}
-
-enum AppState {
-    case ready
-    case preparing
-    case fetchingMetadata
-    case downloading
-    case finished
-    case cancelled
-    case error
-    
-    var statusText: String {
-        switch self {
-        case .ready: return "Ready"
-        case .preparing: return "Preparing download"
-        case .fetchingMetadata: return "Fetching metadata"
-        case .downloading: return "Downloading"
-        case .finished: return "Finished"
-        case .cancelled: return "Cancelled"
-        case .error: return "An error occurred"
-        }
-    }
-}
-
-enum DownloadError: Identifiable {
-    case emptyURL
-    case noFolderSelected
-    case totalDurationIsZero
-    
-    var id: String { String(describing: self) }
-}
 
 class DownloadManager: ObservableObject {
     
@@ -53,6 +20,9 @@ class DownloadManager: ObservableObject {
     let pathToYleDl: String = "/opt/homebrew/bin/yle-dl"
     let pathToFfmpeg: String = "/opt/homebrew/bin/ffmpeg"
     let pathToFfprobe: String = "/opt/homebrew/bin/ffprobe"
+    
+    // Wiring ErrorParser to DownloadManager for parsing stderr outputs.
+    let errorParser = ErrorParser()
     
     // Variables to be passed to yle-dl
     @Published var sourceUrl: String = ""
@@ -67,7 +37,10 @@ class DownloadManager: ObservableObject {
     let progressBarFinishedSpeed: Double = 2.5
     
     // Default error state
-    @Published var currentError: DownloadError? = nil
+    @Published var inputValidationError: InputValidationError? = nil
+    
+    // Variable for the alert message when errorParser catches something from .stderr
+    @Published var downloadToolError: AlertMessage?
     
     // Default AppState
     @Published var appState: AppState = .ready
@@ -86,10 +59,8 @@ class DownloadManager: ObservableObject {
     
     // Function to reset the download state
     @MainActor func resetDownloadState() {
-        DispatchQueue.main.async {
-            self.downloadProgress = 1.0
-            self.downloadIsActive = false
-        }
+            downloadProgress = 1.0
+            downloadIsActive = false
         DispatchQueue.main.asyncAfter(deadline: .now() + self.progressBarFinishedSpeed) {
             self.downloadIsFinished = true
         }
@@ -101,19 +72,29 @@ class DownloadManager: ObservableObject {
         metadataParsing.executableURL = URL(fileURLWithPath: pathToYleDl)
         metadataParsing.arguments = ["--ffmpeg", pathToFfmpeg, "--ffprobe", pathToFfprobe, "--showmetadata", sourceUrl]
         
-        let pipe = Pipe()
-        metadataParsing.standardOutput = pipe
+        let stderrPipe = Pipe()
+        metadataParsing.standardError = stderrPipe
+        
+        let stdoutPipe = Pipe()
+        metadataParsing.standardOutput = stdoutPipe
         
         do {
             try
             metadataParsing.run()
             metadataParsing.waitUntilExit()
+            let rawErrorData = stderrPipe.fileHandleForReading.readDataToEndOfFile()
+            let rawErrorString = String(data: rawErrorData, encoding: .utf8) ?? ""
+            logger?.appendLog(rawErrorString, from: .stderr)
+            if let errorMessage = errorParser.parseErrors(rawErrorString) {
+                appState = .error
+                downloadToolError = AlertMessage(text: errorMessage)
+            }
         } catch {
             print(error)
             return 0
         }
         
-        let parsedMetaData = pipe.fileHandleForReading.readDataToEndOfFile()
+        let parsedMetaData = stdoutPipe.fileHandleForReading.readDataToEndOfFile()
         let episodes = try? JSONDecoder().decode([EpisodeMetadata].self, from: parsedMetaData)
         let totalSeconds = episodes?.reduce(0) { $0 + $1.duration_seconds} ?? 0
         return totalSeconds
@@ -135,10 +116,13 @@ class DownloadManager: ObservableObject {
             downloadIsFinished = false
             logger?.clearLog()
             
-            // Call metadata parsing and guard for total duration of 0.
+            // Call metadata parsing and guard for total duration of 0
+            // unless there are other errors.
             appState = .fetchingMetadata
             totalDuration = await fetchMetadata()
             print(totalDuration)
+            
+            if appState == .error { return }
             
             guard totalDuration != 0 else { handleError(.totalDurationIsZero); return }
             downloadIsActive = true
@@ -149,12 +133,16 @@ class DownloadManager: ObservableObject {
             activeDownload = downloadProcess
             
             // Declare the pipe for measuring progress.
-            let progressPipe = Pipe()
+            let stderrPipe = Pipe()
             
-            progressPipe.fileHandleForReading.readabilityHandler = { handle in
+            stderrPipe.fileHandleForReading.readabilityHandler = { handle in
                 let output = String(data: handle.availableData, encoding: .utf8) ?? ""
                 DispatchQueue.main.async {
                     self.logger?.appendLog(output, from: .stderr)
+                    if let friendlyMessage = self.errorParser.parseErrors(output) {
+                        self.appState = .error
+                        self.downloadToolError = AlertMessage(text: friendlyMessage)
+                    }
                 }
                 for line in output.components(separatedBy: "\r") {
                     guard line.contains("time="), !line.contains("time=N/A"),
@@ -184,7 +172,7 @@ class DownloadManager: ObservableObject {
             }
             
             downloadProcess.terminationHandler = { _ in
-                progressPipe.fileHandleForReading.readabilityHandler = nil
+                stderrPipe.fileHandleForReading.readabilityHandler = nil
                 outputPipe.fileHandleForReading.readabilityHandler = nil
                 Task { @MainActor in
                     if !self.downloadIsCancelled {
@@ -193,7 +181,7 @@ class DownloadManager: ObservableObject {
                     }
                 }
             }
-            downloadProcess.standardError = progressPipe
+            downloadProcess.standardError = stderrPipe
             downloadProcess.standardOutput = outputPipe
             downloadProcess.executableURL = URL(fileURLWithPath: pathToYleDl)
             downloadProcess.arguments = ["--ffmpeg", pathToFfmpeg, "--ffprobe", pathToFfprobe, "--destdir", downloadLocation, sourceUrl]
@@ -203,9 +191,9 @@ class DownloadManager: ObservableObject {
         }
     }
     
-    func handleError(_ error: DownloadError) {
+    func handleError(_ error: InputValidationError) {
         appState = .error
-        currentError = error
+        inputValidationError = error
     }
     
     // Function to cancel an ongoing download

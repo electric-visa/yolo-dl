@@ -7,7 +7,7 @@
 	objects = {
 
 /* Begin PBXFileReference section */
-		5C790CEB2F599DB90049E87A /* YoloDL.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; name = YoloDL.app; path = /Users/visa/Development/YoloDL/build/Debug/YoloDL.app; sourceTree = "<absolute>"; };
+		5C8038A22F5ED511005B1C05 /* YoloDL.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = YoloDL.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -33,6 +33,7 @@
 			isa = PBXGroup;
 			children = (
 				5C790CED2F599DB90049E87A /* YoloDL */,
+				5C8038A22F5ED511005B1C05 /* YoloDL.app */,
 			);
 			sourceTree = "<group>";
 		};
@@ -58,7 +59,7 @@
 			packageProductDependencies = (
 			);
 			productName = YoloDL;
-			productReference = 5C790CEB2F599DB90049E87A /* YoloDL.app */;
+			productReference = 5C8038A22F5ED511005B1C05 /* YoloDL.app */;
 			productType = "com.apple.product-type.application";
 		};
 /* End PBXNativeTarget section */

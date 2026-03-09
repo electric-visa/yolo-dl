@@ -15,7 +15,7 @@ struct ContentView: View {
     // Open debug window on startup.
     @Environment(\.openWindow) var openWindow
     
-    @EnvironmentObject private var manager: DownloadManager
+    @EnvironmentObject private var downloader: DownloadManager
     
     // Variables related to the download process and the progress bar logic & animations.
     @State private var shimmerOffset: CGFloat = -1.0
@@ -23,7 +23,7 @@ struct ContentView: View {
     let progressBarFinishedSpeed: Double = 2.5
     
     // Default error state
-    @State private var currentError: DownloadError? = nil
+    @State private var currentError: InputValidationError? = nil
     
     // Storing previous downloadLocation in AppStorage
     @AppStorage("lastFolder") private var downloadLocation: String = ""
@@ -49,11 +49,11 @@ struct ContentView: View {
             
             HStack(alignment: .center, spacing: 12) {
                 Text("YoloDL \(appVersion)")
-                Text("\(manager.appState.statusText)")
+                Text("\(downloader.appState.statusText)")
             }
             
-            TextField("Enter source URL", text: $manager.sourceUrl)
-                .disabled(manager.downloadIsActive)
+            TextField("Enter source URL", text: $downloader.sourceUrl)
+                .disabled(downloader.downloadIsActive)
             
             GeometryReader { geometry in
                 ZStack(alignment: .leading) {
@@ -68,7 +68,7 @@ struct ContentView: View {
                                 endPoint: .trailing
                             )
                         )
-                        .frame(width: geometry.size.width * manager.downloadProgress, height: 30)
+                        .frame(width: geometry.size.width * downloader.downloadProgress, height: 30)
                     Rectangle()
                         .fill(
                             LinearGradient(
@@ -77,8 +77,8 @@ struct ContentView: View {
                                 endPoint: .trailing
                             )
                         )
-                        .frame(width: geometry.size.width * manager.downloadProgress, height: 30)
-                        .opacity(manager.downloadIsFinished ? 1.0 : 0.0)
+                        .frame(width: geometry.size.width * downloader.downloadProgress, height: 30)
+                        .opacity(downloader.downloadIsFinished ? 1.0 : 0.0)
                     Rectangle()
                         .fill (
                             LinearGradient(
@@ -87,12 +87,12 @@ struct ContentView: View {
                                 endPoint: UnitPoint(x: shimmerOffset + 0.5, y: 0)
                             )
                         )
-                        .frame(width: geometry.size.width * manager.downloadProgress, height: 30)
+                        .frame(width: geometry.size.width * downloader.downloadProgress, height: 30)
                         .blendMode(.screen)
-                        .opacity(manager.downloadIsActive ? 1.0 : 0.0)
+                        .opacity(downloader.downloadIsActive ? 1.0 : 0.0)
                 }
-                .animation(.easeInOut(duration: progressBarAnimationSpeed), value: manager.downloadProgress)
-                .animation(nil, value: manager.downloadIsFinished)
+                .animation(.easeInOut(duration: progressBarAnimationSpeed), value: downloader.downloadProgress)
+                .animation(nil, value: downloader.downloadIsFinished)
                 .clipped()
             }
             .frame(height: 30)
@@ -105,18 +105,18 @@ struct ContentView: View {
             
             Text(downloadLocation.isEmpty ? "No folder selected" : "Download location: \(downloadLocation)")
             
-            Button(manager.downloadIsActive ? "Stop" : "Download") {
-                if manager.downloadIsActive {
-                    manager.cancelDownload()
+            Button(downloader.downloadIsActive ? "Stop" : "Download") {
+                if downloader.downloadIsActive {
+                    downloader.cancelDownload()
                 } else {
-                    manager.downloadFiles(downloadLocation: downloadLocation)
+                    downloader.downloadFiles(downloadLocation: downloadLocation)
                 }
             }
             
             Button("Choose folder") {
                 chooseFolder()
             }
-            .disabled(manager.downloadIsActive)
+            .disabled(downloader.downloadIsActive)
         }
         
         // Show debug window on startup.
@@ -126,7 +126,7 @@ struct ContentView: View {
             #endif
         }
         
-        .alert(item: $manager.currentError) { error in
+        .alert(item: $downloader.inputValidationError) { error in
             switch error {
             case .emptyURL:
                 return Alert(title: Text("No download URL"), message: Text("Please input a valid download URL."))
@@ -135,6 +135,9 @@ struct ContentView: View {
             case .totalDurationIsZero:
                 return Alert(title: Text("Error while fetching metadata"),message: Text("Metadata shows the total video duration as 0 seconds. Try again or with a different URL."))
             }
+        }
+        .alert(item: $downloader.downloadToolError) { error in
+            Alert(title: Text("Download Error"), message: Text(error.text))
         }
         .padding()
     }
