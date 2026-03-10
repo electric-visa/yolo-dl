@@ -6,5 +6,9 @@
 //
 
 struct EpisodeMetadata: Codable {
-    let duration_seconds: Int
+    let durationSeconds: Int
+    
+    enum CodingKeys: String, CodingKey {
+        case durationSeconds = "duration_seconds"
+    }
 }

@@ -93,7 +93,7 @@ import Combine
                 
                 let parsedMetaData = stdoutPipe.fileHandleForReading.readDataToEndOfFile()
                 let episodes = try? JSONDecoder().decode([EpisodeMetadata].self, from: parsedMetaData)
-                let totalSeconds = episodes?.reduce(0) { $0 + $1.duration_seconds } ?? 0
+                let totalSeconds = episodes?.reduce(0) { $0 + $1.durationSeconds } ?? 0
                 
                 continuation.resume(returning: totalSeconds)
             }
