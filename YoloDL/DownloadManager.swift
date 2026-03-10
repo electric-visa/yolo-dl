@@ -69,7 +69,7 @@ import Combine
     
     // Function to fetch metadata.
     func fetchMetadata() async -> Int {
-
+        
         let metadataParsing = Process()
         metadataParsing.executableURL = URL(fileURLWithPath: pathToYleDl)
         metadataParsing.arguments = ["--ffmpeg", pathToFfmpeg, "--ffprobe", pathToFfprobe, "--showmetadata", sourceUrl]
@@ -104,7 +104,11 @@ import Combine
             do {
                 try metadataParsing.run()
             } catch {
-                print(error)
+                Task { @MainActor in
+                    self.logger?.appendLog(error.localizedDescription, from: .stderr)
+                    self.appState = .error
+                    self.downloadToolError = AlertMessage(text: "Metadata error. Details: \(error.localizedDescription)")
+                }
                 continuation.resume(returning: 0)
             }
         }
@@ -197,7 +201,11 @@ import Combine
             downloadProcess.arguments = ["--ffmpeg", pathToFfmpeg, "--ffprobe", pathToFfprobe, "--destdir", downloadLocation, sourceUrl]
             do {
                 try downloadProcess.run()
-            } catch { print(error) }
+            } catch {
+                self.logger?.appendLog(error.localizedDescription, from: .stderr)
+                appState = .error
+                self.downloadToolError = AlertMessage(text: "Failed to start download. Details: \(error.localizedDescription)")
+            }
         }
     }
     
