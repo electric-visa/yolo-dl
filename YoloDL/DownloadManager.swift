@@ -103,7 +103,7 @@ import Foundation
                 Task { @MainActor in
                     self.logger?.appendLog(error.localizedDescription, from: .stderr)
                     self.appState = .error
-                    self.alertToShow = AlertMessage(title: "Metadata error", text: "Metadata error. Details: \(error.localizedDescription)")
+                    self.alertToShow = AlertMessage(title: "Metadata error", text: "Metadata error Details: \(error.localizedDescription)")
                 }
                 continuation.resume(returning: 0)
             }

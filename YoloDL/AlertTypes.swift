@@ -17,11 +17,11 @@ enum InputValidationError: Identifiable {
     var title: String {
         switch self {
         case .emptyURL:
-            return "No URL provided."
+            return "No URL provided"
         case .noFolderSelected:
-            return "No folder selected."
+            return "No folder selected"
         case .totalDurationIsZero:
-            return "Metadata error."
+            return "Content unavailable"
         }
     }
     
@@ -32,7 +32,7 @@ enum InputValidationError: Identifiable {
         case .noFolderSelected:
             return "No download folder is currently selected. Please use the Folder button to select one."
         case .totalDurationIsZero:
-            return "The metadata shows the total duration as zero. Cannot initiate download."
+            return "The target file's length was measured to be zero. The file might not be available. Please check the URL and try again."
         }
     }
 }

@@ -1,6 +1,6 @@
 # YoloDL — Design Plan & Progress
 
-**Last updated:** 10 March 2026 — v0.09 (Phase 4 complete — code hygiene tasks 37, 38, 39, 40, 41, 50 complete — simulation bugs fixed — Task 49 pending — Phase 5 next)
+**Last updated:** 10 March 2026 — v0.09 (Phase 4 complete — code hygiene tasks 37, 38, 39, 40, 41, 50 complete — simulation bugs fixed — Task 49 complete — Phase 5 next)
 
 ---
 
@@ -177,7 +177,7 @@ Refactoring to keep the codebase manageable as features are added.
 | ~~39~~ | ~~Extract Download/Stop button action into a `handleDownloadButton()` method in `ContentView` — button logic should not live inline in `body`~~ | ~~Frontend~~ | ~~Low~~ |
 | ~~40~~ | ~~Change `downloadActiveColors` and `downloadFinishedColors` in `ContentView` from computed `var` to `let` constants — they never change and currently allocate a new array on every render~~ | ~~Frontend~~ | ~~Low~~ |
 | ~~41~~ | ~~Remove duplicate `progressBarFinishedSpeed` constant from `ContentView` — the authoritative value lives in `DownloadManager`; the `ContentView` copy appears unused~~ | ~~Both~~ | ~~Low~~ |
-| 49 | Migrate `DownloadManager` and `LogManager` from `ObservableObject` / `@Published` / `@StateObject` / `@EnvironmentObject` to the `@Observable` macro + `@MainActor` — the modern replacement available since macOS 14, which is our minimum target | Backend | High |
+| ~~49~~ | ~~Migrate `DownloadManager` and `LogManager` from `ObservableObject` / `@Published` / `@StateObject` / `@EnvironmentObject` to the `@Observable` macro + `@MainActor` — the modern replacement available since macOS 14, which is our minimum target~~ | ~~Backend~~ | ~~High~~ | ✅ Done — `@Observable` + `@MainActor` on both classes; `import Combine` removed; `@Published` removed from all properties; `@StateObject` → `@State`; `.environmentObject()` → `.environment()`; `@EnvironmentObject` → `@Environment(Type.self)`; `@Bindable` local var added in `ContentView` body for `$downloader` bindings |
 | ~~50~~ | ~~Rename `duration_seconds` to `durationSeconds` in `EpisodeMetadata` and add a `CodingKeys` enum to map it to the JSON key — Swift naming conventions require camelCase~~ | ~~Backend~~ | ~~Low~~ |
 
 ### New Features — Backend
@@ -267,4 +267,4 @@ These are small, self-contained fixes from the v0.09 code review (9 March 2026).
 | ~~41~~ | ~~Remove duplicate `progressBarFinishedSpeed` from `ContentView`~~ | ~~Both~~ | ~~Before Phase 5~~ |
 | ~~50~~ | ~~Rename `duration_seconds` → `durationSeconds` + `CodingKeys`~~ | ~~Backend~~ | ~~Before Phase 5~~ |
 
-**Task 49 — `@Observable` migration** is listed here for visibility, but it is a larger architectural change that touches every file. Recommended timing: after Phase 4 is complete and before Phase 5 begins, as a dedicated refactor session.
+~~**Task 49 — `@Observable` migration** is listed here for visibility, but it is a larger architectural change that touches every file. Recommended timing: after Phase 4 is complete and before Phase 5 begins, as a dedicated refactor session.~~
