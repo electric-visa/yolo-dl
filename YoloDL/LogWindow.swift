@@ -10,49 +10,54 @@ import SwiftUI
 struct LogWindow: View {
     
     @EnvironmentObject var logManager: LogManager
-
+    
     var body: some View {
         VStack(alignment: .center, spacing: 12) {
             
             ScrollViewReader { proxy in
-                ScrollView {
-                    Text(logManager.logEntries.map { $0.text }.joined(separator: "\n"))
-                        .textSelection(.enabled)
-                        .frame(maxWidth: .infinity, alignment: .leading)
-                        .padding()
-                        .id("logText")
+                
+                ScrollView { LazyVStack(spacing: 1) {
+                    ForEach(logManager.logEntries) { entry in
+                        Text(entry.text)
+                            .id(entry.id)
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                    }
+                }
+                .textSelection(.enabled)
+                .padding()
+                }
+                .onChange(of: logManager.logEntries.count) {
+                    proxy.scrollTo(logManager.logEntries.last?.id, anchor: .bottom)
                 }
                 .frame(minHeight: 300, maxHeight: .infinity)
-                .onChange(of: logManager.logEntries.count) {
-                    proxy.scrollTo("logText", anchor: .bottom)
+                
+                HStack {
+                    Text("Log output")
+                    
+                    Divider()
+                        .frame(height: 16)
+                    
+                    Text("\(logManager.logEntries.count) entries in log")
+                    
+                    Divider()
+                        .frame(height: 16)
+                    
+                    Button("Copy Log") {
+                        NSPasteboard.general.clearContents()
+                        NSPasteboard.general.setString(logManager.logEntries.map(\.text).joined(separator: "\n"), forType: .string)
+                    }
+                    
+                    Divider()
+                        .frame(height: 16)
+                    
+                    Button("Clear Log") {
+                        logManager.clearLog()
+                    }
                 }
+                .padding(.horizontal)
             }
-            HStack {
-                Text("Log output")
-                
-                Divider()
-                    .frame(height: 16)
-                
-                Text("\(logManager.logEntries.count) entries in log")
-                
-                Divider()
-                    .frame(height: 16)
-                
-                Button("Copy Log") {
-                    NSPasteboard.general.clearContents()
-                    NSPasteboard.general.setString(logManager.logEntries.map(\.text).joined(separator: "\n"), forType: .string)
-                }
-                
-                Divider()
-                    .frame(height: 16)
-                
-                Button("Clear Log") {
-                    logManager.clearLog()
-                }
-            }
-            .padding()
+            .padding(.vertical, 2)
         }
-        .padding()
+        
     }
-    
 }
