@@ -3,7 +3,7 @@
 //  YoloDL 0.09
 //
 //  Created on 5.3.2026.
-//  Last updated on 8.3.2026.
+//  Last updated on 10.3.2026.
 //
 
 import SwiftUI
@@ -45,6 +45,14 @@ struct ContentView: View {
             if let url = folderSelector.url {
                 downloadLocation = url.path
             }
+        }
+    }
+    
+    func handleDownloadButton() {
+        if downloader.downloadIsActive {
+            downloader.cancelDownload()
+        } else {
+            downloader.downloadFiles(downloadLocation: downloadLocation)
         }
     }
     
@@ -113,11 +121,7 @@ struct ContentView: View {
             Text(downloadLocation.isEmpty ? "No folder selected" : "Download location: \(downloadLocation)")
             
             Button(downloader.downloadIsActive ? "Stop" : "Download") {
-                if downloader.downloadIsActive {
-                    downloader.cancelDownload()
-                } else {
-                    downloader.downloadFiles(downloadLocation: downloadLocation)
-                }
+                handleDownloadButton()
             }
             
             Button("Choose folder") {
