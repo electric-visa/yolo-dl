@@ -20,7 +20,6 @@ struct ContentView: View {
     // Variables related to the download process and the progress bar logic & animations.
     @State private var shimmerOffset: CGFloat = -1.0
     let progressBarAnimationSpeed: Double = 0.5
-    let progressBarFinishedSpeed: Double = 2.5
     
     // Error state handling
     @State private var currentError: InputValidationError? = nil
@@ -56,8 +55,8 @@ struct ContentView: View {
         }
     }
     
-    var downloadActiveColors: [Color] { [.blue, .cyan] }
-    var downloadFinishedColors: [Color] { [.green, .mint] }
+    let downloadActiveColors: [Color] = [.blue, .cyan]
+    let downloadFinishedColors:  [Color] = [.green, .mint]
     
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
