@@ -36,11 +36,8 @@ import Combine
     @Published private(set) var downloadProgress: Double = 0
     let progressBarFinishedSpeed: Double = 2.5
     
-    // Default error state
-    @Published var inputValidationError: InputValidationError? = nil
-    
-    // Variable for the alert message when errorParser catches something from .stderr
-    @Published var downloadToolError: AlertMessage?
+    // Initialize alert message
+    @Published var alertToShow: AlertMessage? = nil
     
     // Default AppState
     @Published var appState: AppState = .ready
@@ -90,7 +87,7 @@ import Combine
                     self.logger?.appendLog(rawErrorString, from: .stderr)
                     if let errorMessage = self.errorParser.parseErrors(rawErrorString) {
                         self.appState = .error
-                        self.downloadToolError = AlertMessage(text: errorMessage)
+                        self.alertToShow = AlertMessage(title: "Metadata error", text: errorMessage)
                     }
                 }
                 
@@ -107,7 +104,7 @@ import Combine
                 Task { @MainActor in
                     self.logger?.appendLog(error.localizedDescription, from: .stderr)
                     self.appState = .error
-                    self.downloadToolError = AlertMessage(text: "Metadata error. Details: \(error.localizedDescription)")
+                    self.alertToShow = AlertMessage(title: "Metadata error", text: "Metadata error. Details: \(error.localizedDescription)")
                 }
                 continuation.resume(returning: 0)
             }
@@ -155,7 +152,7 @@ import Combine
                     self.logger?.appendLog(output, from: .stderr)
                     if let friendlyMessage = self.errorParser.parseErrors(output) {
                         self.appState = .error
-                        self.downloadToolError = AlertMessage(text: friendlyMessage)
+                        self.alertToShow = AlertMessage(title: "Download Error", text: friendlyMessage)
                     }
                 }
                 for line in output.components(separatedBy: "\r") {
@@ -204,14 +201,14 @@ import Combine
             } catch {
                 self.logger?.appendLog(error.localizedDescription, from: .stderr)
                 appState = .error
-                self.downloadToolError = AlertMessage(text: "Failed to start download. Details: \(error.localizedDescription)")
+                self.alertToShow = AlertMessage(title: "Download error", text: "Failed to start download. Details: \(error.localizedDescription)")
             }
         }
     }
     
     func handleError(_ error: InputValidationError) {
         appState = .error
-        inputValidationError = error
+        alertToShow = AlertMessage(title: error.title, text: error.message)
     }
     
     // Function to cancel an ongoing download

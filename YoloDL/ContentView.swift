@@ -22,8 +22,15 @@ struct ContentView: View {
     let progressBarAnimationSpeed: Double = 0.5
     let progressBarFinishedSpeed: Double = 2.5
     
-    // Default error state
+    // Error state handling
     @State private var currentError: InputValidationError? = nil
+    
+    private var showAlert: Binding<Bool> {
+        Binding(
+            get: { downloader.alertToShow != nil },
+            set: { if !$0 { downloader.alertToShow = nil } }
+        )
+    }
     
     // Storing previous downloadLocation in AppStorage
     @AppStorage("lastFolder") private var downloadLocation: String = ""
@@ -121,23 +128,26 @@ struct ContentView: View {
         
         // Show debug window on startup.
         .onAppear {
-            #if DEBUG
+#if DEBUG
             openWindow(id:"debug")
-            #endif
+#endif
         }
         
-        .alert(item: $downloader.inputValidationError) { error in
-            switch error {
-            case .emptyURL:
-                return Alert(title: Text("No download URL"), message: Text("Please input a valid download URL."))
-            case .noFolderSelected:
-                return Alert(title: Text("No destination folder"), message: Text("Please choose a destination folder."))
-            case .totalDurationIsZero:
-                return Alert(title: Text("Error while fetching metadata"),message: Text("Metadata shows the total video duration as 0 seconds. Try again or with a different URL."))
-            }
+        .alert(
+            downloader.alertToShow?.title ?? "Error",
+            isPresented: showAlert
+        ) {
+            
+        } message: {
+            Text(downloader.alertToShow?.text ?? "")
         }
-        .alert(item: $downloader.downloadToolError) { error in
-            Alert(title: Text("Download Error"), message: Text(error.text))
+        
+        .alert (
+            "Download error",
+            isPresented: showAlert
+        ) {
+        } message: {
+            Text(downloader.alertToShow?.text ?? "")
         }
         .padding()
     }
