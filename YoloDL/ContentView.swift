@@ -145,14 +145,6 @@ struct ContentView: View {
         } message: {
             Text(downloader.alertToShow?.text ?? "")
         }
-        
-        .alert (
-            "Download error",
-            isPresented: showAlert
-        ) {
-        } message: {
-            Text(downloader.alertToShow?.text ?? "")
-        }
         .padding()
     }
 }
