@@ -82,6 +82,7 @@ struct ContentView: View {
                                 endPoint: .trailing
                             )
                         )
+                        .opacity(downloader.downloadProgress > 0 ? 1.0 : 0.0)
                         .frame(width: geometry.size.width * downloader.downloadProgress, height: 30)
                     Rectangle()
                         .fill(

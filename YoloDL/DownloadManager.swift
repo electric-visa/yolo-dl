@@ -213,7 +213,7 @@ import Combine
     
     // Function to cancel an ongoing download
     // with additional actions during a debug simulation run.
-    func cancelDownload () {
+    func cancelDownload() {
         downloadIsCancelled = true
         activeDownload?.terminate()
         activeDownload = nil
@@ -227,7 +227,7 @@ import Combine
     }
     
     // Function to reset download parameters for a simulated run
-    // called from DebugWindow
+    // called from DownloadManager+Debug
     func resetForSimulation() {
         downloadProgress = 0.0
         downloadIsActive = true

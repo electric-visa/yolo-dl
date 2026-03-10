@@ -1,6 +1,6 @@
 # YoloDL — Design Plan & Progress
 
-**Last updated:** 10 March 2026 — v0.09 (Phase 4 in progress — Tasks 16, 17, 27, 35, 42, 43, 44, 45, 46 complete)
+**Last updated:** 10 March 2026 — v0.09 (Phase 4 complete — code hygiene tasks 37, 38, 39, 40, 41, 50 complete — Task 49 pending — Phase 5 next)
 
 ---
 
@@ -172,13 +172,13 @@ Refactoring to keep the codebase manageable as features are added.
 | 11 | Group related `@State` variables with clear comments | Frontend | Low |
 | ~~12~~ | ~~Move `EpisodeMetadata` and `DownloadError` into separate files as app grows~~ | ~~Both~~ | ~~Low~~ | ⚠️ Partially done — `EpisodeMetadata` is in its own file. `DownloadError` was never created; error handling uses `InputValidationError` enum (converts to `AlertMessage` via `handleError()`) and unified `AlertMessage` struct with `title` + `text` |
 | ~~35~~ | ~~Move debug functions (`simulateDownload`, `simulateMetadataFailure`) from `DownloadManager` to `DebugWindow`~~ | ~~Both~~ | ~~Low~~ | ✅ Done — `#if DEBUG` extension in `DebugWindow.swift`, helper methods `resetForSimulation()` and `setDownloadProgress(to:)` in `DownloadManager`, timer leak fix |
-| 37 | Move `AlertMessage` to its own file (`AlertMessage.swift`) — currently shares `AlertTypes.swift` with `InputValidationError` | Frontend | Low |
-| 38 | Move `#if DEBUG` `DownloadManager` extension to `DownloadManager+Debug.swift` — debug extensions on a type should not live in another type's file | Backend | Low |
-| 39 | Extract Download/Stop button action into a `handleDownloadButton()` method in `ContentView` — button logic should not live inline in `body` | Frontend | Low |
-| 40 | Change `downloadActiveColors` and `downloadFinishedColors` in `ContentView` from computed `var` to `let` constants — they never change and currently allocate a new array on every render | Frontend | Low |
-| 41 | Remove duplicate `progressBarFinishedSpeed` constant from `ContentView` — the authoritative value lives in `DownloadManager`; the `ContentView` copy appears unused | Both | Low |
+| ~~37~~ | ~~Move `AlertMessage` to its own file (`AlertMessage.swift`) — currently shares `AlertTypes.swift` with `InputValidationError`~~ | ~~Frontend~~ | ~~Low~~ |
+| ~~38~~ | ~~Move `#if DEBUG` `DownloadManager` extension to `DownloadManager+Debug.swift` — debug extensions on a type should not live in another type's file~~ | ~~Backend~~ | ~~Low~~ |
+| ~~39~~ | ~~Extract Download/Stop button action into a `handleDownloadButton()` method in `ContentView` — button logic should not live inline in `body`~~ | ~~Frontend~~ | ~~Low~~ |
+| ~~40~~ | ~~Change `downloadActiveColors` and `downloadFinishedColors` in `ContentView` from computed `var` to `let` constants — they never change and currently allocate a new array on every render~~ | ~~Frontend~~ | ~~Low~~ |
+| ~~41~~ | ~~Remove duplicate `progressBarFinishedSpeed` constant from `ContentView` — the authoritative value lives in `DownloadManager`; the `ContentView` copy appears unused~~ | ~~Both~~ | ~~Low~~ |
 | 49 | Migrate `DownloadManager` and `LogManager` from `ObservableObject` / `@Published` / `@StateObject` / `@EnvironmentObject` to the `@Observable` macro + `@MainActor` — the modern replacement available since macOS 14, which is our minimum target | Backend | High |
-| 50 | Rename `duration_seconds` to `durationSeconds` in `EpisodeMetadata` and add a `CodingKeys` enum to map it to the JSON key — Swift naming conventions require camelCase | Backend | Low |
+| ~~50~~ | ~~Rename `duration_seconds` to `durationSeconds` in `EpisodeMetadata` and add a `CodingKeys` enum to map it to the JSON key — Swift naming conventions require camelCase~~ | ~~Backend~~ | ~~Low~~ |
 
 ### New Features — Backend
 
@@ -254,17 +254,17 @@ Tasks 34, 22, 23, 24. Localization, update checker, bundling, DMG.
 
 ---
 
-### Code hygiene tasks (slot in between phases as convenient)
+### Code hygiene tasks ✅ Complete
 
-These are small, self-contained fixes from the v0.09 code review (9 March 2026). None are blockers, but they improve code quality and should be cleared before the codebase grows further.
+These are small, self-contained fixes from the v0.09 code review (9 March 2026). Completed before Phase 5.
 
 | # | Task | Area | Phase suggestion |
 |---|------|------|-----------------|
-| 37 | Move `AlertMessage` to its own file | Frontend | Before Phase 5 |
-| 38 | Move `#if DEBUG` extension to `DownloadManager+Debug.swift` | Backend | Before Phase 5 |
-| 39 | Extract `handleDownloadButton()` method in `ContentView` | Frontend | Before Phase 5 |
-| 40 | `downloadActiveColors` / `downloadFinishedColors`: `var` → `let` | Frontend | Before Phase 5 |
-| 41 | Remove duplicate `progressBarFinishedSpeed` from `ContentView` | Both | Before Phase 5 |
-| 50 | Rename `duration_seconds` → `durationSeconds` + `CodingKeys` | Backend | Before Phase 5 |
+| ~~37~~ | ~~Move `AlertMessage` to its own file~~ | ~~Frontend~~ | ~~Before Phase 5~~ |
+| ~~38~~ | ~~Move `#if DEBUG` extension to `DownloadManager+Debug.swift`~~ | ~~Backend~~ | ~~Before Phase 5~~ |
+| ~~39~~ | ~~Extract `handleDownloadButton()` method in `ContentView`~~ | ~~Frontend~~ | ~~Before Phase 5~~ |
+| ~~40~~ | ~~`downloadActiveColors` / `downloadFinishedColors`: `var` → `let`~~ | ~~Frontend~~ | ~~Before Phase 5~~ |
+| ~~41~~ | ~~Remove duplicate `progressBarFinishedSpeed` from `ContentView`~~ | ~~Both~~ | ~~Before Phase 5~~ |
+| ~~50~~ | ~~Rename `duration_seconds` → `durationSeconds` + `CodingKeys`~~ | ~~Backend~~ | ~~Before Phase 5~~ |
 
 **Task 49 — `@Observable` migration** is listed here for visibility, but it is a larger architectural change that touches every file. Recommended timing: after Phase 4 is complete and before Phase 5 begins, as a dedicated refactor session.

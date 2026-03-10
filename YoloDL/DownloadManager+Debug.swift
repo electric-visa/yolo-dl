@@ -19,9 +19,11 @@ extension DownloadManager {
         simulationTask = Task {
             while downloadProgress < 1.0 && !Task.isCancelled {
                 try? await Task.sleep(for: .milliseconds (80))
+                guard !Task.isCancelled else { break }
                 setDownloadProgress(to: downloadProgress + 0.01)
                 logger?.appendLog("Simulated download progress: \(downloadProgress)", from: .stdout)
             }
+            guard !Task.isCancelled else { return }
             resetDownloadState()
             try? await Task.sleep(for: .seconds(progressBarFinishedSpeed))
             appState = .finished
