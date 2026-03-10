@@ -37,11 +37,3 @@ enum InputValidationError: Identifiable {
     }
 }
 
-struct AlertMessage: Identifiable {
-    
-    let id = UUID()
-    let title: String
-    let text: String
-}
-
-

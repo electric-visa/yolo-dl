@@ -29,30 +29,3 @@ struct DebugWindow: View {
     }
 }
 
-#if DEBUG
-extension DownloadManager {
-    
-    // Function for a simulated download to test and/or debug the progress bar.
-    // Calls resetForSimulation() and resetDownloadState() from DownloadManager.
-    // The simulationTime variable is also stored in DownloadManager.
-    func simulateDownload() {
-        simulationTask?.cancel()
-        resetForSimulation()
-        simulationTask = Task {
-            while downloadProgress < 1.0 && !Task.isCancelled {
-                try? await Task.sleep(for: .milliseconds (80))
-                setDownloadProgress(to: downloadProgress + 0.01)
-                logger?.appendLog("Simulated download progress: \(downloadProgress)", from: .stdout)
-            }
-            resetDownloadState()
-            try? await Task.sleep(for: .seconds(progressBarFinishedSpeed))
-            appState = .finished
-        }
-    }
-    
-    // Function to simulate metadata failure
-    func simulateMetadataFailure() {
-        handleError(.totalDurationIsZero)
-    }
-}
-#endif
