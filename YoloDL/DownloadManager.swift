@@ -9,12 +9,12 @@ import Foundation
 import Combine
 
 
-class DownloadManager: ObservableObject {
+@MainActor class DownloadManager: ObservableObject {
     
-    #if DEBUG
+#if DEBUG
     // Timer variable for a simulation run.
-    var simulationTimer: Timer? = nil
-    #endif
+    var simulationTask: Task<Void, Never>? = nil
+#endif
     
     // Paths to binaries
     let pathToYleDl: String = "/opt/homebrew/bin/yle-dl"
@@ -58,16 +58,18 @@ class DownloadManager: ObservableObject {
     }
     
     // Function to reset the download state
-    @MainActor func resetDownloadState() {
-            downloadProgress = 1.0
-            downloadIsActive = false
-        DispatchQueue.main.asyncAfter(deadline: .now() + self.progressBarFinishedSpeed) {
+    func resetDownloadState() {
+        downloadProgress = 1.0
+        downloadIsActive = false
+        Task {
+            try? await Task.sleep(for: .seconds(progressBarFinishedSpeed))
             self.downloadIsFinished = true
         }
     }
     
     // Function to fetch metadata.
     func fetchMetadata() async -> Int {
+
         let metadataParsing = Process()
         metadataParsing.executableURL = URL(fileURLWithPath: pathToYleDl)
         metadataParsing.arguments = ["--ffmpeg", pathToFfmpeg, "--ffprobe", pathToFfprobe, "--showmetadata", sourceUrl]
@@ -78,26 +80,34 @@ class DownloadManager: ObservableObject {
         let stdoutPipe = Pipe()
         metadataParsing.standardOutput = stdoutPipe
         
-        do {
-            try
-            metadataParsing.run()
-            metadataParsing.waitUntilExit()
-            let rawErrorData = stderrPipe.fileHandleForReading.readDataToEndOfFile()
-            let rawErrorString = String(data: rawErrorData, encoding: .utf8) ?? ""
-            logger?.appendLog(rawErrorString, from: .stderr)
-            if let errorMessage = errorParser.parseErrors(rawErrorString) {
-                appState = .error
-                downloadToolError = AlertMessage(text: errorMessage)
+        return await withCheckedContinuation { continuation in
+            
+            metadataParsing.terminationHandler = { _ in
+                let rawErrorData = stderrPipe.fileHandleForReading.readDataToEndOfFile()
+                let rawErrorString = String(data: rawErrorData, encoding: .utf8) ?? ""
+                
+                Task { @MainActor in
+                    self.logger?.appendLog(rawErrorString, from: .stderr)
+                    if let errorMessage = self.errorParser.parseErrors(rawErrorString) {
+                        self.appState = .error
+                        self.downloadToolError = AlertMessage(text: errorMessage)
+                    }
+                }
+                
+                let parsedMetaData = stdoutPipe.fileHandleForReading.readDataToEndOfFile()
+                let episodes = try? JSONDecoder().decode([EpisodeMetadata].self, from: parsedMetaData)
+                let totalSeconds = episodes?.reduce(0) { $0 + $1.duration_seconds } ?? 0
+                
+                continuation.resume(returning: totalSeconds)
             }
-        } catch {
-            print(error)
-            return 0
+            
+            do {
+                try metadataParsing.run()
+            } catch {
+                print(error)
+                continuation.resume(returning: 0)
+            }
         }
-        
-        let parsedMetaData = stdoutPipe.fileHandleForReading.readDataToEndOfFile()
-        let episodes = try? JSONDecoder().decode([EpisodeMetadata].self, from: parsedMetaData)
-        let totalSeconds = episodes?.reduce(0) { $0 + $1.duration_seconds} ?? 0
-        return totalSeconds
     }
     
     // Function to download files. Includes metadata parsing.
@@ -137,7 +147,7 @@ class DownloadManager: ObservableObject {
             
             stderrPipe.fileHandleForReading.readabilityHandler = { handle in
                 let output = String(data: handle.availableData, encoding: .utf8) ?? ""
-                DispatchQueue.main.async {
+                Task { @MainActor in
                     self.logger?.appendLog(output, from: .stderr)
                     if let friendlyMessage = self.errorParser.parseErrors(output) {
                         self.appState = .error
@@ -156,7 +166,7 @@ class DownloadManager: ObservableObject {
                         let seconds = Double(components[2].trimmingCharacters(in: .whitespaces)) ?? 0
                         let currentSeconds = hours * 3600 + minutes * 60 + seconds
                         
-                        DispatchQueue.main.async {
+                        Task { @MainActor in
                             self.downloadProgress = self.totalDuration > 0 ? currentSeconds / Double(self.totalDuration) : 0
                         }
                     }
@@ -166,7 +176,7 @@ class DownloadManager: ObservableObject {
             let outputPipe = Pipe()
             outputPipe.fileHandleForReading.readabilityHandler = { handle in
                 let output = String(data: handle.availableData, encoding: .utf8) ?? ""
-                DispatchQueue.main.async {
+                Task { @MainActor in
                     self.logger?.appendLog(output, from: .stdout)
                 }
             }
@@ -205,10 +215,10 @@ class DownloadManager: ObservableObject {
         appState = .cancelled
         downloadIsActive = false
         downloadProgress = 0.0
-        #if DEBUG
-        simulationTimer?.invalidate()
-        simulationTimer = nil
-        #endif
+#if DEBUG
+        simulationTask?.cancel()
+        simulationTask = nil
+#endif
     }
     
     // Function to reset download parameters for a simulated run

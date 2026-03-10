@@ -36,22 +36,17 @@ extension DownloadManager {
     // Calls resetForSimulation() and resetDownloadState() from DownloadManager.
     // The simulationTime variable is also stored in DownloadManager.
     func simulateDownload() {
-        simulationTimer?.invalidate()
+        simulationTask?.cancel()
         resetForSimulation()
-        simulationTimer = Timer.scheduledTimer(withTimeInterval: 0.08, repeats: true) { timer in
-            DispatchQueue.main.async {
-                if self.downloadProgress < 1.0 {
-                    self.setDownloadProgress(to: self.downloadProgress + 0.01)
-                    self.logger?.appendLog("Simulated download progress: \(self.downloadProgress)", from: .stdout)
-                } else {
-                    self.resetDownloadState()
-                    timer.invalidate()
-                    self.simulationTimer = nil
-                    DispatchQueue.main.asyncAfter(deadline: .now() + self.progressBarFinishedSpeed) {
-                        self.appState = .finished
-                    }
-                }
+        simulationTask = Task {
+            while downloadProgress < 1.0 && !Task.isCancelled {
+                try? await Task.sleep(for: .milliseconds (80))
+                setDownloadProgress(to: downloadProgress + 0.01)
+                logger?.appendLog("Simulated download progress: \(downloadProgress)", from: .stdout)
             }
+            resetDownloadState()
+            try? await Task.sleep(for: .seconds(progressBarFinishedSpeed))
+            appState = .finished
         }
     }
     
@@ -59,6 +54,5 @@ extension DownloadManager {
     func simulateMetadataFailure() {
         handleError(.totalDurationIsZero)
     }
-    
 }
 #endif

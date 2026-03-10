@@ -1,0 +1,679 @@
+//
+//  AlertTypes.swift
+//  YoloDL
+//
+//  Created by Visa Uotila on 9.3.2026.
+//
+
+import Foundation
+
+enum InputValidationError: Identifiable {
+    case emptyURL
+    case noFolderSelected
+    case totalDurationIsZero
+    
+    var id: String { String(describing: self) }
+}
+
+struct AlertMessage: Identifiable {
+    
+    let id = UUID()
+    let text: String
+}
+
+
+//
+//  AppStates.swift
+//  YoloDL
+//
+//  Created by Visa Uotila on 9.3.2026.
+//
+
+enum AppState {
+    case ready
+    case preparing
+    case fetchingMetadata
+    case downloading
+    case finished
+    case cancelled
+    case error
+    
+    var statusText: String {
+        switch self {
+        case .ready: return "Ready"
+        case .preparing: return "Preparing download"
+        case .fetchingMetadata: return "Fetching metadata"
+        case .downloading: return "Downloading"
+        case .finished: return "Finished"
+        case .cancelled: return "Cancelled"
+        case .error: return "An error occurred"
+        }
+    }
+}
+//
+//  ContentView.swift
+//  YoloDL 0.09
+//
+//  Created on 5.3.2026.
+//  Last updated on 8.3.2026.
+//
+
+import SwiftUI
+
+struct ContentView: View {
+    
+    let appVersion = "0.09"
+    
+    // Open debug window on startup.
+    @Environment(\.openWindow) var openWindow
+    
+    @EnvironmentObject private var downloader: DownloadManager
+    
+    // Variables related to the download process and the progress bar logic & animations.
+    @State private var shimmerOffset: CGFloat = -1.0
+    let progressBarAnimationSpeed: Double = 0.5
+    let progressBarFinishedSpeed: Double = 2.5
+    
+    // Default error state
+    @State private var currentError: InputValidationError? = nil
+    
+    // Storing previous downloadLocation in AppStorage
+    @AppStorage("lastFolder") private var downloadLocation: String = ""
+    
+    // Function to choose the download location.
+    func chooseFolder(){
+        let folderSelector = NSOpenPanel()
+        folderSelector.canChooseFiles = false
+        folderSelector.canChooseDirectories = true
+        folderSelector.allowsMultipleSelection = false
+        if folderSelector.runModal() == .OK {
+            if let url = folderSelector.url {
+                downloadLocation = url.path
+            }
+        }
+    }
+    
+    var downloadActiveColors: [Color] { [.blue, .cyan] }
+    var downloadFinishedColors: [Color] { [.green, .mint] }
+    
+    var body: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            
+            HStack(alignment: .center, spacing: 12) {
+                Text("YoloDL \(appVersion)")
+                Text("\(downloader.appState.statusText)")
+            }
+            
+            TextField("Enter source URL", text: $downloader.sourceUrl)
+                .disabled(downloader.downloadIsActive)
+            
+            GeometryReader { geometry in
+                ZStack(alignment: .leading) {
+                    Rectangle()
+                        .frame(height: 30)
+                        .opacity(0.2)
+                    Rectangle()
+                        .fill(
+                            LinearGradient(
+                                colors: downloadActiveColors,
+                                startPoint: .leading,
+                                endPoint: .trailing
+                            )
+                        )
+                        .frame(width: geometry.size.width * downloader.downloadProgress, height: 30)
+                    Rectangle()
+                        .fill(
+                            LinearGradient(
+                                colors: downloadFinishedColors,
+                                startPoint: .leading,
+                                endPoint: .trailing
+                            )
+                        )
+                        .frame(width: geometry.size.width * downloader.downloadProgress, height: 30)
+                        .opacity(downloader.downloadIsFinished ? 1.0 : 0.0)
+                    Rectangle()
+                        .fill (
+                            LinearGradient(
+                                colors: [.clear, .white.opacity(0.7), .clear],
+                                startPoint: UnitPoint(x: shimmerOffset - 0.5, y: 0),
+                                endPoint: UnitPoint(x: shimmerOffset + 0.5, y: 0)
+                            )
+                        )
+                        .frame(width: geometry.size.width * downloader.downloadProgress, height: 30)
+                        .blendMode(.screen)
+                        .opacity(downloader.downloadIsActive ? 1.0 : 0.0)
+                }
+                .animation(.easeInOut(duration: progressBarAnimationSpeed), value: downloader.downloadProgress)
+                .animation(nil, value: downloader.downloadIsFinished)
+                .clipped()
+            }
+            .frame(height: 30)
+            .onAppear {
+                withAnimation(.linear(duration: 2).repeatForever(autoreverses: false)) {
+                    shimmerOffset = 2.0
+                }
+            }
+            
+            
+            Text(downloadLocation.isEmpty ? "No folder selected" : "Download location: \(downloadLocation)")
+            
+            Button(downloader.downloadIsActive ? "Stop" : "Download") {
+                if downloader.downloadIsActive {
+                    downloader.cancelDownload()
+                } else {
+                    downloader.downloadFiles(downloadLocation: downloadLocation)
+                }
+            }
+            
+            Button("Choose folder") {
+                chooseFolder()
+            }
+            .disabled(downloader.downloadIsActive)
+        }
+        
+        // Show debug window on startup.
+        .onAppear {
+            #if DEBUG
+            openWindow(id:"debug")
+            #endif
+        }
+        
+        .alert(item: $downloader.inputValidationError) { error in
+            switch error {
+            case .emptyURL:
+                return Alert(title: Text("No download URL"), message: Text("Please input a valid download URL."))
+            case .noFolderSelected:
+                return Alert(title: Text("No destination folder"), message: Text("Please choose a destination folder."))
+            case .totalDurationIsZero:
+                return Alert(title: Text("Error while fetching metadata"),message: Text("Metadata shows the total video duration as 0 seconds. Try again or with a different URL."))
+            }
+        }
+        .alert(item: $downloader.downloadToolError) { error in
+            Alert(title: Text("Download Error"), message: Text(error.text))
+        }
+        .padding()
+    }
+}
+
+#Preview {
+    ContentView()
+}
+//
+//  DebugWindow.swift
+//  YoloDL
+//
+//  Created by Visa Uotila on 8.3.2026.
+//
+
+import SwiftUI
+
+struct DebugWindow: View {
+    
+    @EnvironmentObject var downloadManager: DownloadManager
+    
+    // COMMENTED OUT, MAYBE TO BE USED LATER
+    // @EnvironmentObject var logManager: LogManager
+    
+    var body: some View {
+        VStack(alignment: .center, spacing: 12) {
+            
+            Button("Simulate Download") {
+                downloadManager.simulateDownload()
+            }
+            
+            Button("Simulate Metadata Failure") {
+                downloadManager.simulateMetadataFailure()
+            }
+        }
+        .padding()
+    }
+}
+
+#if DEBUG
+extension DownloadManager {
+    
+    // Function for a simulated download to test and/or debug the progress bar.
+    // Calls resetForSimulation() and resetDownloadState() from DownloadManager.
+    // The simulationTime variable is also stored in DownloadManager.
+    func simulateDownload() {
+        simulationTimer?.invalidate()
+        resetForSimulation()
+        simulationTimer = Timer.scheduledTimer(withTimeInterval: 0.08, repeats: true) { timer in
+            DispatchQueue.main.async {
+                if self.downloadProgress < 1.0 {
+                    self.setDownloadProgress(to: self.downloadProgress + 0.01)
+                    self.logger?.appendLog("Simulated download progress: \(self.downloadProgress)", from: .stdout)
+                } else {
+                    self.resetDownloadState()
+                    timer.invalidate()
+                    self.simulationTimer = nil
+                    DispatchQueue.main.asyncAfter(deadline: .now() + self.progressBarFinishedSpeed) {
+                        self.appState = .finished
+                    }
+                }
+            }
+        }
+    }
+    
+    // Function to simulate metadata failure
+    func simulateMetadataFailure() {
+        handleError(.totalDurationIsZero)
+    }
+    
+}
+#endif
+//
+//  DownloadManager.swift
+//  YoloDL
+//
+//  Created by Visa Uotila on 8.3.2026.
+//
+
+import Foundation
+import Combine
+
+
+class DownloadManager: ObservableObject {
+    
+    #if DEBUG
+    // Timer variable for a simulation run.
+    var simulationTimer: Timer? = nil
+    #endif
+    
+    // Paths to binaries
+    let pathToYleDl: String = "/opt/homebrew/bin/yle-dl"
+    let pathToFfmpeg: String = "/opt/homebrew/bin/ffmpeg"
+    let pathToFfprobe: String = "/opt/homebrew/bin/ffprobe"
+    
+    // Wiring ErrorParser to DownloadManager for parsing stderr outputs.
+    let errorParser = ErrorParser()
+    
+    // Variables to be passed to yle-dl
+    @Published var sourceUrl: String = ""
+    
+    // Variables and constants related to download & progress bar logic
+    @Published private(set) var downloadIsActive: Bool = false
+    @Published private(set) var downloadIsFinished: Bool = false
+    private var activeDownload: Process? = nil
+    private var downloadIsCancelled: Bool = false
+    @Published private(set) var totalDuration: Int = 0
+    @Published private(set) var downloadProgress: Double = 0
+    let progressBarFinishedSpeed: Double = 2.5
+    
+    // Default error state
+    @Published var inputValidationError: InputValidationError? = nil
+    
+    // Variable for the alert message when errorParser catches something from .stderr
+    @Published var downloadToolError: AlertMessage?
+    
+    // Default AppState
+    @Published var appState: AppState = .ready
+    
+    // Variable for LogManager.
+    var logger: LogManager? = nil
+    
+    // Function to check for valid user inputs.
+    // Currently guards for empty URL and destination folder.
+    
+    func validateInputs(downloadLocation: String) -> Bool {
+        guard !sourceUrl.isEmpty else { handleError(.emptyURL); return false }
+        guard !downloadLocation.isEmpty else { handleError(.noFolderSelected); return false }
+        return true
+    }
+    
+    // Function to reset the download state
+    @MainActor func resetDownloadState() {
+            downloadProgress = 1.0
+            downloadIsActive = false
+        DispatchQueue.main.asyncAfter(deadline: .now() + self.progressBarFinishedSpeed) {
+            self.downloadIsFinished = true
+        }
+    }
+    
+    // Function to fetch metadata.
+    func fetchMetadata() async -> Int {
+        let metadataParsing = Process()
+        metadataParsing.executableURL = URL(fileURLWithPath: pathToYleDl)
+        metadataParsing.arguments = ["--ffmpeg", pathToFfmpeg, "--ffprobe", pathToFfprobe, "--showmetadata", sourceUrl]
+        
+        let stderrPipe = Pipe()
+        metadataParsing.standardError = stderrPipe
+        
+        let stdoutPipe = Pipe()
+        metadataParsing.standardOutput = stdoutPipe
+        
+        do {
+            try
+            metadataParsing.run()
+            metadataParsing.waitUntilExit()
+            let rawErrorData = stderrPipe.fileHandleForReading.readDataToEndOfFile()
+            let rawErrorString = String(data: rawErrorData, encoding: .utf8) ?? ""
+            logger?.appendLog(rawErrorString, from: .stderr)
+            if let errorMessage = errorParser.parseErrors(rawErrorString) {
+                appState = .error
+                downloadToolError = AlertMessage(text: errorMessage)
+            }
+        } catch {
+            print(error)
+            return 0
+        }
+        
+        let parsedMetaData = stdoutPipe.fileHandleForReading.readDataToEndOfFile()
+        let episodes = try? JSONDecoder().decode([EpisodeMetadata].self, from: parsedMetaData)
+        let totalSeconds = episodes?.reduce(0) { $0 + $1.duration_seconds} ?? 0
+        return totalSeconds
+    }
+    
+    // Function to download files. Includes metadata parsing.
+    func downloadFiles(downloadLocation: String) {
+        Task {
+            
+            // Revert from a possible cancelled state.
+            downloadIsCancelled = false
+            
+            // Validate user inputs.
+            appState = .preparing
+            guard validateInputs(downloadLocation: downloadLocation) else { return }
+            
+            // Reset downloadIsFinished state to false
+            // and flush the log buffer.
+            downloadIsFinished = false
+            logger?.clearLog()
+            
+            // Call metadata parsing and guard for total duration of 0
+            // unless there are other errors.
+            appState = .fetchingMetadata
+            totalDuration = await fetchMetadata()
+            print(totalDuration)
+            
+            if appState == .error { return }
+            
+            guard totalDuration != 0 else { handleError(.totalDurationIsZero); return }
+            downloadIsActive = true
+            appState = .downloading
+            
+            // Declare the download process.
+            let downloadProcess = Process()
+            activeDownload = downloadProcess
+            
+            // Declare the pipe for measuring progress.
+            let stderrPipe = Pipe()
+            
+            stderrPipe.fileHandleForReading.readabilityHandler = { handle in
+                let output = String(data: handle.availableData, encoding: .utf8) ?? ""
+                DispatchQueue.main.async {
+                    self.logger?.appendLog(output, from: .stderr)
+                    if let friendlyMessage = self.errorParser.parseErrors(output) {
+                        self.appState = .error
+                        self.downloadToolError = AlertMessage(text: friendlyMessage)
+                    }
+                }
+                for line in output.components(separatedBy: "\r") {
+                    guard line.contains("time="), !line.contains("time=N/A"),
+                          let timePart = line.components(separatedBy: "time=").last,
+                          let timeString = timePart.components(separatedBy: " ").first,
+                          timeString != "N/A" else { continue }
+                    let components = timeString.components(separatedBy: ":")
+                    if components.count == 3 {
+                        let hours = Double(components[0].trimmingCharacters(in: .whitespaces)) ?? 0
+                        let minutes = Double(components[1].trimmingCharacters(in: .whitespaces)) ?? 0
+                        let seconds = Double(components[2].trimmingCharacters(in: .whitespaces)) ?? 0
+                        let currentSeconds = hours * 3600 + minutes * 60 + seconds
+                        
+                        DispatchQueue.main.async {
+                            self.downloadProgress = self.totalDuration > 0 ? currentSeconds / Double(self.totalDuration) : 0
+                        }
+                    }
+                }
+            }
+            
+            let outputPipe = Pipe()
+            outputPipe.fileHandleForReading.readabilityHandler = { handle in
+                let output = String(data: handle.availableData, encoding: .utf8) ?? ""
+                DispatchQueue.main.async {
+                    self.logger?.appendLog(output, from: .stdout)
+                }
+            }
+            
+            downloadProcess.terminationHandler = { _ in
+                stderrPipe.fileHandleForReading.readabilityHandler = nil
+                outputPipe.fileHandleForReading.readabilityHandler = nil
+                Task { @MainActor in
+                    if !self.downloadIsCancelled {
+                        self.resetDownloadState()
+                        self.appState = .finished
+                    }
+                }
+            }
+            downloadProcess.standardError = stderrPipe
+            downloadProcess.standardOutput = outputPipe
+            downloadProcess.executableURL = URL(fileURLWithPath: pathToYleDl)
+            downloadProcess.arguments = ["--ffmpeg", pathToFfmpeg, "--ffprobe", pathToFfprobe, "--destdir", downloadLocation, sourceUrl]
+            do {
+                try downloadProcess.run()
+            } catch { print(error) }
+        }
+    }
+    
+    func handleError(_ error: InputValidationError) {
+        appState = .error
+        inputValidationError = error
+    }
+    
+    // Function to cancel an ongoing download
+    // with additional actions during a debug simulation run.
+    func cancelDownload () {
+        downloadIsCancelled = true
+        activeDownload?.terminate()
+        activeDownload = nil
+        appState = .cancelled
+        downloadIsActive = false
+        downloadProgress = 0.0
+        #if DEBUG
+        simulationTimer?.invalidate()
+        simulationTimer = nil
+        #endif
+    }
+    
+    // Function to reset download parameters for a simulated run
+    // called from DebugWindow
+    func resetForSimulation() {
+        downloadProgress = 0.0
+        downloadIsActive = true
+        appState = .downloading
+        downloadIsFinished = false
+    }
+    
+    func setDownloadProgress(to value: Double) {
+        downloadProgress = value
+    }
+}
+//
+//  EpisodeMetadata.swift
+//  YoloDL
+//
+//  Created by Visa Uotila on 9.3.2026.
+//
+
+struct EpisodeMetadata: Codable {
+    let duration_seconds: Int
+}
+//
+//  ErrorParser.swift
+//  YoloDL
+//
+//  Created by Visa Uotila on 9.3.2026.
+//
+
+struct ErrorParser {
+    
+    struct ErrorPattern {
+        let pattern: String
+        let message: String
+    }
+    
+    let patterns = [
+            ErrorPattern(pattern: "Unsupported URL", message: "The URL doesn't appear to be from Yle Areena or another supported Yle service. Check the link and try again."),
+            ErrorPattern(pattern: "No streams found", message: "yle-dl failed to find a stream in the provided URL. Please try again or with a different URL."),
+            ErrorPattern(pattern: "Failed to parse a playlist", message: "Failed to read the episode list. Try downloading from a single episode URL instead of using the series page."),
+        ]
+    
+    func parseErrors(_ text: String) -> String? {
+        for entry in patterns {
+            if text.contains(entry.pattern) { return entry.message }
+        }
+        return nil
+    }
+}
+//
+//  LogManager.swift
+//  YoloDL
+//
+//  Created by Visa Uotila on 8.3.2026.
+//
+
+import Foundation
+import Combine
+
+// Struct to handle log parsing.
+
+struct LogEntry: Identifiable {
+    
+    enum LogSource {
+        case stdout
+        case stderr
+    }
+
+    var text: String
+    var timestamp: Date = .now
+    var source: LogSource
+    var id = UUID()
+}
+
+// LogManager class
+
+class LogManager: ObservableObject {
+    
+    @Published var logEntries: [LogEntry] = []
+    private var currentBufferSize: Int = 0
+    
+    // Constant for maximum log size to be stored in memory.
+    private let maxBufferSize: Int = 1_048_576
+    
+    // Function to append a log entry to the buffer 
+    // and remove oldest entries if buffer goes over the size limit.
+    func appendLog(_ rawText: String, from pipe: LogEntry.LogSource) {
+        let entry = LogEntry(text: rawText, source: pipe)
+        let entrySize = rawText.utf8.count
+        logEntries.append(entry)
+        currentBufferSize = currentBufferSize + entrySize
+        while currentBufferSize > maxBufferSize {
+            let removed = logEntries.removeFirst()
+            currentBufferSize = currentBufferSize - removed.text.utf8.count
+        }
+    }
+    
+    // Function to clear the log array.
+    func clearLog() {
+        logEntries.removeAll()
+        currentBufferSize = 0
+    }
+}
+
+
+
+//
+//  LogWindow.swift
+//  YoloDL
+//
+//  Created by Visa Uotila on 9.3.2026.
+//
+
+import SwiftUI
+
+struct LogWindow: View {
+    
+    @EnvironmentObject var logManager: LogManager
+
+    var body: some View {
+        VStack(alignment: .center, spacing: 12) {
+            
+            ScrollViewReader { proxy in
+                ScrollView {
+                    Text(logManager.logEntries.map { $0.text }.joined(separator: "\n"))
+                        .textSelection(.enabled)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .padding()
+                        .id("logText")
+                }
+                .frame(minHeight: 300, maxHeight: .infinity)
+                .onChange(of: logManager.logEntries.count) {
+                    proxy.scrollTo("logText", anchor: .bottom)
+                }
+            }
+            HStack {
+                Text("Log output")
+                
+                Divider()
+                    .frame(height: 16)
+                
+                Text("\(logManager.logEntries.count) entries in log")
+                
+                Divider()
+                    .frame(height: 16)
+                
+                Button("Copy Log") {
+                    NSPasteboard.general.clearContents()
+                    NSPasteboard.general.setString(logManager.logEntries.map(\.text).joined(separator: "\n"), forType: .string)
+                }
+                
+                Divider()
+                    .frame(height: 16)
+                
+                Button("Clear Log") {
+                    logManager.clearLog()
+                }
+            }
+            .padding()
+        }
+        .padding()
+    }
+    
+}
+//
+//  YoloDLApp.swift
+//  YoloDL
+//
+//  Created by Visa Uotila on 5.3.2026.
+//
+
+import SwiftUI
+
+@main
+struct YoloDLApp: App {
+    @StateObject private var downloadManager = DownloadManager()
+    @StateObject private var logManager = LogManager()
+    
+    var body: some Scene {
+        WindowGroup {
+            ContentView()
+                .environmentObject(downloadManager)
+                .environmentObject(logManager)
+                .onAppear {
+                    downloadManager.logger = logManager
+                }
+        }
+        Window("Log Window", id: "logWindow") {
+            LogWindow()
+                .environmentObject(logManager)
+        }
+        #if DEBUG
+        Window("Debug Window", id: "debug") {
+            DebugWindow()
+                .environmentObject(downloadManager)
+                // COMMENTED OUT, MAYBE TO BE USED LATER.
+                // .environmentObject(logManager)
+        }
+        #endif
+    }
+}
