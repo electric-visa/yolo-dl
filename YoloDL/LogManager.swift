@@ -6,7 +6,6 @@
 //
 
 import Foundation
-import Combine
 
 // Struct to handle log parsing.
 
@@ -25,9 +24,10 @@ struct LogEntry: Identifiable {
 
 // LogManager class
 
-class LogManager: ObservableObject {
-    
-    @Published var logEntries: [LogEntry] = []
+@MainActor
+@Observable class LogManager {
+
+    var logEntries: [LogEntry] = []
     private var currentBufferSize: Int = 0
     
     // Constant for maximum log size to be stored in memory.

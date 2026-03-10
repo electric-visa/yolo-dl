@@ -6,10 +6,9 @@
 //
 
 import Foundation
-import Combine
 
 
-@MainActor class DownloadManager: ObservableObject {
+@MainActor @Observable class DownloadManager {
     
 #if DEBUG
     // Timer variable for a simulation run.
@@ -25,22 +24,22 @@ import Combine
     let errorParser = ErrorParser()
     
     // Variables to be passed to yle-dl
-    @Published var sourceUrl: String = ""
-    
+    var sourceUrl: String = ""
+
     // Variables and constants related to download & progress bar logic
-    @Published private(set) var downloadIsActive: Bool = false
-    @Published private(set) var downloadIsFinished: Bool = false
+    private(set) var downloadIsActive: Bool = false
+    private(set) var downloadIsFinished: Bool = false
     private var activeDownload: Process? = nil
     private var downloadIsCancelled: Bool = false
-    @Published private(set) var totalDuration: Int = 0
-    @Published private(set) var downloadProgress: Double = 0
+    private(set) var totalDuration: Int = 0
+    private(set) var downloadProgress: Double = 0
     let progressBarFinishedSpeed: Double = 2.5
-    
+
     // Initialize alert message
-    @Published var alertToShow: AlertMessage? = nil
-    
+    var alertToShow: AlertMessage? = nil
+
     // Default AppState
-    @Published var appState: AppState = .ready
+    var appState: AppState = .ready
     
     // Variable for LogManager.
     var logger: LogManager? = nil

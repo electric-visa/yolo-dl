@@ -15,7 +15,7 @@ struct ContentView: View {
     // Open debug window on startup.
     @Environment(\.openWindow) var openWindow
     
-    @EnvironmentObject private var downloader: DownloadManager
+    @Environment(DownloadManager.self) private var downloader
     
     // Variables related to the download process and the progress bar logic & animations.
     @State private var shimmerOffset: CGFloat = -1.0
@@ -59,6 +59,7 @@ struct ContentView: View {
     let downloadFinishedColors:  [Color] = [.green, .mint]
     
     var body: some View {
+        @Bindable var downloader = downloader
         VStack(alignment: .leading, spacing: 12) {
             
             HStack(alignment: .center, spacing: 12) {

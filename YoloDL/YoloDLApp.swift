@@ -9,28 +9,28 @@ import SwiftUI
 
 @main
 struct YoloDLApp: App {
-    @StateObject private var downloadManager = DownloadManager()
-    @StateObject private var logManager = LogManager()
+    @State private var downloadManager = DownloadManager()
+    @State private var logManager = LogManager()
     
     var body: some Scene {
         WindowGroup {
             ContentView()
-                .environmentObject(downloadManager)
-                .environmentObject(logManager)
+                .environment(downloadManager)
+                .environment(logManager)
                 .onAppear {
                     downloadManager.logger = logManager
                 }
         }
         Window("Log Window", id: "logWindow") {
             LogWindow()
-                .environmentObject(logManager)
+                .environment(logManager)
         }
         #if DEBUG
         Window("Debug Window", id: "debug") {
             DebugWindow()
-                .environmentObject(downloadManager)
+                .environment(downloadManager)
                 // COMMENTED OUT, MAYBE TO BE USED LATER.
-                // .environmentObject(logManager)
+                // .environment(logManager)
         }
         #endif
     }

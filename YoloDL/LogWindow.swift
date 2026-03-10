@@ -9,7 +9,7 @@ import SwiftUI
 
 struct LogWindow: View {
     
-    @EnvironmentObject var logManager: LogManager
+    @Environment(LogManager.self) var logManager
     
     var body: some View {
         VStack(alignment: .center, spacing: 12) {

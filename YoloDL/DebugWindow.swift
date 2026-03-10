@@ -9,7 +9,7 @@ import SwiftUI
 
 struct DebugWindow: View {
     
-    @EnvironmentObject var downloadManager: DownloadManager
+    @Environment(DownloadManager.self) var downloadManager
     
     // COMMENTED OUT, MAYBE TO BE USED LATER
     // @EnvironmentObject var logManager: LogManager
