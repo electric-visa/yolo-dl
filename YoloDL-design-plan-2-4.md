@@ -1,6 +1,6 @@
 # YoloDL — Design Plan & Progress
 
-**Last updated:** 9 March 2026 — v0.09 (Phase 4 in progress — Tasks 16, 17, 27, 35 complete)
+**Last updated:** 10 March 2026 — v0.09 (Phase 4 in progress — Tasks 16, 17, 27, 35, 42, 43, 44, 45, 46 complete)
 
 ---
 
@@ -23,8 +23,8 @@ A native macOS application providing a user-friendly graphical interface for the
 | Per-episode download progress bar | 0.04 | Parses ffmpeg time= output, uses metadata for total duration |
 | Progress bar shimmer animation | 0.04 | Linear repeating animation, visible only during download |
 | Progress bar completion color snap | 0.04 | Blue → green with configurable fade duration |
-| Basic error alerts | 0.04 | Empty URL, no folder selected |
-| Simulation button for testing | 0.04 | Timer-based progress simulation |
+| Basic error alerts | 0.04 | Unified alert system: single `alertToShow: AlertMessage?` property |
+| Simulation button for testing | 0.04 | Task-based progress simulation (migrated from Timer in v0.09) |
 | DownloadManager extraction | 0.06 | ObservableObject, lifted to App struct level |
 | Status display | 0.07 | AppState enum with statusText, displayed in HStack |
 | Remember last download location | 0.07 | @AppStorage("lastFolder") in ContentView |
@@ -32,6 +32,9 @@ A native macOS application providing a user-friendly graphical interface for the
 | Log capture | 0.08 | LogManager with size-capped buffer, stdout + stderr |
 | Parsed readable error messages | 0.09 | ErrorParser with pattern → message mapping |
 | Log window | 0.09 | Separate Window scene, accessible from Window menu |
+| Swift Concurrency migration | 0.09 | `@MainActor` on `DownloadManager`, replaced all `DispatchQueue` with `Task`/`Task.sleep`, `fetchMetadata()` uses `withCheckedContinuation` |
+| Unified alert system | 0.09 | Single `AlertMessage` type with `title` + `text`, single `.alert` modifier in `ContentView`; `InputValidationError` enum converts to `AlertMessage` via `handleError()` |
+| Silent error surfacing | 0.09 | All `catch { print(error) }` blocks replaced with `LogManager` logging + user-facing alerts |
 
 ### Not Yet Started
 
@@ -81,6 +84,9 @@ A native macOS application providing a user-friendly graphical interface for the
 - Parse yle-dl's stderr into readable, actionable error messages (e.g. "This content is geo-restricted", "URL not recognized")
 - Log window for raw log display, accessible from Window menu
 - Pattern → message mapping for common yle-dl errors built into `ErrorParser`
+- Unified alert system: single `AlertMessage` type with `title` + `text`, displayed via one `.alert` modifier
+- `InputValidationError` enum handles input validation internally, converts to `AlertMessage` for display
+- All process launch failures logged via `LogManager` and surfaced to user
 
 ## UI Features
 
@@ -164,7 +170,7 @@ Refactoring to keep the codebase manageable as features are added.
 | ~~9~~ | ~~Extract download logic into a `DownloadManager` class (ObservableObject)~~ | ~~Backend~~ | ~~Medium~~ |
 | ~~10~~ | ~~Break `downloadFiles()` into smaller single-purpose functions: validate inputs, fetch metadata, configure process, start download~~ | ~~Backend~~ | ~~Medium~~ |
 | 11 | Group related `@State` variables with clear comments | Frontend | Low |
-| ~~12~~ | ~~Move `EpisodeMetadata` and `DownloadError` into separate files as app grows~~ | ~~Both~~ | ~~Low~~ | ⚠️ Partially done — `EpisodeMetadata` is in its own file. `DownloadError` was never created; error handling is handled by `InputValidationError` and `AlertMessage` instead |
+| ~~12~~ | ~~Move `EpisodeMetadata` and `DownloadError` into separate files as app grows~~ | ~~Both~~ | ~~Low~~ | ⚠️ Partially done — `EpisodeMetadata` is in its own file. `DownloadError` was never created; error handling uses `InputValidationError` enum (converts to `AlertMessage` via `handleError()`) and unified `AlertMessage` struct with `title` + `text` |
 | ~~35~~ | ~~Move debug functions (`simulateDownload`, `simulateMetadataFailure`) from `DownloadManager` to `DebugWindow`~~ | ~~Both~~ | ~~Low~~ | ✅ Done — `#if DEBUG` extension in `DebugWindow.swift`, helper methods `resetForSimulation()` and `setDownloadProgress(to:)` in `DownloadManager`, timer leak fix |
 | 37 | Move `AlertMessage` to its own file (`AlertMessage.swift`) — currently shares `AlertTypes.swift` with `InputValidationError` | Frontend | Low |
 | 38 | Move `#if DEBUG` `DownloadManager` extension to `DownloadManager+Debug.swift` — debug extensions on a type should not live in another type's file | Backend | Low |
@@ -190,10 +196,10 @@ Refactoring to keep the codebase manageable as features are added.
 | 22 | Update checker — fetch JSON from project site, compare versions, show alert with download link | Medium | |
 | 23 | Bundle yle-dl binary (PyInstaller) + static ffmpeg into app `Contents/Resources` | High | |
 | 24 | Create DMG for distribution | High | |
-| 42 | Replace all `DispatchQueue.main.async` and `DispatchQueue.main.asyncAfter` usage in `DownloadManager` with Swift Concurrency — `Task { @MainActor in }` and `Task.sleep(for:)` respectively | Backend | Medium |
-| 43 | Fix `downloadIsCancelled` data race — the flag is written on the main thread and read from a background termination handler without protection; adding `@MainActor` to `DownloadManager` resolves this | Backend | Medium |
-| 44 | Fix `fetchMetadata()` blocking the cooperative thread pool — `waitUntilExit()` inside an `async` function holds a thread hostage; replace with `withCheckedContinuation` + `terminationHandler` | Backend | Medium |
-| 45 | Surface errors from silent `catch { print(error) }` blocks in `DownloadManager` — at minimum log them via `LogManager`; ideally show a user-facing alert | Backend | Low |
+| ~~42~~ | ~~Replace all `DispatchQueue.main.async` and `DispatchQueue.main.asyncAfter` usage in `DownloadManager` with Swift Concurrency — `Task { @MainActor in }` and `Task.sleep(for:)` respectively~~ | ~~Backend~~ | ~~Medium~~ | ✅ Done — also migrated `simulateDownload()` from `Timer` to `Task` with cancellation support |
+| ~~43~~ | ~~Fix `downloadIsCancelled` data race — the flag is written on the main thread and read from a background termination handler without protection; adding `@MainActor` to `DownloadManager` resolves this~~ | ~~Backend~~ | ~~Medium~~ | ✅ Done — `@MainActor class DownloadManager`, Strict Concurrency Checking set to Complete |
+| ~~44~~ | ~~Fix `fetchMetadata()` blocking the cooperative thread pool — `waitUntilExit()` inside an `async` function holds a thread hostage; replace with `withCheckedContinuation` + `terminationHandler`~~ | ~~Backend~~ | ~~Medium~~ | ✅ Done — `waitUntilExit()` replaced; result-reading code moved into `terminationHandler` |
+| ~~45~~ | ~~Surface errors from silent `catch { print(error) }` blocks in `DownloadManager` — at minimum log them via `LogManager`; ideally show a user-facing alert~~ | ~~Backend~~ | ~~Low~~ | ✅ Done — both `fetchMetadata()` and `downloadFiles()` catch blocks now log via `LogManager` and show `AlertMessage` |
 
 ### New Features — Frontend
 
@@ -210,9 +216,10 @@ Refactoring to keep the codebase manageable as features are added.
 | 33 | Advanced options panel with toggle and disclaimer | Medium | |
 | 34 | Multilingual UI — Finnish + English, language toggle | Medium | |
 | 36 | Arrange Download/Stop and Choose Folder buttons horizontally | Low | UI polish |
-| 46 | Replace deprecated `Alert(title:message:)` API in `ContentView` with modern SwiftUI alert view builder syntax | Frontend | Low |
+| ~~46~~ | ~~Replace deprecated `Alert(title:message:)` API in `ContentView` with modern SwiftUI alert view builder syntax~~ | ~~Frontend~~ | ~~Low~~ | ✅ Done — unified two separate alert pipelines (`inputValidationError` + `downloadToolError`) into single `alertToShow: AlertMessage?` with one `.alert` modifier; `AlertMessage` now has `title` + `text` properties |
 | 47 | Replace joined `Text` in `LogWindow` with `LazyVStack` + `ForEach` — the current approach concatenates all log entries into one giant `Text` view, which gets slower as the log grows and prevents SwiftUI from recycling off-screen rows | Frontend | Low |
 | 48 | Replace `GeometryReader` in the progress bar with `containerRelativeFrame()` — `GeometryReader` is the legacy approach; `containerRelativeFrame()` is the modern API for sizing a view relative to its container | Frontend | Low |
+| 51 | Examine and refine alert pop-up layout | Frontend | Low |
 
 ### Suggested Build Order
 
@@ -231,10 +238,10 @@ A rough sequence that respects dependencies and builds on each previous step.
 ~~Moved debug controls into separate `DebugWindow.swift` with its own `Window` scene. `DownloadManager` lifted to App struct level with `.environmentObject()`. Debug window auto-opens via `openWindow(id:)` in `#if DEBUG`.~~
 
 **Phase 4 — Error handling & logging** (in progress)
-~~Task 16:~~ `LogManager.swift` with `LogEntry` struct (Identifiable, timestamped, source-labeled) and `LogManager` class (ObservableObject, size-capped buffer at 1 MB). Stdout + stderr handlers wired into `DownloadManager`. `LogManager` injected at App struct level via `.environmentObject()`. ~~Task 35:~~ Debug functions moved to `#if DEBUG` extension in `DebugWindow.swift` with helper methods in `DownloadManager`. Timer leak fix. ~~Task 17:~~ `ErrorParser` struct with `ErrorPattern` type, wired into both metadata fetch and download stderr handler. ~~Task 27:~~ `LogWindow.swift` with `LazyVStack` log display, entry counter, Copy Log and Clear Log buttons; `Window` scene declared in `YoloDLApp`. Remaining: Tasks 42, 43, 44, 45, 46, 47.
+~~Task 16:~~ `LogManager.swift` with `LogEntry` struct (Identifiable, timestamped, source-labeled) and `LogManager` class (ObservableObject, size-capped buffer at 1 MB). Stdout + stderr handlers wired into `DownloadManager`. `LogManager` injected at App struct level via `.environmentObject()`. ~~Task 35:~~ Debug functions moved to `#if DEBUG` extension in `DebugWindow.swift` with helper methods in `DownloadManager`. Timer leak fix. ~~Task 17:~~ `ErrorParser` struct with `ErrorPattern` type, wired into both metadata fetch and download stderr handler. ~~Task 27:~~ `LogWindow.swift` with `LazyVStack` log display, entry counter, Copy Log and Clear Log buttons; `Window` scene declared in `YoloDLApp`. ~~Task 42:~~ All `DispatchQueue` usage replaced with Swift Concurrency (`Task { @MainActor in }`, `Task.sleep`). `simulateDownload()` migrated from `Timer` to `Task` with cancellation. ~~Task 43:~~ `@MainActor` added to `DownloadManager` class; Strict Concurrency Checking set to Complete. ~~Task 44:~~ `fetchMetadata()` rewritten with `withCheckedContinuation` + `terminationHandler`; `waitUntilExit()` removed. ~~Task 45:~~ Silent `catch { print(error) }` blocks replaced with `LogManager` logging + user-facing `AlertMessage` alerts. ~~Task 46:~~ Deprecated `Alert` API replaced with modern view builder syntax; two separate alert pipelines unified into single `alertToShow: AlertMessage?` property. Remaining: Task 47. Flagged for investigation: progress bar behavior changed after concurrency migration; Stop button logic broken for simulated runs.
 
 **Phase 5 — File management**
-Tasks 14, 28, 29. Duplicate detection, overwrite prompts, naming presets. Makes downloads more robust. Also: Task 48 (replace `GeometryReader` with `containerRelativeFrame()`).
+Tasks 14, 28, 29. Duplicate detection, overwrite prompts, naming presets. Makes downloads more robust. Also: Task 48 (replace `GeometryReader` with `containerRelativeFrame()`), Task 51 (examine and refine alert pop-up layout).
 
 **Phase 6 — Live streams & multi-episode**
 Tasks 18, 19, 31, 21, 32. Handle edge cases for live and series content.
