@@ -69,12 +69,12 @@ struct ContentView: View {
             
             TextField("Enter source URL", text: $downloader.sourceUrl)
                 .disabled(downloader.downloadIsActive)
-            
-            GeometryReader { geometry in
-                ZStack(alignment: .leading) {
-                    Rectangle()
-                        .frame(height: 30)
-                        .opacity(0.2)
+
+            Rectangle()
+                .frame(height: 30)
+                .frame(maxWidth: .infinity)
+                .opacity(0.2)
+                .overlay(alignment: .leading) {
                     Rectangle()
                         .fill(
                             LinearGradient(
@@ -83,8 +83,13 @@ struct ContentView: View {
                                 endPoint: .trailing
                             )
                         )
+                        .containerRelativeFrame(.horizontal) { length, _ in
+                            length * downloader.downloadProgress
+                        }
+                        .frame(height: 30)
                         .opacity(downloader.downloadProgress > 0 ? 1.0 : 0.0)
-                        .frame(width: geometry.size.width * downloader.downloadProgress, height: 30)
+                }
+                .overlay(alignment: .leading) {
                     Rectangle()
                         .fill(
                             LinearGradient(
@@ -93,30 +98,36 @@ struct ContentView: View {
                                 endPoint: .trailing
                             )
                         )
-                        .frame(width: geometry.size.width * downloader.downloadProgress, height: 30)
+                        .containerRelativeFrame(.horizontal) { length, _ in
+                            length * downloader.downloadProgress
+                        }
+                        .frame(height: 30)
                         .opacity(downloader.downloadIsFinished ? 1.0 : 0.0)
+                }
+                .overlay(alignment: .leading) {
                     Rectangle()
-                        .fill (
+                        .fill(
                             LinearGradient(
                                 colors: [.clear, .white.opacity(0.7), .clear],
                                 startPoint: UnitPoint(x: shimmerOffset - 0.5, y: 0),
                                 endPoint: UnitPoint(x: shimmerOffset + 0.5, y: 0)
                             )
                         )
-                        .frame(width: geometry.size.width * downloader.downloadProgress, height: 30)
+                        .containerRelativeFrame(.horizontal) { length, _ in
+                            length * downloader.downloadProgress
+                        }
+                        .frame(height: 30)
                         .blendMode(.screen)
                         .opacity(downloader.downloadIsActive ? 1.0 : 0.0)
                 }
+                .clipped()
                 .animation(.easeInOut(duration: progressBarAnimationSpeed), value: downloader.downloadProgress)
                 .animation(nil, value: downloader.downloadIsFinished)
-                .clipped()
-            }
-            .frame(height: 30)
-            .onAppear {
-                withAnimation(.linear(duration: 2).repeatForever(autoreverses: false)) {
-                    shimmerOffset = 2.0
+                .onAppear {
+                    withAnimation(.linear(duration: 2).repeatForever(autoreverses: false)) {
+                        shimmerOffset = 2.0
+                    }
                 }
-            }
             
             
             Text(downloadLocation.isEmpty ? "No folder selected" : "Download location: \(downloadLocation)")

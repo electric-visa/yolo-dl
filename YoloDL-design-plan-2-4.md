@@ -1,6 +1,6 @@
 # YoloDL — Design Plan & Progress
 
-**Last updated:** 10 March 2026 — v0.09 (Phase 4 complete — code hygiene tasks 37, 38, 39, 40, 41, 50 complete — simulation bugs fixed — Task 49 complete — Phase 5 next)
+**Last updated:** 11 March 2026 — v0.09 (Phase 4 complete — code hygiene tasks 37, 38, 39, 40, 41, 50 complete — Task 49 complete — Task 51 complete — Phase 5 in progress)
 
 ---
 
@@ -219,7 +219,7 @@ Refactoring to keep the codebase manageable as features are added.
 | ~~46~~ | ~~Replace deprecated `Alert(title:message:)` API in `ContentView` with modern SwiftUI alert view builder syntax~~ | ~~Frontend~~ | ~~Low~~ | ✅ Done — unified two separate alert pipelines (`inputValidationError` + `downloadToolError`) into single `alertToShow: AlertMessage?` with one `.alert` modifier; `AlertMessage` now has `title` + `text` properties |
 | ~~47~~ | ~~Replace joined `Text` in `LogWindow` with `LazyVStack` + `ForEach` — the current approach concatenates all log entries into one giant `Text` view, which gets slower as the log grows and prevents SwiftUI from recycling off-screen rows~~ | ~~Frontend~~ | ~~Low~~ | ✅ Done — `LazyVStack(spacing:)` with `ForEach`, `.textSelection(.enabled)` on stack, `.id(entry.id)` on each `Text` for scroll anchoring, `proxy.scrollTo(logManager.logEntries.last?.id)` in `.onChange` |
 | 48 | Replace `GeometryReader` in the progress bar with `containerRelativeFrame()` — `GeometryReader` is the legacy approach; `containerRelativeFrame()` is the modern API for sizing a view relative to its container | Frontend | Low |
-| 51 | Examine and refine alert pop-up layout | Frontend | Low |
+| ~~51~~ | ~~Examine and refine alert pop-up layout~~ | ~~Frontend~~ | ~~Low~~ | ✅ Done — error message wording reviewed against Apple HIG; messages rewritten in plain language answering what happened and what to try next; forced `\n` line breaks removed in favour of natural wrapping |
 
 ### Suggested Build Order
 
@@ -240,8 +240,8 @@ A rough sequence that respects dependencies and builds on each previous step.
 **~~Phase 4 — Error handling & logging~~** ✅ Complete
 ~~Task 16:~~ `LogManager.swift` with `LogEntry` struct (Identifiable, timestamped, source-labeled) and `LogManager` class (ObservableObject, size-capped buffer at 1 MB). Stdout + stderr handlers wired into `DownloadManager`. `LogManager` injected at App struct level via `.environmentObject()`. ~~Task 35:~~ Debug functions moved to `#if DEBUG` extension in `DebugWindow.swift` with helper methods in `DownloadManager`. Timer leak fix. ~~Task 17:~~ `ErrorParser` struct with `ErrorPattern` type, wired into both metadata fetch and download stderr handler. ~~Task 27:~~ `LogWindow.swift` with `LazyVStack` log display, entry counter, Copy Log and Clear Log buttons; `Window` scene declared in `YoloDLApp`. ~~Task 42:~~ All `DispatchQueue` usage replaced with Swift Concurrency (`Task { @MainActor in }`, `Task.sleep`). `simulateDownload()` migrated from `Timer` to `Task` with cancellation. ~~Task 43:~~ `@MainActor` added to `DownloadManager` class; Strict Concurrency Checking set to Complete. ~~Task 44:~~ `fetchMetadata()` rewritten with `withCheckedContinuation` + `terminationHandler`; `waitUntilExit()` removed. ~~Task 45:~~ Silent `catch { print(error) }` blocks replaced with `LogManager` logging + user-facing `AlertMessage` alerts. ~~Task 46:~~ Deprecated `Alert` API replaced with modern view builder syntax; two separate alert pipelines unified into single `alertToShow: AlertMessage?` property. ~~Task 47:~~ Joined `Text` in `LogWindow` replaced with `LazyVStack` + `ForEach`. Simulation bugs fixed: Stop button overwriting cancelled state with finished state; blue stripe gradient artifact after cancellation.
 
-**Phase 5 — File management**
-Tasks 14, 28, 29. Duplicate detection, overwrite prompts, naming presets. Makes downloads more robust. Also: Task 48 (replace `GeometryReader` with `containerRelativeFrame()`), Task 51 (examine and refine alert pop-up layout).
+**Phase 5 — File management** (in progress)
+Tasks 14, 28, 29. Duplicate detection, overwrite prompts, naming presets. Makes downloads more robust. Also: Task 48 (replace `GeometryReader` with `containerRelativeFrame()`). ~~Task 51 complete.~~
 
 **Phase 6 — Live streams & multi-episode**
 Tasks 18, 19, 31, 21, 32. Handle edge cases for live and series content.
