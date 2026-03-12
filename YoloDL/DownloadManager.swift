@@ -66,7 +66,7 @@ import Foundation
     }
     
     // Function to fetch metadata.
-    func fetchMetadata() async -> Int {
+    func fetchMetadata() async -> [EpisodeMetadata]? {
         
         let metadataParsing = Process()
         metadataParsing.executableURL = URL(fileURLWithPath: pathToYleDl)
@@ -94,9 +94,8 @@ import Foundation
                 
                 let parsedMetaData = stdoutPipe.fileHandleForReading.readDataToEndOfFile()
                 let episodes = try? JSONDecoder().decode([EpisodeMetadata].self, from: parsedMetaData)
-                let totalSeconds = episodes?.reduce(0) { $0 + $1.durationSeconds } ?? 0
                 
-                continuation.resume(returning: totalSeconds)
+                continuation.resume(returning: episodes)
             }
             
             do {
@@ -107,13 +106,13 @@ import Foundation
                     self.appState = .error
                     self.alertToShow = AlertMessage(title: "Metadata error", text: "Metadata error Details: \(error.localizedDescription)")
                 }
-                continuation.resume(returning: 0)
+                continuation.resume(returning: nil)
             }
         }
     }
     
     // Function to download files. Includes metadata parsing.
-    func downloadFiles(downloadLocation: String, fileNamingPattern: String) {
+    func downloadFiles(downloadLocation: String, fileNamingPattern: String, namingPreset: NamingPreset) {
         Task {
             
             // Revert from a possible cancelled state.
@@ -128,14 +127,28 @@ import Foundation
             downloadIsFinished = false
             logger?.clearLog()
             
-            // Call metadata parsing and guard for total duration of 0
-            // unless there are other errors.
+            // Fetch metadata, calculate total duration and check for duplicate files.
+            // Includes guards for invalid metadata.
             appState = .fetchingMetadata
-            totalDuration = await fetchMetadata()
+            let episodes = await fetchMetadata()
+            totalDuration = episodes?.reduce(0) { $0 + $1.durationSeconds } ?? 0
             
             if appState == .error { return }
             
             guard totalDuration != 0 else { handleError(.totalDurationIsZero); return }
+            
+            if let episodes = episodes, !episodes.isEmpty {
+                let stem = episodes[0].predictedFileStem(for: namingPreset)
+                if !stem.isEmpty {
+                    for ext in ["mkv", "mp4"] {
+                        let path = (downloadLocation as NSString).appendingPathComponent("\(stem).\(ext)")
+                        if FileManager.default.fileExists(atPath: path) {
+                            // duplicate found — what should happen here?
+                        }
+                    }
+                }
+            }
+
             downloadIsActive = true
             appState = .downloading
             

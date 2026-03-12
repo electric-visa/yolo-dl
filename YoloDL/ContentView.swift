@@ -53,7 +53,7 @@ struct ContentView: View {
         if downloader.downloadIsActive {
             downloader.cancelDownload()
         } else {
-            downloader.downloadFiles(downloadLocation: downloadLocation, fileNamingPattern: namingPreset.rawValue)
+            downloader.downloadFiles(downloadLocation: downloadLocation, fileNamingPattern: namingPreset.rawValue, namingPreset: namingPreset)
         }
     }
     
