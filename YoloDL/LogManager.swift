@@ -45,10 +45,10 @@ struct LogEntry: Identifiable {
         let entry = LogEntry(text: rawText, source: pipe)
         let entrySize = rawText.utf8.count
         logEntries.append(entry)
-        currentBufferSize = currentBufferSize + entrySize
+        currentBufferSize += entrySize
         while currentBufferSize > maxBufferSize {
             let removed = logEntries.removeFirst()
-            currentBufferSize = currentBufferSize - removed.text.utf8.count
+            currentBufferSize -= removed.text.utf8.count
         }
     }
     
