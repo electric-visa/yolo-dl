@@ -29,8 +29,6 @@ struct YoloDLApp: App {
         Window("Debug Window", id: "debug") {
             DebugWindow()
                 .environment(downloadManager)
-                // COMMENTED OUT, MAYBE TO BE USED LATER.
-                // .environment(logManager)
         }
         #endif
     }

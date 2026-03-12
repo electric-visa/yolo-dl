@@ -10,10 +10,7 @@ import SwiftUI
 struct DebugWindow: View {
     
     @Environment(DownloadManager.self) var downloadManager
-    
-    // COMMENTED OUT, MAYBE TO BE USED LATER
-    // @EnvironmentObject var logManager: LogManager
-    
+
     var body: some View {
         VStack(alignment: .center, spacing: 12) {
             
