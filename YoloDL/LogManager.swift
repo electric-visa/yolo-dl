@@ -10,16 +10,22 @@ import Foundation
 // Struct to handle log parsing.
 
 struct LogEntry: Identifiable {
-    
+
     enum LogSource {
         case stdout
         case stderr
     }
 
-    var text: String
-    var timestamp: Date = .now
-    var source: LogSource
-    var id = UUID()
+    let text: String
+    let timestamp: Date
+    let source: LogSource
+    let id = UUID()
+
+    init(text: String, source: LogSource, timestamp: Date = .now) {
+        self.text = text
+        self.source = source
+        self.timestamp = timestamp
+    }
 }
 
 // LogManager class
