@@ -25,8 +25,11 @@ extension DownloadManager {
             }
             guard !Task.isCancelled else { return }
             resetDownloadState()
-            try? await Task.sleep(for: .seconds(progressBarFinishedSpeed))
-            appState = .finished
+            do {
+                try await Task.sleep(for: .seconds(progressBarFinishedSpeed))
+                appState = .finished
+            } catch {
+            }
         }
     }
     

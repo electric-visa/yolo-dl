@@ -31,6 +31,7 @@ import Foundation
     private(set) var downloadIsFinished: Bool = false
     private var activeDownload: Process? = nil
     private var downloadIsCancelled: Bool = false
+    private var finishAnimationTask: Task<Void, any Error>?
     private(set) var totalDuration: Int = 0
     private(set) var downloadProgress: Double = 0
     let progressBarFinishedSpeed: Double = 2.5
@@ -55,10 +56,11 @@ import Foundation
     
     // Function to reset the download state
     func resetDownloadState() {
+        finishAnimationTask?.cancel()
         downloadProgress = 1.0
         downloadIsActive = false
-        Task {
-            try? await Task.sleep(for: .seconds(progressBarFinishedSpeed))
+        finishAnimationTask = Task {
+            try await Task.sleep(for: .seconds(progressBarFinishedSpeed))
             self.downloadIsFinished = true
         }
     }
@@ -130,7 +132,6 @@ import Foundation
             // unless there are other errors.
             appState = .fetchingMetadata
             totalDuration = await fetchMetadata()
-            print(totalDuration)
             
             if appState == .error { return }
             

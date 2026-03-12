@@ -170,5 +170,7 @@ struct ContentView: View {
 }
 
 #Preview {
+    @Previewable @State var downloadManager = DownloadManager()
     ContentView()
+        .environment(downloadManager)
 }
