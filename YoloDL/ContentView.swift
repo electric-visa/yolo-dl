@@ -10,7 +10,7 @@ import SwiftUI
 
 struct ContentView: View {
     
-    let appVersion = "0.09"
+    let appVersion = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "?"
     
     // Open debug window on startup.
     @Environment(\.openWindow) var openWindow
