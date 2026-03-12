@@ -14,10 +14,10 @@ enum NamingPreset: String, CaseIterable {
     var label: String {
         
         switch self {
-        case .seriesDateTitle: return "Series: date/episode - Title"
-        case .seriesTitle: return "Series: Title"
-        case .titleOnly: return "Title"
-        case .custom: return "Custom"
+        case .seriesDateTitle: "Series: date/episode - Title"
+        case .seriesTitle: "Series: Title"
+        case .titleOnly: "Title"
+        case .custom: "Custom"
         }
     }
 }

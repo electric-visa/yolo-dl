@@ -16,23 +16,17 @@ enum InputValidationError: Identifiable {
     
     var title: String {
         switch self {
-        case .emptyURL:
-            return "No URL provided"
-        case .noFolderSelected:
-            return "No folder selected"
-        case .totalDurationIsZero:
-            return "Content unavailable"
+        case .emptyURL: "No URL provided"
+        case .noFolderSelected: "No folder selected"
+        case .totalDurationIsZero: "Content unavailable"
         }
     }
-    
+
     var message: String {
         switch self {
-        case .emptyURL:
-            return "No URL was provided. Check that the URL field is not empty."
-        case .noFolderSelected:
-            return "No download folder is currently selected. Please use the Folder button to select one."
-        case .totalDurationIsZero:
-            return "The target file's length was measured to be zero. The file might not be available. Please check the URL and try again."
+        case .emptyURL: "No URL was provided. Check that the URL field is not empty."
+        case .noFolderSelected: "No download folder is currently selected. Please use the Folder button to select one."
+        case .totalDurationIsZero: "The target file's length was measured to be zero. The file might not be available. Please check the URL and try again."
         }
     }
 }
