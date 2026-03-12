@@ -32,7 +32,7 @@ import Foundation
     private var activeDownload: Process? = nil
     private var downloadIsCancelled: Bool = false
     private var finishAnimationTask: Task<Void, any Error>?
-    private(set) var totalDuration: Int = 0
+    var totalDuration: Int = 0
     private(set) var downloadProgress: Double = 0
     let progressBarFinishedSpeed: Double = 2.5
 
@@ -44,6 +44,17 @@ import Foundation
     
     // Variable for LogManager.
     var logger: LogManager? = nil
+    
+    // Temporary storage for metadata while user alert is shown
+    private(set) var pendingMetadata: [EpisodeMetadata]? = nil
+    
+    // Boolean to trigger confirmation dialog
+    var showDuplicateConfirmation: Bool = false
+    
+    // Stored parameters for Phase B execution after confirmation
+    private(set) var pendingDownloadLocation: String = ""
+    private(set) var pendingFileNamingPattern: String = ""
+    private(set) var duplicateFilePath: String? = nil
     
     // Function to check for valid user inputs.
     // Currently guards for empty URL and destination folder.
@@ -111,7 +122,7 @@ import Foundation
         }
     }
     
-    // Function to download files. Includes metadata parsing.
+    // PHASE A: Validate inputs, fetch metadata, and check for duplicates.
     func downloadFiles(downloadLocation: String, fileNamingPattern: String, namingPreset: NamingPreset) {
         Task {
             
@@ -137,91 +148,142 @@ import Foundation
             
             guard totalDuration != 0 else { handleError(.totalDurationIsZero); return }
             
+            // Check for duplicate files
+            var duplicateFound = false
             if let episodes = episodes, !episodes.isEmpty {
                 let stem = episodes[0].predictedFileStem(for: namingPreset)
                 if !stem.isEmpty {
                     for ext in ["mkv", "mp4"] {
                         let path = (downloadLocation as NSString).appendingPathComponent("\(stem).\(ext)")
                         if FileManager.default.fileExists(atPath: path) {
-                            // duplicate found — what should happen here?
-                        }
-                    }
-                }
-            }
-
-            downloadIsActive = true
-            appState = .downloading
-            
-            // Declare the download process.
-            let downloadProcess = Process()
-            activeDownload = downloadProcess
-            
-            // Declare the pipe for measuring progress.
-            let stderrPipe = Pipe()
-            
-            stderrPipe.fileHandleForReading.readabilityHandler = { handle in
-                let output = String(data: handle.availableData, encoding: .utf8) ?? ""
-                Task { @MainActor in
-                    self.logger?.appendLog(output, from: .stderr)
-                    if let friendlyMessage = self.errorParser.parseErrors(output) {
-                        self.appState = .error
-                        self.alertToShow = AlertMessage(title: "Download Error", text: friendlyMessage)
-                    }
-                }
-                for line in output.components(separatedBy: "\r") {
-                    guard line.contains("time="), !line.contains("time=N/A"),
-                          let timePart = line.components(separatedBy: "time=").last,
-                          let timeString = timePart.components(separatedBy: " ").first,
-                          timeString != "N/A" else { continue }
-                    let components = timeString.components(separatedBy: ":")
-                    if components.count == 3 {
-                        let hours = Double(components[0].trimmingCharacters(in: .whitespaces)) ?? 0
-                        let minutes = Double(components[1].trimmingCharacters(in: .whitespaces)) ?? 0
-                        let seconds = Double(components[2].trimmingCharacters(in: .whitespaces)) ?? 0
-                        let currentSeconds = hours * 3600 + minutes * 60 + seconds
-                        
-                        Task { @MainActor in
-                            self.downloadProgress = self.totalDuration > 0 ? currentSeconds / Double(self.totalDuration) : 0
+                            duplicateFound = true
+                            duplicateFilePath = path
+                            break
                         }
                     }
                 }
             }
             
-            let outputPipe = Pipe()
-            outputPipe.fileHandleForReading.readabilityHandler = { handle in
-                let output = String(data: handle.availableData, encoding: .utf8) ?? ""
-                Task { @MainActor in
-                    self.logger?.appendLog(output, from: .stdout)
-                }
+            // Store the parameters for potential Phase B execution
+            pendingMetadata = episodes
+            pendingDownloadLocation = downloadLocation
+            pendingFileNamingPattern = fileNamingPattern
+            
+            // If duplicate found, trigger confirmation dialog
+            if duplicateFound {
+                showDuplicateConfirmation = true
+                return
             }
             
-            downloadProcess.terminationHandler = { _ in
-                stderrPipe.fileHandleForReading.readabilityHandler = nil
-                outputPipe.fileHandleForReading.readabilityHandler = nil
-                Task { @MainActor in
-                    if !self.downloadIsCancelled {
-                        self.resetDownloadState()
-                        self.appState = .finished
-                    }
-                }
-            }
-            downloadProcess.standardError = stderrPipe
-            downloadProcess.standardOutput = outputPipe
-            downloadProcess.executableURL = URL(fileURLWithPath: pathToYleDl)
-            downloadProcess.arguments = ["--ffmpeg", pathToFfmpeg, "--ffprobe", pathToFfprobe, "--destdir", downloadLocation, "--output-template", fileNamingPattern, sourceUrl]
+            // No duplicates found, proceed directly to Phase B
+            startDownloadProcess()
+        }
+    }
+    
+    // PHASE B: Execute the actual download process using stored metadata.
+    func startDownloadProcess() {
+        
+        // Ensure we have metadata and parameters to work with
+        guard let episodes = pendingMetadata else {
+            handleError(.totalDurationIsZero)
+            return
+        }
+        
+        // Delete existing file if this is an overwrite operation
+        if let duplicatePath = duplicateFilePath {
             do {
-                try downloadProcess.run()
+                try FileManager.default.removeItem(atPath: duplicatePath)
+                logger?.appendLog("Deleted existing file: \(duplicatePath)", from: .stdout)
+                duplicateFilePath = nil // Clear after successful deletion
             } catch {
-                self.logger?.appendLog(error.localizedDescription, from: .stderr)
+                logger?.appendLog("Failed to delete existing file: \(error.localizedDescription)", from: .stderr)
                 appState = .error
-                self.alertToShow = AlertMessage(title: "Download error", text: "Failed to start download. Details: \(error.localizedDescription)")
+                alertToShow = AlertMessage(title: "File Deletion Error", text: "Could not delete existing file: \(error.localizedDescription)")
+                return
             }
+        }
+        
+        downloadIsActive = true
+        appState = .downloading
+        
+        // Declare the download process.
+        let downloadProcess = Process()
+        activeDownload = downloadProcess
+        
+        // Declare the pipe for measuring progress.
+        let stderrPipe = Pipe()
+        
+        stderrPipe.fileHandleForReading.readabilityHandler = { handle in
+            let output = String(data: handle.availableData, encoding: .utf8) ?? ""
+            Task { @MainActor in
+                self.logger?.appendLog(output, from: .stderr)
+                if let friendlyMessage = self.errorParser.parseErrors(output) {
+                    self.appState = .error
+                    self.alertToShow = AlertMessage(title: "Download Error", text: friendlyMessage)
+                }
+            }
+            for line in output.components(separatedBy: "\r") {
+                guard line.contains("time="), !line.contains("time=N/A"),
+                      let timePart = line.components(separatedBy: "time=").last,
+                      let timeString = timePart.components(separatedBy: " ").first,
+                      timeString != "N/A" else { continue }
+                let components = timeString.components(separatedBy: ":")
+                if components.count == 3 {
+                    let hours = Double(components[0].trimmingCharacters(in: .whitespaces)) ?? 0
+                    let minutes = Double(components[1].trimmingCharacters(in: .whitespaces)) ?? 0
+                    let seconds = Double(components[2].trimmingCharacters(in: .whitespaces)) ?? 0
+                    let currentSeconds = hours * 3600 + minutes * 60 + seconds
+                    
+                    Task { @MainActor in
+                        self.downloadProgress = self.totalDuration > 0 ? currentSeconds / Double(self.totalDuration) : 0
+                    }
+                }
+            }
+        }
+        
+        let outputPipe = Pipe()
+        outputPipe.fileHandleForReading.readabilityHandler = { handle in
+            let output = String(data: handle.availableData, encoding: .utf8) ?? ""
+            Task { @MainActor in
+                self.logger?.appendLog(output, from: .stdout)
+            }
+        }
+        
+        downloadProcess.terminationHandler = { _ in
+            stderrPipe.fileHandleForReading.readabilityHandler = nil
+            outputPipe.fileHandleForReading.readabilityHandler = nil
+            Task { @MainActor in
+                if !self.downloadIsCancelled {
+                    self.resetDownloadState()
+                    self.appState = .finished
+                    self.clearPendingState()
+                }
+            }
+        }
+        downloadProcess.standardError = stderrPipe
+        downloadProcess.standardOutput = outputPipe
+        downloadProcess.executableURL = URL(fileURLWithPath: pathToYleDl)
+        downloadProcess.arguments = ["--ffmpeg", pathToFfmpeg, "--ffprobe", pathToFfprobe, "--destdir", pendingDownloadLocation, "--output-template", pendingFileNamingPattern, sourceUrl]
+        do {
+            try downloadProcess.run()
+        } catch {
+            self.logger?.appendLog(error.localizedDescription, from: .stderr)
+            appState = .error
+            self.alertToShow = AlertMessage(title: "Download error", text: "Failed to start download. Details: \(error.localizedDescription)")
         }
     }
     
     func handleError(_ error: InputValidationError) {
         appState = .error
         alertToShow = AlertMessage(title: error.title, text: error.message)
+    }
+    
+    // Function to clear pending state after cancellation or successful download
+    func clearPendingState() {
+        pendingMetadata = nil
+        pendingDownloadLocation = ""
+        pendingFileNamingPattern = ""
+        duplicateFilePath = nil
     }
     
     // Function to cancel an ongoing download
@@ -246,6 +308,13 @@ import Foundation
         downloadIsActive = true
         appState = .downloading
         downloadIsFinished = false
+    }
+    
+    func setPendingState(metadata: [EpisodeMetadata], location: String, pattern: String, duplicatePath: String?) {
+        pendingMetadata = metadata
+        pendingDownloadLocation = location
+        pendingFileNamingPattern = pattern
+        duplicateFilePath = duplicatePath
     }
     
     func setDownloadProgress(to value: Double) {

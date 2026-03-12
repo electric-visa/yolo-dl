@@ -1,9 +1,8 @@
 //
 //  ContentView.swift
-//  YoloDL 0.09
+//  YoloDL 0.1
 //
 //  Created on 5.3.2026.
-//  Last updated on 10.3.2026.
 //
 
 import SwiftUI
@@ -164,6 +163,22 @@ struct ContentView: View {
             
         } message: {
             Text(downloader.alertToShow?.text ?? "")
+        }
+        
+        .confirmationDialog(
+            "File already exists",
+            isPresented: $downloader.showDuplicateConfirmation,
+            titleVisibility: .visible
+        ) {
+            Button("Overwrite", role: .destructive) {
+                downloader.startDownloadProcess()
+            }
+            Button("Cancel", role: .cancel) {
+                downloader.appState = .ready
+                downloader.clearPendingState()
+            }
+        } message: {
+            Text("A file with this name already exists. Do you want to overwrite it?")
         }
         .padding()
     }

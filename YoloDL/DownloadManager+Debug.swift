@@ -37,5 +37,24 @@ extension DownloadManager {
     func simulateMetadataFailure() {
         handleError(.totalDurationIsZero)
     }
+    
+    // Function to simulate overwrite confirmation dialog
+    func simulateOverwriteConfirmation() {
+        // Create mock metadata
+        let mockMetadata = [
+            EpisodeMetadata(
+                durationSeconds: 3600,
+                title: "Test Episode S01E01",
+                episodeTitle: "Test Series: Test Episode",
+                publishedTimestamp: "2026-03-12T12:00:00Z"
+            )
+        ]
+        setPendingState(metadata: mockMetadata, location: "tmp/test", pattern: "test-pattern", duplicatePath: nil )
+        totalDuration = mockMetadata.reduce(0) { $0 + $1.durationSeconds }
+        
+        showDuplicateConfirmation = true
+        
+        logger?.appendLog("Simulated duplicate file detection. Confirmation dialog should appear.", from: .stdout)
+    }
 }
 #endif

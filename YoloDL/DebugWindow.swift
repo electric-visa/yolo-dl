@@ -21,6 +21,10 @@ struct DebugWindow: View {
             Button("Simulate Metadata Failure") {
                 downloadManager.simulateMetadataFailure()
             }
+            
+            Button("Simulate Overwrite Confirmation") {
+                downloadManager.simulateOverwriteConfirmation()
+            }
         }
         .padding()
     }
