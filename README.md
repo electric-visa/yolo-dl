@@ -3,7 +3,7 @@
 
 ### What is YOLO DL?
 
-YOLO DL is a graphical frontend for **[yle-dl](https://github.com/aajanki/yle-dl)**. <br> 
+YOLO DL is a macOS graphical frontend for **[yle-dl](https://github.com/aajanki/yle-dl)**. <br> 
 It is aimed at users without the technical knowledge required to install and run yle-dl from the command line. 
 
 YOLO DL comes bundled with all the dependencies needed to run yle-dl, and it can be installed from a .dmg
