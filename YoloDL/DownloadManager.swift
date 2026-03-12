@@ -111,7 +111,7 @@ import Foundation
     }
     
     // Function to download files. Includes metadata parsing.
-    func downloadFiles(downloadLocation: String) {
+    func downloadFiles(downloadLocation: String, fileNamingPattern: String) {
         Task {
             
             // Revert from a possible cancelled state.
@@ -194,7 +194,7 @@ import Foundation
             downloadProcess.standardError = stderrPipe
             downloadProcess.standardOutput = outputPipe
             downloadProcess.executableURL = URL(fileURLWithPath: pathToYleDl)
-            downloadProcess.arguments = ["--ffmpeg", pathToFfmpeg, "--ffprobe", pathToFfprobe, "--destdir", downloadLocation, sourceUrl]
+            downloadProcess.arguments = ["--ffmpeg", pathToFfmpeg, "--ffprobe", pathToFfprobe, "--destdir", downloadLocation, "--output-template", fileNamingPattern, sourceUrl]
             do {
                 try downloadProcess.run()
             } catch {

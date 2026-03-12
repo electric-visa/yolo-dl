@@ -1,0 +1,108 @@
+usage: yle-dl [-h] [-V] [-v] [--debug] [-q] [-c FILENAME] [-i FILENAME]
+              [-o FILENAME]
+              [--showurl | --showtitle | --showepisodepage | --showmetadata]
+              [--output-template TEMPLATE]
+              [--output-na-placeholder PLACEHOLDER] [--pipe] [--destdir DIR]
+              [--create-dirs] [--no-create-dirs]
+              [--restrict-filename-no-spaces]
+              [--restrict-filename-no-specials] [--vfat] [--no-resume]
+              [--no-overwrite] [--ratelimit BR] [--proxy URI]
+              [--postprocess CMD] [--xattrs] [--sublang LANG]
+              [--metadatalang LANG] [--latestepisode] [--maxbitrate RATE]
+              [--resolution RES] [--startposition S] [--duration S]
+              [--preferformat F] [--backend BE] [--ffmpeg PATH]
+              [--ffprobe PATH] [--wget PATH]
+              [url]
+
+yle-dl 20250730: Download media files from Yle Areena and Elävä Arkisto
+Copyright (C) 2009-2025 Antti Ajanki <antti.ajanki@iki.fi>, license: GPLv3
+
+options:
+  -h, --help            show this help message and exit
+  -V, --verbose         Increase output verbosity. -VV is really verbose.
+  -v, --version         show program's version number and exit
+  --debug               Really verbose output, same as -VV
+  -q                    Reduce output verbosity. -qq prints only errors.
+  -c FILENAME, --config FILENAME
+                        config file path
+
+Input and output:
+  url                   Address of an Areena, Elävä Arkisto, or Yle news web
+                        page
+  -i FILENAME           Read input URLs to process from the named file, one
+                        URL per line
+  -o FILENAME           Save stream to the named file
+  --showurl             Print stream URL, don't download
+  --showtitle           Print stream title, don't download
+  --showepisodepage     Print web page for each episode
+  --showmetadata        Print metadata about available streams
+  --output-template TEMPLATE
+                        Template for generating an output file name when not
+                        using -o. Put the argument in single quotes: --output-
+                        template '${title}'. The template supports following
+                        substitutions: ${title} is replaced by the title of
+                        the episode, ${series} is the series title,
+                        ${series_separator} is the series title followed by ":
+                        ", ${season} is the string "Season XX" where XX is the
+                        season, ${episode} is the season and episode number
+                        ("S02E12"), ${episode_separator} is the season and
+                        episode followed by "-", ${timestamp} is stream
+                        publish timestamp ("2018-12-01T18:30"), ${date} is the
+                        stream publish date ("2018-12-01"), ${episode_or_date}
+                        is the same as "episode", or "date" if the episode
+                        number is unavailable, ${program_id} is an unique ID,
+                        $$ is an escape and will be replaced by a literal $. /
+                        specifies a subdirectory, but any / in the beginning
+                        is removed. Everything else will appear as-is.
+  --output-na-placeholder PLACEHOLDER
+                        Placeholder value for unavailable meta fields in
+                        output filename template (the default is an empty
+                        string)
+  --pipe                Dump stream to stdout for piping to media player. E.g.
+                        "yle-dl --pipe URL | vlc -"
+  --destdir DIR         Save files to DIR
+  --create-dirs         Create directories automatically (this is the default)
+  --no-create-dirs      Stop if an output directory does not exist
+  --restrict-filename-no-spaces
+                        Replace spaces by underscores in generated filenames
+  --restrict-filename-no-specials
+                        Generate Windows-compatible filenames by avoiding
+                        certain reserved characters
+  --vfat                Alias for --restrict-filename-no-specials
+  --no-resume           Don't resume partial files, download the whole stream
+                        again
+  --no-overwrite        Quit if a file already exists
+  --ratelimit BR        Maximum bandwidth consumption, integer in kB/s
+  --proxy URI           HTTP(S) proxy to use. Example: --proxy localhost:8118
+  --postprocess CMD     Execute the command CMD after a successful download.
+                        CMD is called with two arguments: video, subtitle
+  --xattrs              Write metadata to the video file's xattrs
+
+Stream type and quality:
+  --sublang LANG        Download subtitles if LANG is "all" (default), "fin"
+                        or "swe". Disable subtitles if LANG is "none".
+  --metadatalang LANG   Preferred metadata language, "fin", "swe" or "smi"
+  --latestepisode       Download the latest episode of a series
+  --maxbitrate RATE     Maximum bitrate stream to download, integer in kB/s or
+                        "best" or "worst".
+  --resolution RES      Maximum vertical resolution in pixels, default:
+                        highest available resolution
+  --startposition S     Start recording at S seconds from the start of the
+                        stream
+  --duration S          Record only the first S seconds of the stream
+  --preferformat F      Preferred video output format: mkv (default) or mp4.
+                        Applies only when downloading with ffmpeg
+
+Downloader backends:
+  --backend BE          Downloaders that are tried until one of them succeeds
+                        (a comma-separated list). Possible values: "wget",
+                        "ffmpeg"
+  --ffmpeg PATH         Set the path of the ffmpeg executable
+  --ffprobe PATH        Set the path of the ffprobe executable
+  --wget PATH           Set the path of the wget executable
+
+Args that start with '--' can also be set in a config file (~/.yledl.conf or
+~/.config/yledl.conf or specified via -c). Config file syntax allows:
+key=value, flag=true, stuff=[a,b,c] (for details, see syntax at
+https://goo.gl/R74nmi). In general, command-line values override config file
+values which override defaults.

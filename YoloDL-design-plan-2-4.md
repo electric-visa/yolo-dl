@@ -1,6 +1,6 @@
 # YoloDL — Design Plan & Progress
 
-**Last updated:** 11 March 2026 — v0.09 (Phase 4 complete — code hygiene tasks 37, 38, 39, 40, 41, 50 complete — Task 49 complete — Task 51 complete — Phase 5 in progress)
+**Last updated:** 11 March 2026 — v0.09 (Phase 4 complete — code hygiene tasks 37, 38, 39, 40, 41, 50 complete — Task 49 complete — Task 51 complete — Phase 5 in progress — file naming presets researched and finalised)
 
 ---
 
@@ -103,11 +103,20 @@ A native macOS application providing a user-friendly graphical interface for the
 ### File Naming
 
 - Preset selector (default: first option):
-  1. `Series - S01E01 - Episode Title` (default)
-  2. `Series - Episode Title`
-  3. `Series S01E01`
-  4. Custom `--output-template` string
-- All presets map to yle-dl's `--output-template` parameter
+  1. `${series_separator}${episode_or_date} - ${title}` (default) — series, date or episode code, episode title; works universally across movies, non-seasoned series, and seasoned series
+  2. `${series_separator}${title}` — series and episode title, no date or episode code
+  3. `${title}` — episode title only
+  4. Custom `--output-template` string (advanced; user-supplied)
+- All presets are passed directly to yle-dl's `--output-template` parameter — no Swift-side filename construction needed
+- No content type detection is required; yle-dl's separator tokens (`${series_separator}`, `${episode_separator}`) are conditional and suppress themselves when the relevant value is absent
+
+**Verified output examples (11 March 2026):**
+
+| Preset | Movie | Non-seasoned series | Seasoned series |
+|--------|-------|---------------------|-----------------|
+| 1 (default) | `2026-02-16 - Lentämisen kulta-aika` | `MOT: 2026-03-08 - Poliisi pahoinpiteli poikani` | `Metsolat: S01E01 - Tie kotiin` |
+| 2 | `Lentämisen kulta-aika` | `MOT: Poliisi pahoinpiteli poikani` | `Metsolat: Tie kotiin` |
+| 3 | `Lentämisen kulta-aika` | `Poliisi pahoinpiteli poikani` | `Tie kotiin` |
 
 ### Settings / Presets
 

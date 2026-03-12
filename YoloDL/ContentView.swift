@@ -31,8 +31,10 @@ struct ContentView: View {
         )
     }
     
-    // Storing previous downloadLocation in AppStorage
+    // AppStorage properties for storing user selections
     @AppStorage("lastFolder") private var downloadLocation: String = ""
+    @AppStorage("namingTemplate") private var namingPreset: NamingPreset = .seriesDateTitle
+
     
     // Function to choose the download location.
     func chooseFolder(){
@@ -51,7 +53,7 @@ struct ContentView: View {
         if downloader.downloadIsActive {
             downloader.cancelDownload()
         } else {
-            downloader.downloadFiles(downloadLocation: downloadLocation)
+            downloader.downloadFiles(downloadLocation: downloadLocation, fileNamingPattern: namingPreset.rawValue)
         }
     }
     
@@ -131,6 +133,12 @@ struct ContentView: View {
             
             
             Text(downloadLocation.isEmpty ? "No folder selected" : "Download location: \(downloadLocation)")
+            
+            Picker("File naming", selection: $namingPreset) {
+                ForEach(NamingPreset.allCases, id: \.self) { preset in
+                    Text(preset.label).tag(preset)
+                }
+            }
             
             Button(downloader.downloadIsActive ? "Stop" : "Download") {
                 handleDownloadButton()
