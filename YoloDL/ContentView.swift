@@ -107,7 +107,7 @@ struct ContentView: View {
 
             Text(downloadLocation.isEmpty ? "No folder selected" : "Download location: \(downloadLocation)")
 
-            Button(downloader.downloadIsActive ? "Stop" : "Download") {
+            Button(downloader.downloadIsActive ? "Stop" : appMode == .download ? "Download" : "Record") {
                 Task {
                     await handleDownloadButton()
                 }
