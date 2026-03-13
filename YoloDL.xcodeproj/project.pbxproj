@@ -15,9 +15,22 @@
 		5C8038A22F5ED511005B1C05 /* YoloDL.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = YoloDL.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
+/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+		5C1602E92F64A73E00F79FC0 /* Exceptions for "YoloDL" folder in "YoloDL" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Info.plist,
+			);
+			target = 5C790CEA2F599DB90049E87A /* YoloDL */;
+		};
+/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
+
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		5C790CED2F599DB90049E87A /* YoloDL */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				5C1602E92F64A73E00F79FC0 /* Exceptions for "YoloDL" folder in "YoloDL" target */,
+			);
 			path = YoloDL;
 			sourceTree = "<group>";
 		};
@@ -76,7 +89,7 @@
 			attributes = {
 				BuildIndependentTargetsInParallel = 1;
 				LastSwiftUpdateCheck = 2620;
-				LastUpgradeCheck = 2620;
+				LastUpgradeCheck = 2630;
 				TargetAttributes = {
 					5C790CEA2F599DB90049E87A = {
 						CreatedOnToolsVersion = 26.2;

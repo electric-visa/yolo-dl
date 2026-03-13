@@ -17,8 +17,11 @@ struct ProgressBarView: View {
 
     @State private var shimmerOffset: CGFloat = -1.0
     
+    // Main colors for the progress bar states.
+    
     let downloadActiveColors: [Color] = [.blue, .cyan]
     let downloadFinishedColors: [Color] = [.green, .mint]
+    let recordingActiveColors: [Color] = [.blue, Color(red: 0.52, green: 0.72, blue: 0.92)]
     
     // UI animation constant for the finished state delay
     static let progressBarFinishedSpeed: Double = 2.5
@@ -62,7 +65,7 @@ struct ProgressBarView: View {
                 Rectangle()
                     .fill(
                         LinearGradient(
-                            colors: [.clear, .white.opacity(0.7), .clear],
+                            colors: [.clear, .white.opacity(0.42), .clear],
                             startPoint: UnitPoint(x: shimmerOffset - 0.5, y: 0),
                             endPoint: UnitPoint(x: shimmerOffset + 0.5, y: 0)
                         )
@@ -78,7 +81,7 @@ struct ProgressBarView: View {
                 Rectangle()
                     .fill(
                         LinearGradient(
-                            colors: [.blue, Color(red: 0.52, green: 0.72, blue: 0.92)],
+                            colors: recordingActiveColors,
                             startPoint: .leading,
                             endPoint: .trailing
                         )
@@ -105,7 +108,7 @@ struct ProgressBarView: View {
                             path.addLine(to: CGPoint(x: x + size.height + stripeWidth, y: 0))
                             path.addLine(to: CGPoint(x: x + size.height, y: 0))
                             path.closeSubpath()
-                            context.fill(path, with: .color(.white.opacity(0.18)))
+                            context.fill(path, with: .color(.white.opacity(0.40)))
                             x += step
                         }
                     }
