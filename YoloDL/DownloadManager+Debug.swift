@@ -33,6 +33,15 @@ extension DownloadManager {
         }
     }
     
+    // Function for a simulated recording to test recording UI states.
+    // Recording has no progress — it runs indefinitely until stopped.
+    func simulateRecording() {
+        simulationTask?.cancel()
+        resetForSimulation()
+        appState = .recording
+        logger.appendLog("Simulated recording started.", from: .stdout)
+    }
+
     // Function to simulate metadata failure
     func simulateMetadataFailure() {
         handleError(.totalDurationIsZero)

@@ -17,14 +17,22 @@ struct DebugWindow: View {
             Button("Simulate Download") {
                 downloadManager.simulateDownload()
             }
-            
+            .disabled(downloadManager.downloadIsActive)
+
+            Button("Simulate Recording") {
+                downloadManager.simulateRecording()
+            }
+            .disabled(downloadManager.downloadIsActive)
+
             Button("Simulate Metadata Failure") {
                 downloadManager.simulateMetadataFailure()
             }
-            
+            .disabled(downloadManager.downloadIsActive)
+
             Button("Simulate Overwrite Confirmation") {
                 downloadManager.simulateOverwriteConfirmation()
             }
+            .disabled(downloadManager.downloadIsActive)
         }
         .padding()
     }

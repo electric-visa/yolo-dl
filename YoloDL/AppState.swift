@@ -10,6 +10,7 @@ enum AppState {
     case preparing
     case fetchingMetadata
     case downloading
+    case recording
     case finished
     case cancelled
     case error
@@ -20,6 +21,7 @@ enum AppState {
         case .preparing: "Preparing download"
         case .fetchingMetadata: "Fetching metadata"
         case .downloading: "Downloading"
+        case .recording: "Recording"
         case .finished: "Finished"
         case .cancelled: "Cancelled"
         case .error: "An error occurred"
