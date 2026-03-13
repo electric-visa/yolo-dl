@@ -12,8 +12,9 @@ struct ProgressBarView: View {
     let downloadProgress: Double
     let downloadIsActive: Bool
     let downloadIsFinished: Bool
+    let isRecording: Bool
     let progressBarAnimationSpeed: Double
-    
+
     @State private var shimmerOffset: CGFloat = -1.0
     
     let downloadActiveColors: [Color] = [.blue, .cyan]
@@ -71,7 +72,47 @@ struct ProgressBarView: View {
                     }
                     .frame(height: 30)
                     .blendMode(.screen)
-                    .opacity(downloadIsActive ? 1.0 : 0.0)
+                    .opacity(downloadIsActive && !isRecording ? 1.0 : 0.0)
+            }
+            .overlay {
+                Rectangle()
+                    .fill(
+                        LinearGradient(
+                            colors: [.blue, Color(red: 0.52, green: 0.72, blue: 0.92)],
+                            startPoint: .leading,
+                            endPoint: .trailing
+                        )
+                    )
+                    .frame(height: 30)
+                    .opacity(isRecording ? 1.0 : 0.0)
+            }
+            .overlay {
+                TimelineView(.animation) { timeline in
+                    Canvas { context, size in
+                        let stripeWidth: CGFloat = 10
+                        let spacing: CGFloat = 10
+                        let step = stripeWidth + spacing
+                        let cycleLength: CGFloat = 20.0
+                        let elapsed = timeline.date.timeIntervalSinceReferenceDate
+                        let offset = CGFloat(elapsed.truncatingRemainder(dividingBy: 0.7)) / 0.7 * cycleLength
+
+                        let diagonal = size.width + size.height
+                        var x = -diagonal + offset
+                        while x < diagonal {
+                            var path = Path()
+                            path.move(to: CGPoint(x: x, y: size.height))
+                            path.addLine(to: CGPoint(x: x + stripeWidth, y: size.height))
+                            path.addLine(to: CGPoint(x: x + size.height + stripeWidth, y: 0))
+                            path.addLine(to: CGPoint(x: x + size.height, y: 0))
+                            path.closeSubpath()
+                            context.fill(path, with: .color(.white.opacity(0.18)))
+                            x += step
+                        }
+                    }
+                }
+                .frame(height: 30)
+                .blendMode(.screen)
+                .opacity(isRecording ? 1.0 : 0.0)
             }
             .clipped()
             .animation(.easeInOut(duration: progressBarAnimationSpeed), value: downloadProgress)
@@ -90,20 +131,31 @@ struct ProgressBarView: View {
             downloadProgress: 0.0,
             downloadIsActive: false,
             downloadIsFinished: false,
+            isRecording: false,
             progressBarAnimationSpeed: 0.5
         )
-        
+
         ProgressBarView(
             downloadProgress: 0.65,
             downloadIsActive: true,
             downloadIsFinished: false,
+            isRecording: false,
             progressBarAnimationSpeed: 0.5
         )
-        
+
         ProgressBarView(
             downloadProgress: 1.0,
             downloadIsActive: false,
             downloadIsFinished: true,
+            isRecording: false,
+            progressBarAnimationSpeed: 0.5
+        )
+
+        ProgressBarView(
+            downloadProgress: 0,
+            downloadIsActive: false,
+            downloadIsFinished: false,
+            isRecording: true,
             progressBarAnimationSpeed: 0.5
         )
     }

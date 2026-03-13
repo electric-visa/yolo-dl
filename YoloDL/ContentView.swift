@@ -102,6 +102,7 @@ struct ContentView: View {
                 downloadProgress: downloader.downloadProgress,
                 downloadIsActive: downloader.downloadIsActive,
                 downloadIsFinished: downloader.downloadIsFinished,
+                isRecording: downloader.appState == .recording,
                 progressBarAnimationSpeed: progressBarAnimationSpeed
             )
 
