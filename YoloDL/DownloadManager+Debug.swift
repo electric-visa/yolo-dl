@@ -21,7 +21,7 @@ extension DownloadManager {
                 try? await Task.sleep(for: .milliseconds (80))
                 guard !Task.isCancelled else { break }
                 setDownloadProgress(to: downloadProgress + 0.01)
-                logger?.appendLog("Simulated download progress: \(downloadProgress)", from: .stdout)
+                logger.appendLog("Simulated download progress: \(downloadProgress)", from: .stdout)
             }
             guard !Task.isCancelled else { return }
             resetDownloadState()
@@ -54,7 +54,7 @@ extension DownloadManager {
         
         showDuplicateConfirmation = true
         
-        logger?.appendLog("Simulated duplicate file detection. Confirmation dialog should appear.", from: .stdout)
+        logger.appendLog("Simulated duplicate file detection. Confirmation dialog should appear.", from: .stdout)
     }
 }
 #endif

@@ -42,8 +42,12 @@ import Foundation
     // Default AppState
     var appState: AppState = .ready
     
-    // Variable for LogManager.
-    var logger: LogManager? = nil
+    // Declaring & initializing logger
+    let logger: LogManager
+    
+    init(logger: LogManager) {
+        self.logger = logger
+    }
     
     // Temporary storage for metadata while user alert is shown
     private(set) var pendingMetadata: [EpisodeMetadata]? = nil
@@ -96,7 +100,7 @@ import Foundation
                 let rawErrorString = String(data: rawErrorData, encoding: .utf8) ?? ""
                 
                 Task { @MainActor in
-                    self.logger?.appendLog(rawErrorString, from: .stderr)
+                    self.logger.appendLog(rawErrorString, from: .stderr)
                     if let errorMessage = self.errorParser.parseErrors(rawErrorString) {
                         self.appState = .error
                         self.alertToShow = AlertMessage(title: "Metadata error", text: errorMessage)
@@ -113,7 +117,7 @@ import Foundation
                 try metadataParsing.run()
             } catch {
                 Task { @MainActor in
-                    self.logger?.appendLog(error.localizedDescription, from: .stderr)
+                    self.logger.appendLog(error.localizedDescription, from: .stderr)
                     self.appState = .error
                     self.alertToShow = AlertMessage(title: "Metadata error", text: "Metadata error Details: \(error.localizedDescription)")
                 }
@@ -136,7 +140,7 @@ import Foundation
             // Reset downloadIsFinished state to false
             // and flush the log buffer.
             downloadIsFinished = false
-            logger?.clearLog()
+            logger.clearLog()
             
             // Fetch metadata, calculate total duration and check for duplicate files.
             // Includes guards for invalid metadata.
@@ -193,10 +197,10 @@ import Foundation
         if let duplicatePath = duplicateFilePath {
             do {
                 try FileManager.default.removeItem(atPath: duplicatePath)
-                logger?.appendLog("Deleted existing file: \(duplicatePath)", from: .stdout)
+                logger.appendLog("Deleted existing file: \(duplicatePath)", from: .stdout)
                 duplicateFilePath = nil // Clear after successful deletion
             } catch {
-                logger?.appendLog("Failed to delete existing file: \(error.localizedDescription)", from: .stderr)
+                logger.appendLog("Failed to delete existing file: \(error.localizedDescription)", from: .stderr)
                 appState = .error
                 alertToShow = AlertMessage(title: "File Deletion Error", text: "Could not delete existing file: \(error.localizedDescription)")
                 return
@@ -216,7 +220,7 @@ import Foundation
         stderrPipe.fileHandleForReading.readabilityHandler = { handle in
             let output = String(data: handle.availableData, encoding: .utf8) ?? ""
             Task { @MainActor in
-                self.logger?.appendLog(output, from: .stderr)
+                self.logger.appendLog(output, from: .stderr)
                 if let friendlyMessage = self.errorParser.parseErrors(output) {
                     self.appState = .error
                     self.alertToShow = AlertMessage(title: "Download Error", text: friendlyMessage)
@@ -245,7 +249,7 @@ import Foundation
         outputPipe.fileHandleForReading.readabilityHandler = { handle in
             let output = String(data: handle.availableData, encoding: .utf8) ?? ""
             Task { @MainActor in
-                self.logger?.appendLog(output, from: .stdout)
+                self.logger.appendLog(output, from: .stdout)
             }
         }
         
@@ -267,7 +271,7 @@ import Foundation
         do {
             try downloadProcess.run()
         } catch {
-            self.logger?.appendLog(error.localizedDescription, from: .stderr)
+            self.logger.appendLog(error.localizedDescription, from: .stderr)
             appState = .error
             self.alertToShow = AlertMessage(title: "Download error", text: "Failed to start download. Details: \(error.localizedDescription)")
         }

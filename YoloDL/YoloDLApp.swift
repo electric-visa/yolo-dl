@@ -9,18 +9,20 @@ import SwiftUI
 
 @main
 struct YoloDLApp: App {
-    @State private var downloadManager = DownloadManager()
+    @State private var downloadManager: DownloadManager
     @State private var logManager = LogManager()
+    
+    init() {
+        let lm = LogManager()
+        _logManager = State(initialValue: lm)
+        _downloadManager = State(initialValue: DownloadManager(logger: lm))
+    }
     
     var body: some Scene {
         WindowGroup {
             ContentView()
                 .environment(downloadManager)
-                .environment(logManager)
-                .onAppear {
-                    downloadManager.logger = logManager
-                }
-        }
+                .environment(logManager)        }
         Window("Log Window", id: "logWindow") {
             LogWindow()
                 .environment(logManager)
