@@ -6,13 +6,31 @@
 	objectVersion = 77;
 	objects = {
 
+/* Begin PBXBuildFile section */
+		5C484B8A2F646C6E006D4A14 /* Credits.html in Resources */ = {isa = PBXBuildFile; fileRef = 5C484B892F646C6E006D4A14 /* Credits.html */; };
+/* End PBXBuildFile section */
+
 /* Begin PBXFileReference section */
+		5C484B892F646C6E006D4A14 /* Credits.html */ = {isa = PBXFileReference; lastKnownFileType = text.html; path = Credits.html; sourceTree = "<group>"; };
 		5C8038A22F5ED511005B1C05 /* YoloDL.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = YoloDL.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
+
+/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+		5C484B882F646C03006D4A14 /* Exceptions for "YoloDL" folder in "YoloDL" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Info.plist,
+			);
+			target = 5C790CEA2F599DB90049E87A /* YoloDL */;
+		};
+/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		5C790CED2F599DB90049E87A /* YoloDL */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				5C484B882F646C03006D4A14 /* Exceptions for "YoloDL" folder in "YoloDL" target */,
+			);
 			path = YoloDL;
 			sourceTree = "<group>";
 		};
@@ -32,6 +50,7 @@
 		5C790CE22F599DB90049E87A = {
 			isa = PBXGroup;
 			children = (
+				5C484B892F646C6E006D4A14 /* Credits.html */,
 				5C790CED2F599DB90049E87A /* YoloDL */,
 				5C8038A22F5ED511005B1C05 /* YoloDL.app */,
 			);
@@ -101,6 +120,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				5C484B8A2F646C6E006D4A14 /* Credits.html in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -246,7 +266,9 @@
 				ENABLE_APP_SANDBOX = NO;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				INFOPLIST_FILE = YoloDL/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = "YOLO-DL";
+				INFOPLIST_KEY_NSHumanReadableCopyright = "© 2026 Visa Uotila. Licensed under GPLv3.";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/../Frameworks",
@@ -277,7 +299,9 @@
 				ENABLE_APP_SANDBOX = NO;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				INFOPLIST_FILE = YoloDL/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = "YOLO-DL";
+				INFOPLIST_KEY_NSHumanReadableCopyright = "© 2026 Visa Uotila. Licensed under GPLv3.";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/../Frameworks",
