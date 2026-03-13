@@ -34,7 +34,6 @@ import Foundation
     private var finishAnimationTask: Task<Void, any Error>?
     var totalDuration: Int = 0
     private(set) var downloadProgress: Double = 0
-    let progressBarFinishedSpeed: Double = 2.5
 
     // Initialize alert message
     var alertToShow: AlertMessage? = nil
@@ -74,13 +73,34 @@ import Foundation
         return true
     }
     
+    // Parse progress from stderr output containing ffmpeg time= values
+    private func parseProgressFromStderr(_ output: String) -> Double? {
+        for line in output.components(separatedBy: "\r") {
+            guard line.contains("time="), !line.contains("time=N/A"),
+                  let timePart = line.components(separatedBy: "time=").last,
+                  let timeString = timePart.components(separatedBy: " ").first,
+                  timeString != "N/A" else { continue }
+            
+            let components = timeString.components(separatedBy: ":")
+            if components.count == 3 {
+                let hours = Double(components[0].trimmingCharacters(in: .whitespaces)) ?? 0
+                let minutes = Double(components[1].trimmingCharacters(in: .whitespaces)) ?? 0
+                let seconds = Double(components[2].trimmingCharacters(in: .whitespaces)) ?? 0
+                let currentSeconds = hours * 3600 + minutes * 60 + seconds
+                
+                return totalDuration > 0 ? currentSeconds / Double(totalDuration) : 0
+            }
+        }
+        return nil
+    }
+    
     // Function to reset the download state
     func resetDownloadState() {
         finishAnimationTask?.cancel()
         downloadProgress = 1.0
         downloadIsActive = false
         finishAnimationTask = Task {
-            try await Task.sleep(for: .seconds(progressBarFinishedSpeed))
+            try await Task.sleep(for: .seconds(ProgressBarView.progressBarFinishedSpeed))
             self.downloadIsFinished = true
         }
     }
@@ -228,22 +248,9 @@ import Foundation
                     self.appState = .error
                     self.alertToShow = AlertMessage(title: "Download Error", text: friendlyMessage)
                 }
-            }
-            for line in output.components(separatedBy: "\r") {
-                guard line.contains("time="), !line.contains("time=N/A"),
-                      let timePart = line.components(separatedBy: "time=").last,
-                      let timeString = timePart.components(separatedBy: " ").first,
-                      timeString != "N/A" else { continue }
-                let components = timeString.components(separatedBy: ":")
-                if components.count == 3 {
-                    let hours = Double(components[0].trimmingCharacters(in: .whitespaces)) ?? 0
-                    let minutes = Double(components[1].trimmingCharacters(in: .whitespaces)) ?? 0
-                    let seconds = Double(components[2].trimmingCharacters(in: .whitespaces)) ?? 0
-                    let currentSeconds = hours * 3600 + minutes * 60 + seconds
-                    
-                    Task { @MainActor in
-                        self.downloadProgress = self.totalDuration > 0 ? currentSeconds / Double(self.totalDuration) : 0
-                    }
+                
+                if let progress = self.parseProgressFromStderr(output) {
+                    self.downloadProgress = progress
                 }
             }
         }

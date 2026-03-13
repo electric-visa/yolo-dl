@@ -16,12 +16,18 @@ struct ContentView: View {
     
     @Environment(DownloadManager.self) private var downloader
     
-    // Variables related to the download process and the progress bar logic & animations.
-    @State private var shimmerOffset: CGFloat = -1.0
+    // Progress bar animation speed
     let progressBarAnimationSpeed: Double = 0.5
     
     // Error state handling
     @State private var currentError: InputValidationError? = nil
+    
+    private var showAlert: Binding<Bool> {
+        Binding(
+            get: { downloader.alertToShow != nil },
+            set: { if !$0 { downloader.alertToShow = nil } }
+        )
+    }
     
     // AppStorage properties for storing user selections
     @AppStorage("lastFolder") private var downloadLocation: String = ""
@@ -41,18 +47,13 @@ struct ContentView: View {
         }
     }
     
-    func handleDownloadButton() {
+    func handleDownloadButton() async {
         if downloader.downloadIsActive {
             downloader.cancelDownload()
         } else {
-            Task {
-                await downloader.downloadFiles(downloadLocation: downloadLocation, fileNamingPattern: namingPreset.rawValue, namingPreset: namingPreset)
-            }
+           await downloader.downloadFiles(downloadLocation: downloadLocation, fileNamingPattern: namingPreset.rawValue, namingPreset: namingPreset)
         }
     }
-    
-    let downloadActiveColors: [Color] = [.blue, .cyan]
-    let downloadFinishedColors:  [Color] = [.green, .mint]
     
     var body: some View {
         @Bindable var downloader = downloader
@@ -66,65 +67,12 @@ struct ContentView: View {
             TextField("Enter source URL", text: $downloader.sourceUrl)
                 .disabled(downloader.downloadIsActive)
 
-            Rectangle()
-                .frame(height: 30)
-                .frame(maxWidth: .infinity)
-                .opacity(0.2)
-                .overlay(alignment: .leading) {
-                    Rectangle()
-                        .fill(
-                            LinearGradient(
-                                colors: downloadActiveColors,
-                                startPoint: .leading,
-                                endPoint: .trailing
-                            )
-                        )
-                        .containerRelativeFrame(.horizontal) { length, _ in
-                            length * downloader.downloadProgress
-                        }
-                        .frame(height: 30)
-                        .opacity(downloader.downloadProgress > 0 ? 1.0 : 0.0)
-                }
-                .overlay(alignment: .leading) {
-                    Rectangle()
-                        .fill(
-                            LinearGradient(
-                                colors: downloadFinishedColors,
-                                startPoint: .leading,
-                                endPoint: .trailing
-                            )
-                        )
-                        .containerRelativeFrame(.horizontal) { length, _ in
-                            length * downloader.downloadProgress
-                        }
-                        .frame(height: 30)
-                        .opacity(downloader.downloadIsFinished ? 1.0 : 0.0)
-                }
-                .overlay(alignment: .leading) {
-                    Rectangle()
-                        .fill(
-                            LinearGradient(
-                                colors: [.clear, .white.opacity(0.7), .clear],
-                                startPoint: UnitPoint(x: shimmerOffset - 0.5, y: 0),
-                                endPoint: UnitPoint(x: shimmerOffset + 0.5, y: 0)
-                            )
-                        )
-                        .containerRelativeFrame(.horizontal) { length, _ in
-                            length * downloader.downloadProgress
-                        }
-                        .frame(height: 30)
-                        .blendMode(.screen)
-                        .opacity(downloader.downloadIsActive ? 1.0 : 0.0)
-                }
-                .clipped()
-                .animation(.easeInOut(duration: progressBarAnimationSpeed), value: downloader.downloadProgress)
-                .animation(nil, value: downloader.downloadIsFinished)
-                .onAppear {
-                    withAnimation(.linear(duration: 2).repeatForever(autoreverses: false)) {
-                        shimmerOffset = 2.0
-                    }
-                }
-            
+            ProgressBarView(
+                downloadProgress: downloader.downloadProgress,
+                downloadIsActive: downloader.downloadIsActive,
+                downloadIsFinished: downloader.downloadIsFinished,
+                progressBarAnimationSpeed: progressBarAnimationSpeed
+            )
             
             Text(downloadLocation.isEmpty ? "No folder selected" : "Download location: \(downloadLocation)")
             
@@ -135,7 +83,9 @@ struct ContentView: View {
             }
             
             Button(downloader.downloadIsActive ? "Stop" : "Download") {
-                handleDownloadButton()
+                Task {
+                    await handleDownloadButton()
+                }
             }
             
             Button("Choose folder") {
@@ -153,11 +103,11 @@ struct ContentView: View {
         
         .alert(
             downloader.alertToShow?.title ?? "Error",
-            isPresented: $downloader.isShowingAlert,
-            presenting: downloader.alertToShow
-        ) { _ in
-        } message: { alert in
-            Text(alert.text)
+            isPresented: showAlert
+        ) {
+            
+        } message: {
+            Text(downloader.alertToShow?.text ?? "")
         }
         
         .confirmationDialog(
