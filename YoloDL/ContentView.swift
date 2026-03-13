@@ -23,13 +23,6 @@ struct ContentView: View {
     // Error state handling
     @State private var currentError: InputValidationError? = nil
     
-    private var showAlert: Binding<Bool> {
-        Binding(
-            get: { downloader.alertToShow != nil },
-            set: { if !$0 { downloader.alertToShow = nil } }
-        )
-    }
-    
     // AppStorage properties for storing user selections
     @AppStorage("lastFolder") private var downloadLocation: String = ""
     @AppStorage("namingTemplate") private var namingPreset: NamingPreset = .seriesDateTitle
@@ -160,11 +153,11 @@ struct ContentView: View {
         
         .alert(
             downloader.alertToShow?.title ?? "Error",
-            isPresented: showAlert
-        ) {
-            
-        } message: {
-            Text(downloader.alertToShow?.text ?? "")
+            isPresented: $downloader.isShowingAlert,
+            presenting: downloader.alertToShow
+        ) { _ in
+        } message: { alert in
+            Text(alert.text)
         }
         
         .confirmationDialog(

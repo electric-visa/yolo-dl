@@ -38,6 +38,11 @@ import Foundation
 
     // Initialize alert message
     var alertToShow: AlertMessage? = nil
+    
+    var isShowingAlert: Bool {
+        get { alertToShow != nil }
+        set { if !newValue { alertToShow = nil } }
+    }
 
     // Default AppState
     var appState: AppState = .ready
