@@ -127,8 +127,7 @@ import Foundation
     }
     
     // PHASE A: Validate inputs, fetch metadata, and check for duplicates.
-    func downloadFiles(downloadLocation: String, fileNamingPattern: String, namingPreset: NamingPreset) {
-        Task {
+    func downloadFiles(downloadLocation: String, fileNamingPattern: String, namingPreset: NamingPreset) async {
             
             // Revert from a possible cancelled state.
             downloadIsCancelled = false
@@ -181,7 +180,6 @@ import Foundation
             
             // No duplicates found, proceed directly to Phase B
             startDownloadProcess()
-        }
     }
     
     // PHASE B: Execute the actual download process using stored metadata.

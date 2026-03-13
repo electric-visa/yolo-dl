@@ -10,7 +10,7 @@ import SwiftUI
 @main
 struct YoloDLApp: App {
     @State private var downloadManager: DownloadManager
-    @State private var logManager = LogManager()
+    @State private var logManager: LogManager
     
     init() {
         let lm = LogManager()
