@@ -22,6 +22,14 @@ struct ContentView: View {
     // Error state handling
     @State private var currentError: InputValidationError? = nil
     
+    // App mode selection
+    @State private var appMode: AppMode = .download
+    
+    // Record mode settings (persisted across mode switches)
+    @State private var recordSource: RecordSource = .tvChannel
+    @State private var selectedChannel: TVChannel = .tv1
+    @State private var streamURL: String = ""
+    
     private var showAlert: Binding<Bool> {
         Binding(
             get: { downloader.alertToShow != nil },
@@ -58,14 +66,37 @@ struct ContentView: View {
     var body: some View {
         @Bindable var downloader = downloader
         VStack(alignment: .leading, spacing: 12) {
-            
-            HStack(alignment: .center, spacing: 12) {
-                Text("YoloDL \(appVersion)")
-                Text("\(downloader.appState.statusText)")
+
+            Text("YoloDL \(appVersion)")
+                .frame(maxWidth: .infinity, alignment: .center)
+
+            VStack(spacing: 8) {
+                Text("Mode")
+                    .font(.headline)
+
+                Picker("Mode", selection: $appMode) {
+                    ForEach(AppMode.allCases, id: \.self) { mode in
+                        Text(mode.label).tag(mode)
+                    }
+                }
+                .pickerStyle(.segmented)
+                .labelsHidden()
             }
-            
-            TextField("Enter source URL", text: $downloader.sourceUrl)
-                .disabled(downloader.downloadIsActive)
+            .frame(maxWidth: .infinity, alignment: .center)
+
+            Group {
+                switch appMode {
+                case .download:
+                    DownloadMode()
+                case .record:
+                    RecordModeView(
+                        recordSource: $recordSource,
+                        selectedChannel: $selectedChannel,
+                        streamURL: $streamURL
+                    )
+                }
+            }
+            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
 
             ProgressBarView(
                 downloadProgress: downloader.downloadProgress,
@@ -73,25 +104,22 @@ struct ContentView: View {
                 downloadIsFinished: downloader.downloadIsFinished,
                 progressBarAnimationSpeed: progressBarAnimationSpeed
             )
-            
+
             Text(downloadLocation.isEmpty ? "No folder selected" : "Download location: \(downloadLocation)")
-            
-            Picker("File naming", selection: $namingPreset) {
-                ForEach(NamingPreset.allCases, id: \.self) { preset in
-                    Text(preset.label).tag(preset)
-                }
-            }
-            
+
             Button(downloader.downloadIsActive ? "Stop" : "Download") {
                 Task {
                     await handleDownloadButton()
                 }
             }
-            
+
             Button("Choose folder") {
                 chooseFolder()
             }
             .disabled(downloader.downloadIsActive)
+
+            Text("\(downloader.appState.statusText)")
+                .frame(maxWidth: .infinity, alignment: .leading)
         }
         
         // Show debug window on startup.
