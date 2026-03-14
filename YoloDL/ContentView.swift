@@ -59,7 +59,15 @@ struct ContentView: View {
         if downloader.downloadIsActive {
             downloader.cancelDownload()
         } else {
-            await downloader.downloadFiles(downloadLocation: downloadLocation, fileNamingPattern: namingPreset.rawValue, namingPreset: namingPreset, appMode: appMode)
+            if appMode == .record {
+                let source: String = switch recordSource {
+                case .tvChannel: selectedChannel.keyword
+                case .streamURL: streamURL
+                }
+                downloader.startRecording(source: source, downloadLocation: downloadLocation)
+            } else {
+                await downloader.downloadFiles(downloadLocation: downloadLocation, fileNamingPattern: namingPreset.rawValue, namingPreset: namingPreset, appMode: appMode)
+            }
         }
     }
     

@@ -220,8 +220,77 @@ import Foundation
             startDownloadProcess()
     }
     
+    private func launchProcess(
+        arguments: [String],
+        initialState: AppState,
+        onStderr: (@MainActor @Sendable (String) -> Void)? = nil,
+        onTermination: (@MainActor @Sendable () -> Void)? = nil
+    ) {
+        downloadIsActive = true
+        appState = initialState
+        
+        let process = Process()
+        activeDownload = process
+        
+        let stderrPipe = Pipe()
+        stderrPipe.fileHandleForReading.readabilityHandler = { handle in
+            let output = String(data: handle.availableData, encoding: .utf8) ?? ""
+            Task { @MainActor in
+                self.logger.appendLog(output, from: .stderr)
+                if let friendlyMessage = self.errorParser.parseErrors(output) {
+                    self.appState = .error
+                    self.alertToShow = AlertMessage(title: "Error", text: friendlyMessage)
+                }
+                onStderr?(output)
+            }
+        }
+        
+        let outputPipe = Pipe()
+        outputPipe.fileHandleForReading.readabilityHandler = { handle in
+            let output = String(data: handle.availableData, encoding: .utf8) ?? ""
+            Task { @MainActor in
+                self.logger.appendLog(output, from: .stdout)
+            }
+        }
+        
+        process.terminationHandler = { _ in
+            stderrPipe.fileHandleForReading.readabilityHandler = nil
+            outputPipe.fileHandleForReading.readabilityHandler = nil
+            Task { @MainActor in
+                if !self.downloadIsCancelled {
+                    onTermination?()
+                }
+            }
+        }
+        
+        process.standardError = stderrPipe
+        process.standardOutput = outputPipe
+        process.executableURL = URL(fileURLWithPath: self.pathToYleDl)
+        process.arguments = arguments
+        
+        do {
+            try process.run()
+        } catch {
+            self.logger.appendLog(error.localizedDescription, from: .stderr)
+            appState = .error
+            self.alertToShow = AlertMessage(
+                title: "Process error",
+                text: "Failed to start. Details: \(error.localizedDescription)"
+            )
+        }
+    }
+    
     // PHASE B: Execute the actual download process using stored metadata.
     func startDownloadProcess() {
+        
+        // Arguments to be passed to launchProcess()
+        let arguments = [
+            "--ffmpeg", pathToFfmpeg,
+            "--ffprobe", pathToFfprobe,
+            "--destdir", pendingDownloadLocation,
+            "--output-template", pendingFileNamingPattern,
+            sourceURL
+        ]
         
         // Ensure we have metadata and parameters to work with
         guard let episodes = pendingMetadata else {
@@ -244,60 +313,47 @@ import Foundation
         }
         
         downloadIsActive = true
-        appState = .downloading
         
-        // Declare the download process.
-        let downloadProcess = Process()
-        activeDownload = downloadProcess
-        
-        // Declare the pipe for measuring progress.
-        let stderrPipe = Pipe()
-        
-        stderrPipe.fileHandleForReading.readabilityHandler = { handle in
-            let output = String(data: handle.availableData, encoding: .utf8) ?? ""
-            Task { @MainActor in
-                self.logger.appendLog(output, from: .stderr)
-                if let friendlyMessage = self.errorParser.parseErrors(output) {
-                    self.appState = .error
-                    self.alertToShow = AlertMessage(title: "Download Error", text: friendlyMessage)
-                }
-                
+        launchProcess(
+            arguments: arguments,
+            initialState: .downloading,
+            onStderr: { output in
                 if let progress = self.parseProgressFromStderr(output) {
                     self.downloadProgress = progress
                 }
+            },
+            onTermination: {
+                self.resetDownloadState()
+                self.appState = .finished
+                self.clearPendingState()
             }
+        )
+    }
+    
+    func startRecording(source: String, downloadLocation: String, duration: Int? = nil) {
+        guard !downloadLocation.isEmpty else { handleError(.noFolderSelected); return }
+        guard !source.isEmpty else { handleError(.emptyURL); return }
+        
+        var arguments = [
+            "--ffmpeg", pathToFfmpeg,
+            "--ffprobe", pathToFfprobe,
+            "--destdir", downloadLocation
+        ]
+        
+        if let duration {
+            arguments += ["--duration", String(duration)]
         }
         
-        let outputPipe = Pipe()
-        outputPipe.fileHandleForReading.readabilityHandler = { handle in
-            let output = String(data: handle.availableData, encoding: .utf8) ?? ""
-            Task { @MainActor in
-                self.logger.appendLog(output, from: .stdout)
-            }
-        }
+        arguments.append(source)
         
-        downloadProcess.terminationHandler = { _ in
-            stderrPipe.fileHandleForReading.readabilityHandler = nil
-            outputPipe.fileHandleForReading.readabilityHandler = nil
-            Task { @MainActor in
-                if !self.downloadIsCancelled {
-                    self.resetDownloadState()
-                    self.appState = .finished
-                    self.clearPendingState()
-                }
+        launchProcess(
+            arguments: arguments,
+            initialState: .recording,
+            onTermination: {
+                self.downloadIsActive = false
+                self.appState = .finished
             }
-        }
-        downloadProcess.standardError = stderrPipe
-        downloadProcess.standardOutput = outputPipe
-        downloadProcess.executableURL = URL(fileURLWithPath: pathToYleDl)
-        downloadProcess.arguments = ["--ffmpeg", pathToFfmpeg, "--ffprobe", pathToFfprobe, "--destdir", pendingDownloadLocation, "--output-template", pendingFileNamingPattern, sourceURL]
-        do {
-            try downloadProcess.run()
-        } catch {
-            self.logger.appendLog(error.localizedDescription, from: .stderr)
-            appState = .error
-            self.alertToShow = AlertMessage(title: "Download error", text: "Failed to start download. Details: \(error.localizedDescription)")
-        }
+        )
     }
     
     func handleError(_ error: InputValidationError) {
