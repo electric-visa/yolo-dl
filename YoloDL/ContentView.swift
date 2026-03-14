@@ -44,14 +44,18 @@ struct ContentView: View {
     
     func handleDownloadButton() async {
         if downloader.downloadIsActive {
-            downloader.cancelDownload()
+            if appMode == .record {
+                downloader.stopRecording()
+            } else {
+                downloader.cancelDownload()
+            }
         } else {
             if appMode == .record {
                 let source: String = switch recordSource {
                 case .tvChannel: selectedChannel.keyword
                 case .streamURL: streamURL
                 }
-                downloader.startRecording(source: source, downloadLocation: downloadLocation)
+                downloader.startRecording(source: source, downloadLocation: downloadLocation, recordSource: recordSource)
             } else {
                 await downloader.downloadFiles(downloadLocation: downloadLocation, fileNamingPattern: namingPreset.rawValue, namingPreset: namingPreset, appMode: appMode)
             }
@@ -101,6 +105,12 @@ struct ContentView: View {
             )
 
             Text(downloadLocation.isEmpty ? "No folder selected" : "Download location: \(downloadLocation)")
+
+            if appMode == .record,
+               !downloader.recordingElapsed.isEmpty || !downloader.recordingFileSize.isEmpty {
+                Text("\(downloader.recordingElapsed) — \(downloader.recordingFileSize)")
+                    .foregroundStyle(.secondary)
+            }
 
             Button(downloader.downloadIsActive ? "Stop" : appMode == .download ? "Download" : "Record") {
                 Task {
@@ -167,8 +177,8 @@ struct ContentView: View {
         } message: {
             Text("A file with this name already exists. Do you want to overwrite it?")
         }
-        .padding()
         .frame(minWidth: 561, minHeight: 358)
+        .padding()
     }
 }
 

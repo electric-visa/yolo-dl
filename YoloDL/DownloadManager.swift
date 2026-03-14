@@ -34,6 +34,8 @@ import Foundation
     private var finishAnimationTask: Task<Void, any Error>?
     var totalDuration: Int = 0
     private(set) var downloadProgress: Double = 0
+    private(set) var recordingElapsed: String = ""
+    private(set) var recordingFileSize: String = ""
 
     var alertToShow: AlertMessage? = nil
     
@@ -92,6 +94,40 @@ import Foundation
         return nil
     }
     
+    private func parseRecordingFromStderr(_ output: String) {
+        for line in output.components(separatedBy: "\r") {
+            if line.contains("elapsed="),
+               let elapsedPart = line.components(separatedBy: "elapsed=").last,
+               let timeString = elapsedPart.components(separatedBy: " ").first {
+                let trimmed = timeString.components(separatedBy: ".").first ?? timeString
+                let components = trimmed.components(separatedBy: ":")
+                if components.count == 3 {
+                    let hours = Int(components[0]) ?? 0
+                    let minutes = Int(components[1]) ?? 0
+                    let seconds = Int(components[2]) ?? 0
+                    if hours > 0 {
+                        recordingElapsed = String(format: "%d:%02d:%02d", hours, minutes, seconds)
+                    } else {
+                        recordingElapsed = String(format: "%d:%02d", minutes, seconds)
+                    }
+                }
+            }
+
+            if line.contains("size="),
+               let sizePart = line.components(separatedBy: "size=").last,
+               let kibString = sizePart.trimmingCharacters(in: .whitespaces).components(separatedBy: "KiB").first,
+               let kibValue = Double(kibString.trimmingCharacters(in: .whitespaces)) {
+                let megabytes = kibValue * 1024 / 1_000_000
+                if megabytes >= 1000 {
+                    let gigabytes = megabytes / 1000
+                    recordingFileSize = String(format: "%.1f GB", gigabytes)
+                } else {
+                    recordingFileSize = String(format: "%.1f MB", megabytes)
+                }
+            }
+        }
+    }
+
     // Function to reset the download state
     func resetDownloadState() {
         finishAnimationTask?.cancel()
@@ -161,7 +197,9 @@ import Foundation
             // and flush the log buffer.
             downloadIsFinished = false
             logger.clearLog()
-            
+            recordingElapsed = ""
+            recordingFileSize = ""
+
             // Fetch metadata, calculate total duration and check for duplicate files.
             // Includes guards for invalid metadata.
             appState = .fetchingMetadata
@@ -317,27 +355,36 @@ import Foundation
         )
     }
     
-    func startRecording(source: String, downloadLocation: String, duration: Int? = nil) {
+    func startRecording(source: String, downloadLocation: String, recordSource: RecordSource, duration: Int? = nil) {
+        downloadIsCancelled = false
+        downloadIsFinished = false
+        logger.clearLog()
+        recordingElapsed = ""
+        recordingFileSize = ""
+
         guard !downloadLocation.isEmpty else { handleError(.noFolderSelected); return }
         guard !source.isEmpty else { handleError(.emptyURL); return }
-        
+
         var arguments = [
             "--ffmpeg", pathToFfmpeg,
             "--ffprobe", pathToFfprobe,
             "--destdir", downloadLocation
         ]
-        
-        if let duration {
+
+        if recordSource == .streamURL, let duration {
             arguments += ["--duration", String(duration)]
         }
-        
+
         arguments.append(source)
-        
+
         launchProcess(
             arguments: arguments,
             initialState: .recording,
+            onStderr: { output in
+                self.parseRecordingFromStderr(output)
+            },
             onTermination: {
-                self.downloadIsActive = false
+                self.resetDownloadState()
                 self.appState = .finished
             }
         )
@@ -360,6 +407,11 @@ import Foundation
         duplicateFilePath = nil
     }
     
+    func stopRecording() {
+        activeDownload?.terminate()
+        activeDownload = nil
+    }
+
     // Function to cancel an ongoing download
     // with additional actions during a debug simulation run.
     func cancelDownload() {
