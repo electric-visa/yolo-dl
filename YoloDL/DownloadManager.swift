@@ -35,7 +35,6 @@ import Foundation
     var totalDuration: Int = 0
     private(set) var downloadProgress: Double = 0
 
-    // Initialize alert message
     var alertToShow: AlertMessage? = nil
     
     var isShowingAlert: Bool {
@@ -43,10 +42,8 @@ import Foundation
         set { if !newValue { alertToShow = nil } }
     }
 
-    // Default AppState
     var appState: AppState = .ready
     
-    // Declaring & initializing logger
     let logger: LogManager
     
     init(logger: LogManager) {
@@ -128,8 +125,7 @@ import Foundation
                 Task { @MainActor in
                     self.logger.appendLog(rawErrorString, from: .stderr)
                     if let errorMessage = self.errorParser.parseErrors(rawErrorString) {
-                        self.appState = .error
-                        self.alertToShow = AlertMessage(title: "Metadata error", text: errorMessage)
+                        self.showError(title: "Metadata error", text: errorMessage)
                     }
                 }
                 
@@ -144,8 +140,7 @@ import Foundation
             } catch {
                 Task { @MainActor in
                     self.logger.appendLog(error.localizedDescription, from: .stderr)
-                    self.appState = .error
-                    self.alertToShow = AlertMessage(title: "Metadata error", text: "Metadata error Details: \(error.localizedDescription)")
+                    self.showError(title: "Metadata error", text: "Metadata error Details: \(error.localizedDescription)")
                 }
                 continuation.resume(returning: nil)
             }
@@ -185,8 +180,8 @@ import Foundation
             }
         
             if !isVOD && appMode == .download {
-            showLiveContentAlert = true
-            return
+                showLiveContentAlert = true
+                return
             }
             
             // Check for duplicate files
@@ -238,8 +233,7 @@ import Foundation
             Task { @MainActor in
                 self.logger.appendLog(output, from: .stderr)
                 if let friendlyMessage = self.errorParser.parseErrors(output) {
-                    self.appState = .error
-                    self.alertToShow = AlertMessage(title: "Error", text: friendlyMessage)
+                    self.showError(title: "Error", text: friendlyMessage)
                 }
                 onStderr?(output)
             }
@@ -272,11 +266,7 @@ import Foundation
             try process.run()
         } catch {
             self.logger.appendLog(error.localizedDescription, from: .stderr)
-            appState = .error
-            self.alertToShow = AlertMessage(
-                title: "Process error",
-                text: "Failed to start. Details: \(error.localizedDescription)"
-            )
+            self.showError(title: "Process error", text: "Failed to start. Details: \(error.localizedDescription)")
         }
     }
     
@@ -306,13 +296,10 @@ import Foundation
                 duplicateFilePath = nil // Clear after successful deletion
             } catch {
                 logger.appendLog("Failed to delete existing file: \(error.localizedDescription)", from: .stderr)
-                appState = .error
-                alertToShow = AlertMessage(title: "File Deletion Error", text: "Could not delete existing file: \(error.localizedDescription)")
+                showError(title: "File Deletion Error", text: "Could not delete existing file: \(error.localizedDescription)")
                 return
             }
         }
-        
-        downloadIsActive = true
         
         launchProcess(
             arguments: arguments,
@@ -356,9 +343,13 @@ import Foundation
         )
     }
     
-    func handleError(_ error: InputValidationError) {
+    func showError(title: String, text: String) {
         appState = .error
-        alertToShow = AlertMessage(title: error.title, text: error.message)
+        alertToShow = AlertMessage(title: title, text: text)
+    }
+
+    func handleError(_ error: InputValidationError) {
+        showError(title: error.title, text: error.message)
     }
     
     // Function to clear pending state after cancellation or successful download

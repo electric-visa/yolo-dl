@@ -52,7 +52,6 @@ struct LogEntry: Identifiable {
         }
     }
     
-    // Function to clear the log array.
     func clearLog() {
         logEntries.removeAll()
         currentBufferSize = 0

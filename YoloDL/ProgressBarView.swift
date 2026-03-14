@@ -13,7 +13,8 @@ struct ProgressBarView: View {
     let downloadIsActive: Bool
     let downloadIsFinished: Bool
     let isRecording: Bool
-    let progressBarAnimationSpeed: Double
+
+    static let progressBarAnimationSpeed: Double = 0.5
 
     @State private var shimmerOffset: CGFloat = -1.0
     
@@ -118,7 +119,7 @@ struct ProgressBarView: View {
                 .opacity(isRecording ? 1.0 : 0.0)
             }
             .clipped()
-            .animation(.easeInOut(duration: progressBarAnimationSpeed), value: downloadProgress)
+            .animation(.easeInOut(duration: Self.progressBarAnimationSpeed), value: downloadProgress)
             .animation(nil, value: downloadIsFinished)
             .onAppear {
                 withAnimation(.linear(duration: 2).repeatForever(autoreverses: false)) {
@@ -134,32 +135,28 @@ struct ProgressBarView: View {
             downloadProgress: 0.0,
             downloadIsActive: false,
             downloadIsFinished: false,
-            isRecording: false,
-            progressBarAnimationSpeed: 0.5
+            isRecording: false
         )
 
         ProgressBarView(
             downloadProgress: 0.65,
             downloadIsActive: true,
             downloadIsFinished: false,
-            isRecording: false,
-            progressBarAnimationSpeed: 0.5
+            isRecording: false
         )
 
         ProgressBarView(
             downloadProgress: 1.0,
             downloadIsActive: false,
             downloadIsFinished: true,
-            isRecording: false,
-            progressBarAnimationSpeed: 0.5
+            isRecording: false
         )
 
         ProgressBarView(
             downloadProgress: 0,
             downloadIsActive: false,
             downloadIsFinished: false,
-            isRecording: true,
-            progressBarAnimationSpeed: 0.5
+            isRecording: true
         )
     }
     .padding()

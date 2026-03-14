@@ -1,5 +1,5 @@
 //
-//  DownloadMode.swift
+//  DownloadModeView.swift
 //  YoloDL
 //
 //  Created on 13.3.2026.
@@ -7,7 +7,7 @@
 
 import SwiftUI
 
-struct DownloadMode: View {
+struct DownloadModeView: View {
     
     @Environment(DownloadManager.self) private var downloader
     
@@ -36,6 +36,6 @@ struct DownloadMode: View {
 
 #Preview {
     @Previewable @State var downloadManager = DownloadManager(logger: LogManager())
-    DownloadMode()
+    DownloadModeView()
         .environment(downloadManager)
 }

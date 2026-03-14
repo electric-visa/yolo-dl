@@ -15,13 +15,7 @@ struct ContentView: View {
     @Environment(\.openWindow) var openWindow
     
     @Environment(DownloadManager.self) private var downloader
-    
-    // Progress bar animation speed
-    let progressBarAnimationSpeed: Double = 0.5
-    
-    // Error state handling
-    @State private var currentError: InputValidationError? = nil
-    
+
     // App mode selection
     @State private var appMode: AppMode = .download
     
@@ -29,13 +23,6 @@ struct ContentView: View {
     @State private var recordSource: RecordSource = .tvChannel
     @State private var selectedChannel: TVChannel = .tv1
     @State private var streamURL: String = ""
-    
-    private var showAlert: Binding<Bool> {
-        Binding(
-            get: { downloader.alertToShow != nil },
-            set: { if !$0 { downloader.alertToShow = nil } }
-        )
-    }
     
     // AppStorage properties for storing user selections
     @AppStorage("lastFolder") private var downloadLocation: String = ""
@@ -95,7 +82,7 @@ struct ContentView: View {
             Group {
                 switch appMode {
                 case .download:
-                    DownloadMode()
+                    DownloadModeView()
                 case .record:
                     RecordModeView(
                         recordSource: $recordSource,
@@ -110,8 +97,7 @@ struct ContentView: View {
                 downloadProgress: downloader.downloadProgress,
                 downloadIsActive: downloader.downloadIsActive,
                 downloadIsFinished: downloader.downloadIsFinished,
-                isRecording: downloader.appState == .recording,
-                progressBarAnimationSpeed: progressBarAnimationSpeed
+                isRecording: downloader.appState == .recording
             )
 
             Text(downloadLocation.isEmpty ? "No folder selected" : "Download location: \(downloadLocation)")
@@ -127,7 +113,7 @@ struct ContentView: View {
             }
             .disabled(downloader.downloadIsActive)
 
-            Text("\(downloader.appState.statusText)")
+            Text(downloader.appState.statusText)
                 .frame(maxWidth: .infinity, alignment: .leading)
         }
         
@@ -140,7 +126,7 @@ struct ContentView: View {
         
         .alert(
             downloader.alertToShow?.title ?? "Error",
-            isPresented: showAlert
+            isPresented: $downloader.isShowingAlert
         ) {
             
         } message: {
@@ -160,8 +146,10 @@ struct ContentView: View {
             Button("Cancel", role: .cancel) {
                 downloader.appState = .ready
             }
+        } message: {
+            Text("This content is a live stream. Would you like to switch to Record mode?")
         }
-        
+
         .confirmationDialog(
             "File already exists",
             isPresented: $downloader.showDuplicateConfirmation,
