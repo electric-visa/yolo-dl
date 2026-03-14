@@ -8,10 +8,11 @@
 import Foundation
 
 struct EpisodeMetadata: Codable {
-    let durationSeconds: Int
+    let durationSeconds: Int?
     let title: String
     let episodeTitle: String
     let publishedTimestamp: String
+    let flavors: [Flavor]
     
     var publishDate: String {
         String(publishedTimestamp.prefix(10))
@@ -52,10 +53,28 @@ struct EpisodeMetadata: Codable {
         }
     }
     
+    struct Flavor: Codable {
+        let url: String
+    }
+    
+    enum ContentType {
+        case vod
+        case liveStream
+        case tvChannel
+    }
+
+    var contentType: ContentType {
+        let isLive = flavors.contains { $0.url.contains("/live/") }
+        
+        if !isLive { return .vod }
+        return durationSeconds != nil ? .liveStream : .tvChannel
+    }
+    
     enum CodingKeys: String, CodingKey {
         case durationSeconds = "duration_seconds"
         case title = "title"
         case episodeTitle = "episode_title"
         case publishedTimestamp = "publish_timestamp"
+        case flavors = "flavors"
     }
 }

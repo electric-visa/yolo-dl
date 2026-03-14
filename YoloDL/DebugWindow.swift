@@ -29,6 +29,11 @@ struct DebugWindow: View {
             }
             .disabled(downloadManager.downloadIsActive)
 
+            Button("Simulate Livestream Alert") {
+                downloadManager.simulateLiveContentAlert()
+            }
+            .disabled(downloadManager.downloadIsActive)
+
             Button("Simulate Overwrite Confirmation") {
                 downloadManager.simulateOverwriteConfirmation()
             }

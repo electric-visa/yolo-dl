@@ -24,7 +24,7 @@ import Foundation
     let errorParser = ErrorParser()
     
     // Variables to be passed to yle-dl
-    var sourceUrl: String = ""
+    var sourceURL: String = ""
 
     // Variables and constants related to download & progress bar logic
     private(set) var downloadIsActive: Bool = false
@@ -56,8 +56,9 @@ import Foundation
     // Temporary storage for metadata while user alert is shown
     private(set) var pendingMetadata: [EpisodeMetadata]? = nil
     
-    // Boolean to trigger confirmation dialog
+    // Booleans to trigger confirmation dialogs
     var showDuplicateConfirmation: Bool = false
+    var showLiveContentAlert: Bool = false
     
     // Stored parameters for Phase B execution after confirmation
     private(set) var pendingDownloadLocation: String = ""
@@ -68,7 +69,7 @@ import Foundation
     // Currently guards for empty URL and destination folder.
     
     func validateInputs(downloadLocation: String) -> Bool {
-        guard !sourceUrl.isEmpty else { handleError(.emptyURL); return false }
+        guard !sourceURL.isEmpty else { handleError(.emptyURL); return false }
         guard !downloadLocation.isEmpty else { handleError(.noFolderSelected); return false }
         return true
     }
@@ -110,7 +111,7 @@ import Foundation
         
         let metadataParsing = Process()
         metadataParsing.executableURL = URL(fileURLWithPath: pathToYleDl)
-        metadataParsing.arguments = ["--ffmpeg", pathToFfmpeg, "--ffprobe", pathToFfprobe, "--showmetadata", sourceUrl]
+        metadataParsing.arguments = ["--ffmpeg", pathToFfmpeg, "--ffprobe", pathToFfprobe, "--showmetadata", sourceURL]
         
         let stderrPipe = Pipe()
         metadataParsing.standardError = stderrPipe
@@ -152,7 +153,7 @@ import Foundation
     }
     
     // PHASE A: Validate inputs, fetch metadata, and check for duplicates.
-    func downloadFiles(downloadLocation: String, fileNamingPattern: String, namingPreset: NamingPreset) async {
+    func downloadFiles(downloadLocation: String, fileNamingPattern: String, namingPreset: NamingPreset, appMode: AppMode) async {
             
             // Revert from a possible cancelled state.
             downloadIsCancelled = false
@@ -170,11 +171,23 @@ import Foundation
             // Includes guards for invalid metadata.
             appState = .fetchingMetadata
             let episodes = await fetchMetadata()
-            totalDuration = episodes?.reduce(0) { $0 + $1.durationSeconds } ?? 0
+
+            totalDuration = episodes?.reduce(0) { $0 + ($1.durationSeconds ?? 0) } ?? 0
             
             if appState == .error { return }
+        
+            let firstEpisode = episodes?.first
+            let contentType = firstEpisode?.contentType
+            let isVOD = contentType == .vod
             
-            guard totalDuration != 0 else { handleError(.totalDurationIsZero); return }
+            if isVOD {
+                guard totalDuration != 0 else { handleError(.totalDurationIsZero); return }
+            }
+        
+            if !isVOD && appMode == .download {
+            showLiveContentAlert = true
+            return
+            }
             
             // Check for duplicate files
             var duplicateFound = false
@@ -277,7 +290,7 @@ import Foundation
         downloadProcess.standardError = stderrPipe
         downloadProcess.standardOutput = outputPipe
         downloadProcess.executableURL = URL(fileURLWithPath: pathToYleDl)
-        downloadProcess.arguments = ["--ffmpeg", pathToFfmpeg, "--ffprobe", pathToFfprobe, "--destdir", pendingDownloadLocation, "--output-template", pendingFileNamingPattern, sourceUrl]
+        downloadProcess.arguments = ["--ffmpeg", pathToFfmpeg, "--ffprobe", pathToFfprobe, "--destdir", pendingDownloadLocation, "--output-template", pendingFileNamingPattern, sourceURL]
         do {
             try downloadProcess.run()
         } catch {

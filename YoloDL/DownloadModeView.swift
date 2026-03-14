@@ -27,7 +27,7 @@ struct DownloadMode: View {
             }
             .labelsHidden()
 
-            TextField("Enter source URL", text: $downloader.sourceUrl)
+            TextField("Enter source URL", text: $downloader.sourceURL)
                 .disabled(downloader.downloadIsActive)
         }
         .frame(maxWidth: .infinity, alignment: .center)

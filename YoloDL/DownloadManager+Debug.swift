@@ -16,6 +16,7 @@ extension DownloadManager {
     func simulateDownload() {
         simulationTask?.cancel()
         resetForSimulation()
+        
         simulationTask = Task {
             while downloadProgress < 1.0 && !Task.isCancelled {
                 try? await Task.sleep(for: .milliseconds (80))
@@ -47,6 +48,26 @@ extension DownloadManager {
         handleError(.totalDurationIsZero)
     }
     
+    // Function to simulate live content alert
+    func simulateLiveContentAlert() {
+        let mockMetadata = [
+            EpisodeMetadata(
+                // assuming the stream is live TV, but also works with any Int
+                durationSeconds: nil,
+                title: "Live Stream Test",
+                episodeTitle: "Live Stream: Test Channel",
+                publishedTimestamp: "2026-03-14T12:00:00Z",
+                flavors: [EpisodeMetadata.Flavor(url: "https://example.com/live/test-stream")]
+            )
+        ]
+        setPendingState(metadata: mockMetadata, location: "tmp/test", pattern: "test-pattern", duplicatePath: nil)
+        totalDuration = mockMetadata.reduce(0) { $0 + ($1.durationSeconds ?? 0) }
+
+        showLiveContentAlert = true
+
+        logger.appendLog("Simulated live content detection. Live content alert should appear.", from: .stdout)
+    }
+
     // Function to simulate overwrite confirmation dialog
     func simulateOverwriteConfirmation() {
         // Create mock metadata
@@ -55,15 +76,17 @@ extension DownloadManager {
                 durationSeconds: 3600,
                 title: "Test Episode S01E01",
                 episodeTitle: "Test Series: Test Episode",
-                publishedTimestamp: "2026-03-12T12:00:00Z"
+                publishedTimestamp: "2026-03-12T12:00:00Z",
+                flavors: [EpisodeMetadata.Flavor(url: "Test URL")]
             )
         ]
         setPendingState(metadata: mockMetadata, location: "tmp/test", pattern: "test-pattern", duplicatePath: nil )
-        totalDuration = mockMetadata.reduce(0) { $0 + $1.durationSeconds }
+        totalDuration = mockMetadata.reduce(0) { $0 + ($1.durationSeconds ?? 0) }
         
         showDuplicateConfirmation = true
         
         logger.appendLog("Simulated duplicate file detection. Confirmation dialog should appear.", from: .stdout)
     }
+    
 }
 #endif

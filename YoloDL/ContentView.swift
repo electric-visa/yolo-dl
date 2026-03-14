@@ -59,7 +59,7 @@ struct ContentView: View {
         if downloader.downloadIsActive {
             downloader.cancelDownload()
         } else {
-           await downloader.downloadFiles(downloadLocation: downloadLocation, fileNamingPattern: namingPreset.rawValue, namingPreset: namingPreset)
+            await downloader.downloadFiles(downloadLocation: downloadLocation, fileNamingPattern: namingPreset.rawValue, namingPreset: namingPreset, appMode: appMode)
         }
     }
     
@@ -137,6 +137,21 @@ struct ContentView: View {
             
         } message: {
             Text(downloader.alertToShow?.text ?? "")
+        }
+        
+        .confirmationDialog(
+            "Live stream detected",
+            isPresented: $downloader.showLiveContentAlert,
+            titleVisibility: .visible
+        ) {
+            Button("Record") {
+                appMode = .record
+                recordSource = .streamURL
+                streamURL = downloader.sourceURL
+            }
+            Button("Cancel", role: .cancel) {
+                downloader.appState = .ready
+            }
         }
         
         .confirmationDialog(
