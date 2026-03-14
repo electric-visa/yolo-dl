@@ -20,7 +20,7 @@ struct ContentView: View {
     @State private var appMode: AppMode = .download
     
     // Record mode settings (persisted across mode switches)
-    @State private var recordSource: RecordSource = .tvChannel
+    @State private var recordSource: RecordSource = .streamURL
     @State private var selectedChannel: TVChannel = .tv1
     @State private var streamURL: String = ""
     
@@ -107,7 +107,7 @@ struct ContentView: View {
                     await handleDownloadButton()
                 }
             }
-
+            .buttonStyle(.borderedProminent)
             Button("Choose folder") {
                 chooseFolder()
             }
@@ -115,6 +115,7 @@ struct ContentView: View {
 
             Text(downloader.appState.statusText)
                 .frame(maxWidth: .infinity, alignment: .leading)
+                .foregroundStyle(.secondary)
         }
         
         // Show debug window on startup.
@@ -143,6 +144,7 @@ struct ContentView: View {
                 recordSource = .streamURL
                 streamURL = downloader.sourceURL
             }
+
             Button("Cancel", role: .cancel) {
                 downloader.appState = .ready
             }
@@ -166,6 +168,7 @@ struct ContentView: View {
             Text("A file with this name already exists. Do you want to overwrite it?")
         }
         .padding()
+        .frame(minWidth: 561, minHeight: 358)
     }
 }
 

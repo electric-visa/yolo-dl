@@ -6,15 +6,16 @@
 //
 
 enum RecordSource: String, CaseIterable {
-    case tvChannel
     case streamURL
+    case tvChannel
     
     var label: String {
         switch self {
-        case .tvChannel:
-            return "TV Channel"
         case .streamURL:
             return "Stream URL"
+        case .tvChannel:
+            return "TV Channel"
+
         }
     }
 }
