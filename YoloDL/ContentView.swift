@@ -23,6 +23,7 @@ struct ContentView: View {
     @State private var recordSource: RecordSource = .streamURL
     @State private var selectedChannel: TVChannel = .tv1
     @State private var streamURL: String = ""
+    @State private var durationMinutes: Int = 0
     
     // AppStorage properties for storing user selections
     @AppStorage("lastFolder") private var downloadLocation: String = ""
@@ -55,7 +56,7 @@ struct ContentView: View {
                 case .tvChannel: selectedChannel.keyword
                 case .streamURL: streamURL
                 }
-                downloader.startRecording(source: source, downloadLocation: downloadLocation, recordSource: recordSource)
+                downloader.startRecording(source: source, downloadLocation: downloadLocation, recordSource: recordSource, duration: durationMinutes > 0 ? durationMinutes * 60 : nil)
             } else {
                 await downloader.downloadFiles(downloadLocation: downloadLocation, fileNamingPattern: namingPreset.rawValue, namingPreset: namingPreset, appMode: appMode)
             }
@@ -91,7 +92,8 @@ struct ContentView: View {
                     RecordModeView(
                         recordSource: $recordSource,
                         selectedChannel: $selectedChannel,
-                        streamURL: $streamURL
+                        streamURL: $streamURL,
+                        durationMinutes: $durationMinutes
                     )
                 }
             }
@@ -108,7 +110,17 @@ struct ContentView: View {
 
             if appMode == .record,
                !downloader.recordingElapsed.isEmpty || !downloader.recordingFileSize.isEmpty {
-                Text("\(downloader.recordingElapsed) — \(downloader.recordingFileSize)")
+                let elapsed = downloader.recordingElapsed
+                let fileSize = downloader.recordingFileSize
+                let text: String = {
+                    if let totalSeconds = downloader.recordingDurationSeconds {
+                        let remaining = max(0, totalSeconds - downloader.recordingElapsedSeconds)
+                        return "\(elapsed) · \(fileSize) — stops in \(DurationFormatter.formatCountdown(seconds: remaining))"
+                    } else {
+                        return "\(elapsed) · \(fileSize)"
+                    }
+                }()
+                Text(text)
                     .foregroundStyle(.secondary)
             }
 

@@ -36,6 +36,9 @@ import Foundation
     private(set) var downloadProgress: Double = 0
     private(set) var recordingElapsed: String = ""
     private(set) var recordingFileSize: String = ""
+    private(set) var recordingElapsedSeconds: Int = 0
+    private(set) var recordingDurationSeconds: Int? = nil
+    private var recordingTimerTask: Task<Void, any Error>?
 
     var alertToShow: AlertMessage? = nil
     
@@ -105,6 +108,7 @@ import Foundation
                     let hours = Int(components[0]) ?? 0
                     let minutes = Int(components[1]) ?? 0
                     let seconds = Int(components[2]) ?? 0
+                    recordingElapsedSeconds = hours * 3600 + minutes * 60 + seconds
                     if hours > 0 {
                         recordingElapsed = String(format: "%d:%02d:%02d", hours, minutes, seconds)
                     } else {
@@ -198,6 +202,7 @@ import Foundation
             downloadIsFinished = false
             logger.clearLog()
             recordingElapsed = ""
+            recordingElapsedSeconds = 0
             recordingFileSize = ""
 
             // Fetch metadata, calculate total duration and check for duplicate files.
@@ -359,7 +364,15 @@ import Foundation
         downloadIsCancelled = false
         downloadIsFinished = false
         logger.clearLog()
+        if let duration {
+            recordingDurationSeconds = duration
+            recordingTimerTask = Task {
+                try await Task.sleep(for: .seconds(duration))
+                stopRecording()
+            }
+        }
         recordingElapsed = ""
+        recordingElapsedSeconds = 0
         recordingFileSize = ""
 
         guard !downloadLocation.isEmpty else { handleError(.noFolderSelected); return }
@@ -408,6 +421,9 @@ import Foundation
     }
     
     func stopRecording() {
+        recordingTimerTask?.cancel()
+        recordingTimerTask = nil
+        recordingDurationSeconds = nil
         activeDownload?.terminate()
         activeDownload = nil
     }
@@ -415,6 +431,9 @@ import Foundation
     // Function to cancel an ongoing download
     // with additional actions during a debug simulation run.
     func cancelDownload() {
+        recordingTimerTask?.cancel()
+        recordingTimerTask = nil
+        recordingDurationSeconds = nil
         downloadIsCancelled = true
         activeDownload?.terminate()
         activeDownload = nil
