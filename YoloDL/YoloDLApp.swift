@@ -11,18 +11,21 @@ import SwiftUI
 struct YoloDLApp: App {
     @State private var downloadManager: DownloadManager
     @State private var logManager: LogManager
-    
+    @State private var recordingInput: RecordingInput = RecordingInput()
+
     init() {
         let lm = LogManager()
         _logManager = State(initialValue: lm)
         _downloadManager = State(initialValue: DownloadManager(logger: lm))
     }
-    
+
     var body: some Scene {
         WindowGroup {
             ContentView()
                 .environment(downloadManager)
-                .environment(logManager)        }
+                .environment(logManager)
+                .environment(recordingInput)
+        }
         Window("Log Window", id: "logWindow") {
             LogWindow()
                 .environment(logManager)
@@ -31,6 +34,7 @@ struct YoloDLApp: App {
         Window("Debug Window", id: "debug") {
             DebugWindow()
                 .environment(downloadManager)
+                .environment(recordingInput)
         }
         #endif
     }

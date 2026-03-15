@@ -8,28 +8,23 @@
 import SwiftUI
 
 struct ContentView: View {
-    
+
     let appVersion = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "?"
-    
+
     // Open debug window on startup.
     @Environment(\.openWindow) var openWindow
-    
+
     @Environment(DownloadManager.self) private var downloader
+    @Environment(RecordingInput.self) private var recordingInput
 
     // App mode selection
     @State private var appMode: AppMode = .download
-    
-    // Record mode settings (persisted across mode switches)
-    @State private var recordSource: RecordSource = .streamURL
-    @State private var selectedChannel: TVChannel = .tv1
-    @State private var streamURL: String = ""
-    @State private var durationMinutes: Int = 0
-    
+
     // AppStorage properties for storing user selections
     @AppStorage("lastFolder") private var downloadLocation: String = ""
     @AppStorage("namingTemplate") private var namingPreset: NamingPreset = .seriesDateTitle
 
-    
+
     // Function to choose the download location.
     func chooseFolder(){
         let folderSelector = NSOpenPanel()
@@ -42,7 +37,7 @@ struct ContentView: View {
             }
         }
     }
-    
+
     func handleDownloadButton() async {
         if downloader.isActive {
             if appMode == .record {
@@ -52,19 +47,20 @@ struct ContentView: View {
             }
         } else {
             if appMode == .record {
-                let source: String = switch recordSource {
-                case .tvChannel: selectedChannel.keyword
-                case .streamURL: streamURL
+                let source: String = switch recordingInput.recordSource {
+                case .tvChannel: recordingInput.selectedChannel.keyword
+                case .streamURL: recordingInput.streamURL
                 }
-                downloader.startRecording(source: source, downloadLocation: downloadLocation, recordSource: recordSource, duration: durationMinutes > 0 ? durationMinutes * 60 : nil)
+                downloader.startRecording(source: source, downloadLocation: downloadLocation, recordSource: recordingInput.recordSource, duration: recordingInput.durationMinutes > 0 ? recordingInput.durationMinutes * 60 : nil)
             } else {
                 await downloader.downloadFiles(downloadLocation: downloadLocation, fileNamingPattern: namingPreset.rawValue, namingPreset: namingPreset, appMode: appMode)
             }
         }
     }
-    
+
     var body: some View {
         @Bindable var downloader = downloader
+        @Bindable var recordingInput = recordingInput
         VStack(alignment: .leading, spacing: 12) {
 
             Text("YoloDL \(appVersion)")
@@ -89,12 +85,7 @@ struct ContentView: View {
                 case .download:
                     DownloadModeView()
                 case .record:
-                    RecordModeView(
-                        recordSource: $recordSource,
-                        selectedChannel: $selectedChannel,
-                        streamURL: $streamURL,
-                        durationMinutes: $durationMinutes
-                    )
+                    RecordModeView()
                 }
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
@@ -139,23 +130,23 @@ struct ContentView: View {
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .foregroundStyle(.secondary)
         }
-        
+
         // Show debug window on startup.
         .onAppear {
 #if DEBUG
             openWindow(id:"debug")
 #endif
         }
-        
+
         .alert(
             downloader.alertToShow?.title ?? "Error",
             isPresented: $downloader.isShowingAlert
         ) {
-            
+
         } message: {
             Text(downloader.alertToShow?.text ?? "")
         }
-        
+
         .confirmationDialog(
             "Live stream detected",
             isPresented: $downloader.showLiveContentAlert,
@@ -163,8 +154,7 @@ struct ContentView: View {
         ) {
             Button("Record") {
                 appMode = .record
-                recordSource = .streamURL
-                streamURL = downloader.sourceURL
+                recordingInput.prefillStream(url: downloader.sourceURL)
             }
 
             Button("Cancel", role: .cancel) {
@@ -196,6 +186,8 @@ struct ContentView: View {
 
 #Preview {
     @Previewable @State var downloadManager = DownloadManager(logger: LogManager())
+    @Previewable @State var recordingInput = RecordingInput()
     ContentView()
         .environment(downloadManager)
+        .environment(recordingInput)
 }

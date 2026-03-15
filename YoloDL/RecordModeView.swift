@@ -9,17 +9,15 @@ import SwiftUI
 
 struct RecordModeView: View {
 
-    @Binding var recordSource: RecordSource
-    @Binding var selectedChannel: TVChannel
-    @Binding var streamURL: String
-    @Binding var durationMinutes: Int
+    @Environment(RecordingInput.self) private var recordingInput
 
     var body: some View {
+        @Bindable var recordingInput = recordingInput
         VStack(spacing: 8) {
             Text("Source")
                 .font(.headline)
 
-            Picker("Source", selection: $recordSource) {
+            Picker("Source", selection: $recordingInput.recordSource) {
                 ForEach(RecordSource.allCases, id: \.self) { source in
                     Text(source.label).tag(source)
                 }
@@ -27,27 +25,27 @@ struct RecordModeView: View {
             .pickerStyle(.segmented)
             .labelsHidden()
 
-            switch recordSource {
+            switch recordingInput.recordSource {
             case .tvChannel:
-                Picker("Channel", selection: $selectedChannel) {
+                Picker("Channel", selection: $recordingInput.selectedChannel) {
                     ForEach(TVChannel.allCases, id: \.self) { channel in
                         Text(channel.label).tag(channel)
                     }
                 }
 
             case .streamURL:
-                TextField("Enter live stream URL", text: $streamURL)
+                TextField("Enter live stream URL", text: $recordingInput.streamURL)
             }
 
             HStack {
                 Text("Duration:")
-                TextField("min", value: $durationMinutes, format: .number)
+                TextField("min", value: $recordingInput.durationMinutes, format: .number)
                     .frame(width: 60)
                     .textFieldStyle(.roundedBorder)
-                Stepper("", value: $durationMinutes, in: 0...480, step: 5)
+                Stepper("", value: $recordingInput.durationMinutes, in: 0...480, step: 5)
                     .labelsHidden()
             }
-            Text(DurationFormatter.format(minutes: durationMinutes))
+            Text(DurationFormatter.format(minutes: recordingInput.durationMinutes))
                 .foregroundStyle(.secondary)
                 .font(.caption)
         }
@@ -56,15 +54,6 @@ struct RecordModeView: View {
 }
 
 #Preview {
-    @Previewable @State var recordSource: RecordSource = .tvChannel
-    @Previewable @State var selectedChannel: TVChannel = .tv1
-    @Previewable @State var streamURL: String = ""
-    @Previewable @State var durationMinutes: Int = 0
-
-    RecordModeView(
-        recordSource: $recordSource,
-        selectedChannel: $selectedChannel,
-        streamURL: $streamURL,
-        durationMinutes: $durationMinutes
-    )
+    RecordModeView()
+        .environment(RecordingInput())
 }
