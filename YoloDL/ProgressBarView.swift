@@ -7,6 +7,17 @@
 
 import SwiftUI
 
+private enum Style {
+    static let barHeight: CGFloat = 30
+    static let shimmerOpacity: Double = 0.42
+    static let stripeOpacity: Double = 0.40
+    static let animationSpeed: Double = 0.5
+    static let finishedDelay: Double = 2.5
+    static let downloadActive: [Color] = [.blue, .cyan]
+    static let downloadFinished: [Color] = [.green, .mint]
+    static let recordingActive: [Color] = [.blue, Color(red: 0.52, green: 0.72, blue: 0.92)]
+}
+
 struct ProgressBarView: View {
 
     let progress: Double
@@ -14,18 +25,9 @@ struct ProgressBarView: View {
     let isFinished: Bool
     let isRecording: Bool
 
-    static let progressBarAnimationSpeed: Double = 0.5
+    static let progressBarFinishedSpeed = Style.finishedDelay
 
     @State private var shimmerOffset: CGFloat = -1.0
-
-    // Main colors for the progress bar states.
-
-    let downloadActiveColors: [Color] = [.blue, .cyan]
-    let downloadFinishedColors: [Color] = [.green, .mint]
-    let recordingActiveColors: [Color] = [.blue, Color(red: 0.52, green: 0.72, blue: 0.92)]
-
-    // UI animation constant for the finished state delay
-    static let progressBarFinishedSpeed: Double = 2.5
 
     @ViewBuilder
     private func gradientBar(
@@ -43,26 +45,26 @@ struct ProgressBarView: View {
                 )
             )
             .modifier(ProgressWidthModifier(trackProgress: trackProgress, progress: progress))
-            .frame(height: 30)
+            .frame(height: Style.barHeight)
             .blendMode(blendMode)
             .opacity(visible ? 1.0 : 0.0)
     }
 
     var body: some View {
         Rectangle()
-            .frame(height: 30)
+            .frame(height: Style.barHeight)
             .frame(maxWidth: .infinity)
             .opacity(0.2)
             .overlay(alignment: .leading) {
                 gradientBar(
-                    colors: downloadActiveColors,
+                    colors: Style.downloadActive,
                     trackProgress: true,
                     visible: progress > 0
                 )
             }
             .overlay(alignment: .leading) {
                 gradientBar(
-                    colors: downloadFinishedColors,
+                    colors: Style.downloadFinished,
                     trackProgress: true,
                     visible: isFinished
                 )
@@ -71,7 +73,7 @@ struct ProgressBarView: View {
                 Rectangle()
                     .fill(
                         LinearGradient(
-                            colors: [.clear, .white.opacity(0.42), .clear],
+                            colors: [.clear, .white.opacity(Style.shimmerOpacity), .clear],
                             startPoint: UnitPoint(x: shimmerOffset - 0.5, y: 0),
                             endPoint: UnitPoint(x: shimmerOffset + 0.5, y: 0)
                         )
@@ -79,13 +81,13 @@ struct ProgressBarView: View {
                     .containerRelativeFrame(.horizontal) { length, _ in
                         length * progress
                     }
-                    .frame(height: 30)
+                    .frame(height: Style.barHeight)
                     .blendMode(.screen)
                     .opacity(isActive && !isRecording ? 1.0 : 0.0)
             }
             .overlay {
                 gradientBar(
-                    colors: recordingActiveColors,
+                    colors: Style.recordingActive,
                     trackProgress: false,
                     visible: isRecording
                 )
@@ -109,17 +111,17 @@ struct ProgressBarView: View {
                             path.addLine(to: CGPoint(x: x + size.height + stripeWidth, y: 0))
                             path.addLine(to: CGPoint(x: x + size.height, y: 0))
                             path.closeSubpath()
-                            context.fill(path, with: .color(.white.opacity(0.40)))
+                            context.fill(path, with: .color(.white.opacity(Style.stripeOpacity)))
                             x += step
                         }
                     }
                 }
-                .frame(height: 30)
+                .frame(height: Style.barHeight)
                 .blendMode(.screen)
                 .opacity(isRecording ? 1.0 : 0.0)
             }
             .clipped()
-            .animation(.easeInOut(duration: Self.progressBarAnimationSpeed), value: progress)
+            .animation(.easeInOut(duration: Style.animationSpeed), value: progress)
             .animation(nil, value: isFinished)
             .onAppear {
                 withAnimation(.linear(duration: 2).repeatForever(autoreverses: false)) {
