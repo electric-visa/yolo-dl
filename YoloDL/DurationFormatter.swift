@@ -18,6 +18,37 @@ enum DurationFormatter {
         return parts.joined(separator: " ")
     }
 
+    static func formatEstimate(seconds: Int) -> String {
+        if seconds < 10 {
+            return "Almost done"
+        } else if seconds < 60 {
+            let rounded = ((seconds + 2) / 5) * 5
+            return "~\(rounded) sec"
+        } else if seconds < 300 {
+            let rounded = ((seconds + 15) / 30) * 30
+            let minutes = rounded / 60
+            let secs = rounded % 60
+            if secs > 0 {
+                return "~\(minutes) min \(secs) sec"
+            } else {
+                return "~\(minutes) min"
+            }
+        } else {
+            let minutes = (seconds + 30) / 60
+            if minutes < 60 {
+                return "~\(minutes) min"
+            } else {
+                let hours = minutes / 60
+                let remainingMinutes = minutes % 60
+                if remainingMinutes > 0 {
+                    return "~\(hours) h \(remainingMinutes) min"
+                } else {
+                    return "~\(hours) h"
+                }
+            }
+        }
+    }
+
     static func formatCountdown(seconds: Int) -> String {
         let hours = seconds / 3600
         let minutes = (seconds % 3600) / 60

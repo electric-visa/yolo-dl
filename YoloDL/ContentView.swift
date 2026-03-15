@@ -105,21 +105,32 @@ struct ContentView: View {
                 isRecording: downloader.appState == .recording
             )
 
-            if appMode == .record,
-               !downloader.recordingElapsed.isEmpty || !downloader.recordingFileSize.isEmpty {
+            let downloadInfoParts: [String] = appMode == .download && downloader.appState == .downloading ? [
+                downloader.recordingFileSize.isEmpty ? nil : downloader.recordingFileSize,
+                downloader.timeRemaining.map { DurationFormatter.formatEstimate(seconds: $0) + " remaining" }
+            ].compactMap { $0 } : []
+            Text(downloadInfoParts.isEmpty ? " " : downloadInfoParts.joined(separator: " · "))
+                .foregroundStyle(.secondary)
+                .monospacedDigit()
+                .opacity(downloadInfoParts.isEmpty ? 0 : 1)
+
+            let recordingInfoVisible = appMode == .record &&
+                (!downloader.recordingElapsed.isEmpty || !downloader.recordingFileSize.isEmpty)
+            let recordingInfoText: String = {
+                guard recordingInfoVisible else { return " " }
                 let elapsed = downloader.recordingElapsed
                 let fileSize = downloader.recordingFileSize
-                let text: String = {
-                    if let totalSeconds = downloader.recordingDurationSeconds {
-                        let remaining = max(0, totalSeconds - downloader.recordingElapsedSeconds)
-                        return "\(elapsed) · \(fileSize) — stops in \(DurationFormatter.formatCountdown(seconds: remaining))"
-                    } else {
-                        return "\(elapsed) · \(fileSize)"
-                    }
-                }()
-                Text(text)
-                    .foregroundStyle(.secondary)
-            }
+                if let totalSeconds = downloader.recordingDurationSeconds {
+                    let remaining = max(0, totalSeconds - downloader.recordingElapsedSeconds)
+                    return "\(elapsed) · \(fileSize) — stops in \(DurationFormatter.formatCountdown(seconds: remaining))"
+                } else {
+                    return "\(elapsed) · \(fileSize)"
+                }
+            }()
+            Text(recordingInfoText)
+                .foregroundStyle(.secondary)
+                .monospacedDigit()
+                .opacity(recordingInfoVisible ? 1 : 0)
 
             Text(downloader.appState.statusText)
                 .frame(maxWidth: .infinity, alignment: .leading)
@@ -176,7 +187,7 @@ struct ContentView: View {
         } message: {
             Text("A file with this name already exists. Do you want to overwrite it?")
         }
-        .frame(minWidth: 480, minHeight: 300)
+        .frame(minWidth: 480, minHeight: 324)
         .padding()
     }
 }

@@ -16,12 +16,27 @@ extension DownloadManager {
     func simulateDownload() {
         simulationTask?.cancel()
         resetForSimulation()
-        
+        totalDuration = 1800
+
         simulationTask = Task {
             while progress < 1.0 && !Task.isCancelled {
-                try? await Task.sleep(for: .milliseconds (80))
+                try? await Task.sleep(for: .milliseconds(80))
                 guard !Task.isCancelled else { break }
                 setDownloadProgress(to: progress + 0.01)
+
+                let simulatedMB = progress * 500.0
+                if simulatedMB >= 1000 {
+                    recordingFileSize = String(format: "%.1f GB", simulatedMB / 1000)
+                } else {
+                    recordingFileSize = String(format: "%.1f MB", simulatedMB)
+                }
+
+                let speed = 25.0 + Double.random(in: -3.0...3.0)
+                recentSpeeds.append(speed)
+                if recentSpeeds.count > 5 {
+                    recentSpeeds.removeFirst()
+                }
+
                 logger.appendLog("Simulated download progress: \(progress)", from: .stdout)
             }
             guard !Task.isCancelled else { return }

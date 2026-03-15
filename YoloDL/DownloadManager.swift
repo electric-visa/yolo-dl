@@ -39,6 +39,7 @@ import Foundation
     var recordingElapsedSeconds: Int = 0
     var recordingDurationSeconds: Int? = nil
     var recordingTimerTask: Task<Void, any Error>?
+    var recentSpeeds: [Double] = []
 
     var alertToShow: AlertMessage? = nil
     
@@ -81,6 +82,8 @@ import Foundation
         finishAnimationTask?.cancel()
         progress = 1.0
         isActive = false
+        recordingFileSize = ""
+        recentSpeeds = []
         finishAnimationTask = Task {
             try await Task.sleep(for: .seconds(ProgressBarView.progressBarFinishedSpeed))
             self.isFinished = true
@@ -104,6 +107,7 @@ import Foundation
             recordingElapsed = ""
             recordingElapsedSeconds = 0
             recordingFileSize = ""
+            recentSpeeds = []
 
             // Fetch metadata, calculate total duration and check for duplicate files.
             // Includes guards for invalid metadata.
@@ -195,6 +199,7 @@ import Foundation
         appState = .cancelled
         isActive = false
         progress = 0.0
+        recentSpeeds = []
 #if DEBUG
         simulationTask?.cancel()
         simulationTask = nil
@@ -208,6 +213,7 @@ import Foundation
         isActive = true
         appState = .downloading
         isFinished = false
+        recentSpeeds = []
     }
     
     func setPendingState(metadata: [EpisodeMetadata], location: String, pattern: String, duplicatePath: String?) {
