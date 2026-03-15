@@ -51,7 +51,7 @@ struct ContentView: View {
                 case .tvChannel: recordingInput.selectedChannel.keyword
                 case .streamURL: recordingInput.streamURL
                 }
-                downloader.startRecording(source: source, downloadLocation: downloadLocation, recordSource: recordingInput.recordSource, duration: recordingInput.durationMinutes > 0 ? recordingInput.durationMinutes * 60 : nil)
+                downloader.startRecording(source: source, downloadLocation: downloadLocation, recordSource: recordingInput.recordSource, duration: recordingInput.totalMinutes > 0 ? recordingInput.totalMinutes * 60 : nil)
             } else {
                 await downloader.downloadFiles(downloadLocation: downloadLocation, fileNamingPattern: namingPreset.rawValue, namingPreset: namingPreset, appMode: appMode)
             }
@@ -63,21 +63,14 @@ struct ContentView: View {
         @Bindable var recordingInput = recordingInput
         VStack(alignment: .leading, spacing: 12) {
 
-            Text("YoloDL \(appVersion)")
-                .frame(maxWidth: .infinity, alignment: .center)
-
-            VStack(spacing: 8) {
-                Text("Mode")
-                    .font(.headline)
-
-                Picker("Mode", selection: $appMode) {
-                    ForEach(AppMode.allCases, id: \.self) { mode in
-                        Text(mode.label).tag(mode)
-                    }
+            Picker("Mode", selection: $appMode) {
+                ForEach(AppMode.allCases, id: \.self) { mode in
+                    Text(mode.label).tag(mode)
                 }
-                .pickerStyle(.segmented)
-                .labelsHidden()
             }
+            .pickerStyle(.segmented)
+            .labelsHidden()
+            .disabled(downloader.isActive)
             .frame(maxWidth: .infinity, alignment: .center)
 
             Group {
@@ -88,7 +81,22 @@ struct ContentView: View {
                     RecordModeView()
                 }
             }
-            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+            .frame(maxWidth: .infinity, minHeight: 120, alignment: .top)
+
+            Text(downloadLocation.isEmpty ? "No folder selected" : "Download location: \(downloadLocation)")
+
+            HStack {
+                Button(downloader.isActive ? "Stop" : appMode == .download ? "Download" : "Record") {
+                    Task {
+                        await handleDownloadButton()
+                    }
+                }
+                .buttonStyle(.borderedProminent)
+                Button("Choose folder") {
+                    chooseFolder()
+                }
+                .disabled(downloader.isActive)
+            }
 
             ProgressBarView(
                 progress: downloader.progress,
@@ -96,8 +104,6 @@ struct ContentView: View {
                 isFinished: downloader.isFinished,
                 isRecording: downloader.appState == .recording
             )
-
-            Text(downloadLocation.isEmpty ? "No folder selected" : "Download location: \(downloadLocation)")
 
             if appMode == .record,
                !downloader.recordingElapsed.isEmpty || !downloader.recordingFileSize.isEmpty {
@@ -115,19 +121,6 @@ struct ContentView: View {
                     .foregroundStyle(.secondary)
             }
 
-            HStack {
-                Button(downloader.isActive ? "Stop" : appMode == .download ? "Download" : "Record") {
-                    Task {
-                        await handleDownloadButton()
-                    }
-                }
-                .buttonStyle(.borderedProminent)
-                Button("Choose folder") {
-                    chooseFolder()
-                }
-                .disabled(downloader.isActive)
-            }
-
             Text(downloader.appState.statusText)
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .foregroundStyle(.secondary)
@@ -139,6 +132,8 @@ struct ContentView: View {
             openWindow(id:"debug")
 #endif
         }
+
+        .navigationTitle("YoloDL \(appVersion)")
 
         .alert(
             downloader.alertToShow?.title ?? "Error",
@@ -181,7 +176,7 @@ struct ContentView: View {
         } message: {
             Text("A file with this name already exists. Do you want to overwrite it?")
         }
-        .frame(minWidth: 561, minHeight: 358)
+        .frame(minWidth: 480, minHeight: 300)
         .padding()
     }
 }

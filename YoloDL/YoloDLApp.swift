@@ -26,6 +26,7 @@ struct YoloDLApp: App {
                 .environment(logManager)
                 .environment(recordingInput)
         }
+        .defaultSize(width: 520, height: 340)
         Window("Log Window", id: "logWindow") {
             LogWindow()
                 .environment(logManager)

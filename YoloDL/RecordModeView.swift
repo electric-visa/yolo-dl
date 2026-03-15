@@ -14,9 +14,6 @@ struct RecordModeView: View {
     var body: some View {
         @Bindable var recordingInput = recordingInput
         VStack(spacing: 8) {
-            Text("Source")
-                .font(.headline)
-
             Picker("Source", selection: $recordingInput.recordSource) {
                 ForEach(RecordSource.allCases, id: \.self) { source in
                     Text(source.label).tag(source)
@@ -39,13 +36,20 @@ struct RecordModeView: View {
 
             HStack {
                 Text("Duration:")
-                TextField("min", value: $recordingInput.durationMinutes, format: .number)
-                    .frame(width: 60)
+                TextField("h", value: $recordingInput.durationHours, format: .number)
+                    .frame(width: 40)
                     .textFieldStyle(.roundedBorder)
-                Stepper("", value: $recordingInput.durationMinutes, in: 0...480, step: 5)
+                Stepper("", value: $recordingInput.durationHours, in: 0...8, step: 1)
                     .labelsHidden()
+                Text("h")
+                TextField("min", value: $recordingInput.durationMinutes, format: .number)
+                    .frame(width: 40)
+                    .textFieldStyle(.roundedBorder)
+                Stepper("", value: $recordingInput.durationMinutes, in: 0...55, step: 5)
+                    .labelsHidden()
+                Text("min")
             }
-            Text(DurationFormatter.format(minutes: recordingInput.durationMinutes))
+            Text(DurationFormatter.format(minutes: recordingInput.totalMinutes))
                 .foregroundStyle(.secondary)
                 .font(.caption)
         }

@@ -17,9 +17,6 @@ struct DownloadModeView: View {
         @Bindable var downloader = downloader
         
         VStack(spacing: 8) {
-            Text("File naming")
-                .font(.headline)
-
             Picker("File naming", selection: $namingPreset) {
                 ForEach(NamingPreset.allCases, id: \.self) { preset in
                     Text(preset.label).tag(preset)
