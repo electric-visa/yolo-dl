@@ -44,7 +44,7 @@ struct ContentView: View {
     }
     
     func handleDownloadButton() async {
-        if downloader.downloadIsActive {
+        if downloader.isActive {
             if appMode == .record {
                 downloader.stopRecording()
             } else {
@@ -100,9 +100,9 @@ struct ContentView: View {
             .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
 
             ProgressBarView(
-                downloadProgress: downloader.downloadProgress,
-                downloadIsActive: downloader.downloadIsActive,
-                downloadIsFinished: downloader.downloadIsFinished,
+                progress: downloader.progress,
+                isActive: downloader.isActive,
+                isFinished: downloader.isFinished,
                 isRecording: downloader.appState == .recording
             )
 
@@ -124,7 +124,7 @@ struct ContentView: View {
                     .foregroundStyle(.secondary)
             }
 
-            Button(downloader.downloadIsActive ? "Stop" : appMode == .download ? "Download" : "Record") {
+            Button(downloader.isActive ? "Stop" : appMode == .download ? "Download" : "Record") {
                 Task {
                     await handleDownloadButton()
                 }
@@ -133,7 +133,7 @@ struct ContentView: View {
             Button("Choose folder") {
                 chooseFolder()
             }
-            .disabled(downloader.downloadIsActive)
+            .disabled(downloader.isActive)
 
             Text(downloader.appState.statusText)
                 .frame(maxWidth: .infinity, alignment: .leading)

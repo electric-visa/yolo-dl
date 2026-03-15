@@ -18,11 +18,11 @@ extension DownloadManager {
         resetForSimulation()
         
         simulationTask = Task {
-            while downloadProgress < 1.0 && !Task.isCancelled {
+            while progress < 1.0 && !Task.isCancelled {
                 try? await Task.sleep(for: .milliseconds (80))
                 guard !Task.isCancelled else { break }
-                setDownloadProgress(to: downloadProgress + 0.01)
-                logger.appendLog("Simulated download progress: \(downloadProgress)", from: .stdout)
+                setDownloadProgress(to: progress + 0.01)
+                logger.appendLog("Simulated download progress: \(progress)", from: .stdout)
             }
             guard !Task.isCancelled else { return }
             resetDownloadState()

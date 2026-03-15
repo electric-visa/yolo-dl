@@ -9,9 +9,9 @@ import SwiftUI
 
 struct ProgressBarView: View {
     
-    let downloadProgress: Double
-    let downloadIsActive: Bool
-    let downloadIsFinished: Bool
+    let progress: Double
+    let isActive: Bool
+    let isFinished: Bool
     let isRecording: Bool
 
     static let progressBarAnimationSpeed: Double = 0.5
@@ -42,10 +42,10 @@ struct ProgressBarView: View {
                         )
                     )
                     .containerRelativeFrame(.horizontal) { length, _ in
-                        length * downloadProgress
+                        length * progress
                     }
                     .frame(height: 30)
-                    .opacity(downloadProgress > 0 ? 1.0 : 0.0)
+                    .opacity(progress > 0 ? 1.0 : 0.0)
             }
             .overlay(alignment: .leading) {
                 Rectangle()
@@ -57,10 +57,10 @@ struct ProgressBarView: View {
                         )
                     )
                     .containerRelativeFrame(.horizontal) { length, _ in
-                        length * downloadProgress
+                        length * progress
                     }
                     .frame(height: 30)
-                    .opacity(downloadIsFinished ? 1.0 : 0.0)
+                    .opacity(isFinished ? 1.0 : 0.0)
             }
             .overlay(alignment: .leading) {
                 Rectangle()
@@ -72,11 +72,11 @@ struct ProgressBarView: View {
                         )
                     )
                     .containerRelativeFrame(.horizontal) { length, _ in
-                        length * downloadProgress
+                        length * progress
                     }
                     .frame(height: 30)
                     .blendMode(.screen)
-                    .opacity(downloadIsActive && !isRecording ? 1.0 : 0.0)
+                    .opacity(isActive && !isRecording ? 1.0 : 0.0)
             }
             .overlay {
                 Rectangle()
@@ -119,8 +119,8 @@ struct ProgressBarView: View {
                 .opacity(isRecording ? 1.0 : 0.0)
             }
             .clipped()
-            .animation(.easeInOut(duration: Self.progressBarAnimationSpeed), value: downloadProgress)
-            .animation(nil, value: downloadIsFinished)
+            .animation(.easeInOut(duration: Self.progressBarAnimationSpeed), value: progress)
+            .animation(nil, value: isFinished)
             .onAppear {
                 withAnimation(.linear(duration: 2).repeatForever(autoreverses: false)) {
                     shimmerOffset = 2.0
@@ -132,30 +132,30 @@ struct ProgressBarView: View {
 #Preview {
     VStack(spacing: 20) {
         ProgressBarView(
-            downloadProgress: 0.0,
-            downloadIsActive: false,
-            downloadIsFinished: false,
+            progress: 0.0,
+            isActive: false,
+            isFinished: false,
             isRecording: false
         )
 
         ProgressBarView(
-            downloadProgress: 0.65,
-            downloadIsActive: true,
-            downloadIsFinished: false,
+            progress: 0.65,
+            isActive: true,
+            isFinished: false,
             isRecording: false
         )
 
         ProgressBarView(
-            downloadProgress: 1.0,
-            downloadIsActive: false,
-            downloadIsFinished: true,
+            progress: 1.0,
+            isActive: false,
+            isFinished: true,
             isRecording: false
         )
 
         ProgressBarView(
-            downloadProgress: 0,
-            downloadIsActive: false,
-            downloadIsFinished: false,
+            progress: 0,
+            isActive: false,
+            isFinished: false,
             isRecording: true
         )
     }

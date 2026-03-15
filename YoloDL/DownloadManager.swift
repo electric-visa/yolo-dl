@@ -27,13 +27,13 @@ import Foundation
     var sourceURL: String = ""
 
     // Variables and constants related to download & progress bar logic
-    private(set) var downloadIsActive: Bool = false
-    private(set) var downloadIsFinished: Bool = false
-    private var activeDownload: Process? = nil
-    private var downloadIsCancelled: Bool = false
+    private(set) var isActive: Bool = false
+    private(set) var isFinished: Bool = false
+    private var activeProcess: Process? = nil
+    private var isCancelled: Bool = false
     private var finishAnimationTask: Task<Void, any Error>?
     var totalDuration: Int = 0
-    private(set) var downloadProgress: Double = 0
+    private(set) var progress: Double = 0
     private(set) var recordingElapsed: String = ""
     private(set) var recordingFileSize: String = ""
     private(set) var recordingElapsedSeconds: Int = 0
@@ -135,11 +135,11 @@ import Foundation
     // Function to reset the download state
     func resetDownloadState() {
         finishAnimationTask?.cancel()
-        downloadProgress = 1.0
-        downloadIsActive = false
+        progress = 1.0
+        isActive = false
         finishAnimationTask = Task {
             try await Task.sleep(for: .seconds(ProgressBarView.progressBarFinishedSpeed))
-            self.downloadIsFinished = true
+            self.isFinished = true
         }
     }
     
@@ -191,15 +191,15 @@ import Foundation
     func downloadFiles(downloadLocation: String, fileNamingPattern: String, namingPreset: NamingPreset, appMode: AppMode) async {
             
             // Revert from a possible cancelled state.
-            downloadIsCancelled = false
+            isCancelled = false
             
             // Validate user inputs.
             appState = .preparing
             guard validateInputs(downloadLocation: downloadLocation) else { return }
             
-            // Reset downloadIsFinished state to false
+            // Reset isFinished state to false
             // and flush the log buffer.
-            downloadIsFinished = false
+            isFinished = false
             logger.clearLog()
             recordingElapsed = ""
             recordingElapsedSeconds = 0
@@ -264,11 +264,11 @@ import Foundation
         onStderr: (@MainActor @Sendable (String) -> Void)? = nil,
         onTermination: (@MainActor @Sendable () -> Void)? = nil
     ) {
-        downloadIsActive = true
+        isActive = true
         appState = initialState
         
         let process = Process()
-        activeDownload = process
+        activeProcess = process
         
         let stderrPipe = Pipe()
         stderrPipe.fileHandleForReading.readabilityHandler = { handle in
@@ -294,7 +294,7 @@ import Foundation
             stderrPipe.fileHandleForReading.readabilityHandler = nil
             outputPipe.fileHandleForReading.readabilityHandler = nil
             Task { @MainActor in
-                if !self.downloadIsCancelled {
+                if !self.isCancelled {
                     onTermination?()
                 }
             }
@@ -349,7 +349,7 @@ import Foundation
             initialState: .downloading,
             onStderr: { output in
                 if let progress = self.parseProgressFromStderr(output) {
-                    self.downloadProgress = progress
+                    self.progress = progress
                 }
             },
             onTermination: {
@@ -361,8 +361,8 @@ import Foundation
     }
     
     func startRecording(source: String, downloadLocation: String, recordSource: RecordSource, duration: Int? = nil) {
-        downloadIsCancelled = false
-        downloadIsFinished = false
+        isCancelled = false
+        isFinished = false
         logger.clearLog()
         if let duration {
             recordingDurationSeconds = duration
@@ -424,8 +424,8 @@ import Foundation
         recordingTimerTask?.cancel()
         recordingTimerTask = nil
         recordingDurationSeconds = nil
-        activeDownload?.terminate()
-        activeDownload = nil
+        activeProcess?.terminate()
+        activeProcess = nil
     }
 
     // Function to cancel an ongoing download
@@ -434,12 +434,12 @@ import Foundation
         recordingTimerTask?.cancel()
         recordingTimerTask = nil
         recordingDurationSeconds = nil
-        downloadIsCancelled = true
-        activeDownload?.terminate()
-        activeDownload = nil
+        isCancelled = true
+        activeProcess?.terminate()
+        activeProcess = nil
         appState = .cancelled
-        downloadIsActive = false
-        downloadProgress = 0.0
+        isActive = false
+        progress = 0.0
 #if DEBUG
         simulationTask?.cancel()
         simulationTask = nil
@@ -449,10 +449,10 @@ import Foundation
     // Function to reset download parameters for a simulated run
     // called from DownloadManager+Debug
     func resetForSimulation() {
-        downloadProgress = 0.0
-        downloadIsActive = true
+        progress = 0.0
+        isActive = true
         appState = .downloading
-        downloadIsFinished = false
+        isFinished = false
     }
     
     func setPendingState(metadata: [EpisodeMetadata], location: String, pattern: String, duplicatePath: String?) {
@@ -463,6 +463,6 @@ import Foundation
     }
     
     func setDownloadProgress(to value: Double) {
-        downloadProgress = value
+        progress = value
     }
 }
