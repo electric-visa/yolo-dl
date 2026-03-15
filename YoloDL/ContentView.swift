@@ -115,16 +115,18 @@ struct ContentView: View {
                     .foregroundStyle(.secondary)
             }
 
-            Button(downloader.isActive ? "Stop" : appMode == .download ? "Download" : "Record") {
-                Task {
-                    await handleDownloadButton()
+            HStack {
+                Button(downloader.isActive ? "Stop" : appMode == .download ? "Download" : "Record") {
+                    Task {
+                        await handleDownloadButton()
+                    }
                 }
+                .buttonStyle(.borderedProminent)
+                Button("Choose folder") {
+                    chooseFolder()
+                }
+                .disabled(downloader.isActive)
             }
-            .buttonStyle(.borderedProminent)
-            Button("Choose folder") {
-                chooseFolder()
-            }
-            .disabled(downloader.isActive)
 
             Text(downloader.appState.statusText)
                 .frame(maxWidth: .infinity, alignment: .leading)
