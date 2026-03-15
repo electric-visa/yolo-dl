@@ -31,6 +31,9 @@ struct YoloDLApp: App {
             LogWindow()
                 .environment(logManager)
         }
+        Settings {
+            SettingsView()
+        }
         #if DEBUG
         Window("Debug Window", id: "debug") {
             DebugWindow()
