@@ -8,7 +8,7 @@
 import SwiftUI
 
 struct ProgressBarView: View {
-    
+
     let progress: Double
     let isActive: Bool
     let isFinished: Bool
@@ -17,50 +17,55 @@ struct ProgressBarView: View {
     static let progressBarAnimationSpeed: Double = 0.5
 
     @State private var shimmerOffset: CGFloat = -1.0
-    
+
     // Main colors for the progress bar states.
-    
+
     let downloadActiveColors: [Color] = [.blue, .cyan]
     let downloadFinishedColors: [Color] = [.green, .mint]
     let recordingActiveColors: [Color] = [.blue, Color(red: 0.52, green: 0.72, blue: 0.92)]
-    
+
     // UI animation constant for the finished state delay
     static let progressBarFinishedSpeed: Double = 2.5
-    
+
+    @ViewBuilder
+    private func gradientBar(
+        colors: [Color],
+        trackProgress: Bool,
+        visible: Bool,
+        blendMode: BlendMode = .normal
+    ) -> some View {
+        Rectangle()
+            .fill(
+                LinearGradient(
+                    colors: colors,
+                    startPoint: .leading,
+                    endPoint: .trailing
+                )
+            )
+            .modifier(ProgressWidthModifier(trackProgress: trackProgress, progress: progress))
+            .frame(height: 30)
+            .blendMode(blendMode)
+            .opacity(visible ? 1.0 : 0.0)
+    }
+
     var body: some View {
         Rectangle()
             .frame(height: 30)
             .frame(maxWidth: .infinity)
             .opacity(0.2)
             .overlay(alignment: .leading) {
-                Rectangle()
-                    .fill(
-                        LinearGradient(
-                            colors: downloadActiveColors,
-                            startPoint: .leading,
-                            endPoint: .trailing
-                        )
-                    )
-                    .containerRelativeFrame(.horizontal) { length, _ in
-                        length * progress
-                    }
-                    .frame(height: 30)
-                    .opacity(progress > 0 ? 1.0 : 0.0)
+                gradientBar(
+                    colors: downloadActiveColors,
+                    trackProgress: true,
+                    visible: progress > 0
+                )
             }
             .overlay(alignment: .leading) {
-                Rectangle()
-                    .fill(
-                        LinearGradient(
-                            colors: downloadFinishedColors,
-                            startPoint: .leading,
-                            endPoint: .trailing
-                        )
-                    )
-                    .containerRelativeFrame(.horizontal) { length, _ in
-                        length * progress
-                    }
-                    .frame(height: 30)
-                    .opacity(isFinished ? 1.0 : 0.0)
+                gradientBar(
+                    colors: downloadFinishedColors,
+                    trackProgress: true,
+                    visible: isFinished
+                )
             }
             .overlay(alignment: .leading) {
                 Rectangle()
@@ -79,16 +84,11 @@ struct ProgressBarView: View {
                     .opacity(isActive && !isRecording ? 1.0 : 0.0)
             }
             .overlay {
-                Rectangle()
-                    .fill(
-                        LinearGradient(
-                            colors: recordingActiveColors,
-                            startPoint: .leading,
-                            endPoint: .trailing
-                        )
-                    )
-                    .frame(height: 30)
-                    .opacity(isRecording ? 1.0 : 0.0)
+                gradientBar(
+                    colors: recordingActiveColors,
+                    trackProgress: false,
+                    visible: isRecording
+                )
             }
             .overlay {
                 TimelineView(.animation) { timeline in
@@ -126,6 +126,21 @@ struct ProgressBarView: View {
                     shimmerOffset = 2.0
                 }
             }
+    }
+}
+
+private struct ProgressWidthModifier: ViewModifier {
+    let trackProgress: Bool
+    let progress: Double
+
+    func body(content: Content) -> some View {
+        if trackProgress {
+            content.containerRelativeFrame(.horizontal) { length, _ in
+                length * progress
+            }
+        } else {
+            content
+        }
     }
 }
 
