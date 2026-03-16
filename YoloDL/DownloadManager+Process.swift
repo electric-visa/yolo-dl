@@ -167,13 +167,16 @@ import Foundation
             }
         }
 
-        let arguments = [
+        var arguments = [
             "--ffmpeg", pathToFfmpeg,
             "--ffprobe", pathToFfprobe,
             "--destdir", pending.downloadLocation,
             "--output-template", pending.fileNamingPattern,
             sourceURL
         ]
+
+        let sublang = UserDefaults.standard.string(forKey: "subtitleLanguage") ?? SubtitleLanguage.finnish.rawValue
+        arguments += ["--sublang", sublang]
 
         launchProcess(
             arguments: arguments,
@@ -228,6 +231,9 @@ import Foundation
         if recordSource == .streamURL, let duration {
             arguments += ["--duration", String(duration)]
         }
+
+        let sublang = UserDefaults.standard.string(forKey: "subtitleLanguage") ?? SubtitleLanguage.finnish.rawValue
+        arguments += ["--sublang", sublang]
 
         arguments.append(source)
 
