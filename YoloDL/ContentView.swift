@@ -18,7 +18,7 @@ struct ContentView: View {
     @Environment(RecordingInput.self) private var recordingInput
 
     // App mode selection
-    @State private var appMode: AppMode = .download
+    @AppStorage("appMode") private var appMode: AppMode = .download
 
     // AppStorage properties for storing user selections
     @AppStorage("lastFolder") private var downloadLocation: String = ""
@@ -26,15 +26,9 @@ struct ContentView: View {
 
 
     // Function to choose the download location.
-    func chooseFolder(){
-        let folderSelector = NSOpenPanel()
-        folderSelector.canChooseFiles = false
-        folderSelector.canChooseDirectories = true
-        folderSelector.allowsMultipleSelection = false
-        if folderSelector.runModal() == .OK {
-            if let url = folderSelector.url {
-                downloadLocation = url.path
-            }
+    func chooseFolder() {
+        if let path = FolderPicker.chooseFolder() {
+            downloadLocation = path
         }
     }
 

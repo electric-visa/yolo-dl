@@ -178,6 +178,8 @@ import Foundation
         let sublang = UserDefaults.standard.string(forKey: "subtitleLanguage") ?? SubtitleLanguage.finnish.rawValue
         arguments += ["--sublang", sublang]
 
+        appendAdvancedArguments(to: &arguments)
+
         launchProcess(
             arguments: arguments,
             initialState: .downloading,
@@ -202,6 +204,24 @@ import Foundation
                 self.clearPendingState()
             }
         )
+    }
+
+    private func appendAdvancedArguments(to arguments: inout [String]) {
+        let quality = UserDefaults.standard.string(forKey: "maxBitrate") ?? QualityPreset.best.rawValue
+        if quality != QualityPreset.best.rawValue {
+            arguments += ["--maxbitrate", quality]
+        }
+
+        let rateLimit = UserDefaults.standard.string(forKey: "rateLimit") ?? ""
+        if !rateLimit.isEmpty {
+            arguments += ["--ratelimit", rateLimit]
+        }
+
+        let customFlags = UserDefaults.standard.string(forKey: "customFlags") ?? ""
+        if !customFlags.isEmpty {
+            let flags = customFlags.split(separator: " ").map(String.init)
+            arguments += flags
+        }
     }
 
     func startRecording(source: String, downloadLocation: String, recordSource: RecordSource, duration: Int? = nil) {
@@ -234,6 +254,8 @@ import Foundation
 
         let sublang = UserDefaults.standard.string(forKey: "subtitleLanguage") ?? SubtitleLanguage.finnish.rawValue
         arguments += ["--sublang", sublang]
+
+        appendAdvancedArguments(to: &arguments)
 
         arguments.append(source)
 
