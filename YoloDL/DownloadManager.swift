@@ -56,17 +56,11 @@ import Foundation
         self.logger = logger
     }
     
-    // Temporary storage for metadata while user alert is shown
-    private(set) var pendingMetadata: [EpisodeMetadata]? = nil
-    
+    var pendingDownload: PendingDownload? = nil
+    var showFileExistsDialog: Bool = false
+
     // Booleans to trigger confirmation dialogs
-    var showDuplicateConfirmation: Bool = false
     var showLiveContentAlert: Bool = false
-    
-    // Stored parameters for Phase B execution after confirmation
-    private(set) var pendingDownloadLocation: String = ""
-    private(set) var pendingFileNamingPattern: String = ""
-    var duplicateFilePath: String? = nil
     
     // Function to check for valid user inputs.
     // Currently guards for empty URL and destination folder.
@@ -132,32 +126,33 @@ import Foundation
             }
             
             // Check for duplicate files
-            var duplicateFound = false
+            var existingFilePath: String? = nil
             if let episodes = episodes, !episodes.isEmpty {
                 let stem = episodes[0].predictedFileStem(for: namingPreset)
                 if !stem.isEmpty {
                     for ext in ["mkv", "mp4"] {
                         let path = (downloadLocation as NSString).appendingPathComponent("\(stem).\(ext)")
                         if FileManager.default.fileExists(atPath: path) {
-                            duplicateFound = true
-                            duplicateFilePath = path
+                            existingFilePath = path
                             break
                         }
                     }
                 }
             }
-            
-            // Store the parameters for potential Phase B execution
-            pendingMetadata = episodes
-            pendingDownloadLocation = downloadLocation
-            pendingFileNamingPattern = fileNamingPattern
-            
+
+            pendingDownload = PendingDownload(
+                metadata: episodes ?? [],
+                downloadLocation: downloadLocation,
+                fileNamingPattern: fileNamingPattern,
+                existingFilePath: existingFilePath
+            )
+
             // If duplicate found, trigger confirmation dialog
-            if duplicateFound {
-                showDuplicateConfirmation = true
+            if existingFilePath != nil {
+                showFileExistsDialog = true
                 return
             }
-            
+
             // No duplicates found, proceed directly to Phase B
             startDownloadProcess()
     }
@@ -173,10 +168,7 @@ import Foundation
     
     // Function to clear pending state after cancellation or successful download
     func clearPendingState() {
-        pendingMetadata = nil
-        pendingDownloadLocation = ""
-        pendingFileNamingPattern = ""
-        duplicateFilePath = nil
+        pendingDownload = nil
     }
     
     func stopRecording() {
@@ -216,11 +208,8 @@ import Foundation
         recentSpeeds = []
     }
     
-    func setPendingState(metadata: [EpisodeMetadata], location: String, pattern: String, duplicatePath: String?) {
-        pendingMetadata = metadata
-        pendingDownloadLocation = location
-        pendingFileNamingPattern = pattern
-        duplicateFilePath = duplicatePath
+    func setPendingState(_ download: PendingDownload) {
+        pendingDownload = download
     }
     
     func setDownloadProgress(to value: Double) {

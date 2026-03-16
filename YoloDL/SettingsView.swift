@@ -10,7 +10,6 @@ import SwiftUI
 struct SettingsView: View {
     @AppStorage("fileFormat") private var fileFormat: FileFormat = .mp4
     @AppStorage("subtitleLanguage") private var subtitleLanguage: SubtitleLanguage = .finnish
-    @AppStorage("resumeDownloads") private var resumeDownloads: Bool = false
 
     var body: some View {
         Form {
@@ -25,8 +24,6 @@ struct SettingsView: View {
                     Text(lang.label).tag(lang)
                 }
             }
-
-            Toggle("Resume incomplete downloads", isOn: $resumeDownloads)
         }
         .formStyle(.grouped)
         .frame(width: 400)

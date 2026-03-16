@@ -75,7 +75,7 @@ extension DownloadManager {
                 flavors: [EpisodeMetadata.Flavor(url: "https://example.com/live/test-stream")]
             )
         ]
-        setPendingState(metadata: mockMetadata, location: "tmp/test", pattern: "test-pattern", duplicatePath: nil)
+        setPendingState(PendingDownload(metadata: mockMetadata, downloadLocation: "tmp/test", fileNamingPattern: "test-pattern", existingFilePath: nil))
         totalDuration = mockMetadata.reduce(0) { $0 + ($1.durationSeconds ?? 0) }
 
         showLiveContentAlert = true
@@ -95,10 +95,10 @@ extension DownloadManager {
                 flavors: [EpisodeMetadata.Flavor(url: "Test URL")]
             )
         ]
-        setPendingState(metadata: mockMetadata, location: "tmp/test", pattern: "test-pattern", duplicatePath: nil )
+        setPendingState(PendingDownload(metadata: mockMetadata, downloadLocation: "tmp/test", fileNamingPattern: "test-pattern", existingFilePath: nil))
         totalDuration = mockMetadata.reduce(0) { $0 + ($1.durationSeconds ?? 0) }
-        
-        showDuplicateConfirmation = true
+
+        showFileExistsDialog = true
         
         logger.appendLog("Simulated duplicate file detection. Confirmation dialog should appear.", from: .stdout)
     }

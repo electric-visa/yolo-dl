@@ -33,7 +33,7 @@ struct EpisodeMetadata: Codable {
     }
     
     var episodeCode: String? {
-        let pattern = /S\d{2}E\d{2}/
+        let pattern = /(?:S\d{2})?E\d{2}/
         if let match = title.firstMatch(of: pattern) {
             return String(match.output)
         }

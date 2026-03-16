@@ -174,18 +174,17 @@ struct ContentView: View {
 
         .confirmationDialog(
             "File already exists",
-            isPresented: $downloader.showDuplicateConfirmation,
+            isPresented: $downloader.showFileExistsDialog,
             titleVisibility: .visible
         ) {
             Button("Overwrite", role: .destructive) {
                 downloader.startDownloadProcess()
             }
             Button("Cancel", role: .cancel) {
-                downloader.appState = .ready
                 downloader.clearPendingState()
             }
         } message: {
-            Text("A file with this name already exists. Do you want to overwrite it?")
+            Text("A file with this name already exists. If you continue, it will be overwritten.")
         }
         .frame(minWidth: 480, minHeight: 324)
         .padding()

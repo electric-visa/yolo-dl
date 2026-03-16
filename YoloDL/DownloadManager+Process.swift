@@ -151,33 +151,29 @@ import Foundation
     // PHASE B: Execute the actual download process using stored metadata.
     func startDownloadProcess() {
 
-        // Arguments to be passed to launchProcess()
-        let arguments = [
-            "--ffmpeg", pathToFfmpeg,
-            "--ffprobe", pathToFfprobe,
-            "--destdir", pendingDownloadLocation,
-            "--output-template", pendingFileNamingPattern,
-            sourceURL
-        ]
-
-        // Ensure we have metadata and parameters to work with
-        guard let episodes = pendingMetadata else {
+        guard let pending = pendingDownload else {
             handleError(.totalDurationIsZero)
             return
         }
 
-        // Delete existing file if this is an overwrite operation
-        if let duplicatePath = duplicateFilePath {
+        if let existingFilePath = pending.existingFilePath {
             do {
-                try FileManager.default.removeItem(atPath: duplicatePath)
-                logger.appendLog("Deleted existing file: \(duplicatePath)", from: .stdout)
-                duplicateFilePath = nil // Clear after successful deletion
+                try FileManager.default.removeItem(atPath: existingFilePath)
+                logger.appendLog("Deleted existing file: \(existingFilePath)", from: .stdout)
             } catch {
                 logger.appendLog("Failed to delete existing file: \(error.localizedDescription)", from: .stderr)
                 showError(title: "File Deletion Error", text: "Could not delete existing file: \(error.localizedDescription)")
                 return
             }
         }
+
+        let arguments = [
+            "--ffmpeg", pathToFfmpeg,
+            "--ffprobe", pathToFfprobe,
+            "--destdir", pending.downloadLocation,
+            "--output-template", pending.fileNamingPattern,
+            sourceURL
+        ]
 
         launchProcess(
             arguments: arguments,
