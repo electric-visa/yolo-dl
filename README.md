@@ -1,6 +1,12 @@
 # YOLO-DL <br> 
 ## A graphical macOS frontend for yle-dl 
 
+## [Download (DMG) v0.3](https://github.com/electric-visa/yolo-dl/releases/download/0.3/YOLO-DL.dmg)
+
+**Please note: The code is NOT signed.** <br> You will have to bypass any macOS security preventing you from opening the DMG and/or launching the app. <br>
+**YOU DO THIS AT YOUR OWN RISK.** <br>
+The app is not designed to be harmful to your Mac or files in any way, but nothing is ever guaranteed.
+
 ### What is YOLO-DL?
 
 YOLO-DL is a graphical **[yle-dl](https://github.com/aajanki/yle-dl)** frontend for macOS, written in Swift. 
