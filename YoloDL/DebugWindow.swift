@@ -20,10 +20,14 @@ struct DebugWindow: View {
             }
             .disabled(downloadManager.isActive)
 
-            Button("Simulate Recording") {
-                downloadManager.simulateRecording()
+            Button(downloadManager.isSimulatedRecordingActive ? "Stop Simulated Recording" : "Simulate Recording") {
+                if downloadManager.isSimulatedRecordingActive {
+                    downloadManager.stopSimulatedRecording()
+                } else {
+                    downloadManager.simulateRecording()
+                }
             }
-            .disabled(downloadManager.isActive)
+            .disabled(downloadManager.isActive && !downloadManager.isSimulatedRecordingActive)
 
             Button("Simulate Metadata Failure") {
                 downloadManager.simulateMetadataFailure()

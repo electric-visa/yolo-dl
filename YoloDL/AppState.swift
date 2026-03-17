@@ -27,4 +27,13 @@ enum AppState {
         case .error: "An error occurred"
         }
     }
+
+    var showsIndeterminateProgress: Bool {
+        switch self {
+        case .fetchingMetadata, .recording:
+            true
+        default:
+            false
+        }
+    }
 }

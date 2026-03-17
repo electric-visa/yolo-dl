@@ -35,7 +35,6 @@ import Foundation
     var isFinished: Bool = false
     var activeProcess: Process? = nil
     var isCancelled: Bool = false
-    private var finishAnimationTask: Task<Void, any Error>?
     var totalDuration: Int = 0
     var progress: Double = 0
     var recordingElapsed: String = ""
@@ -77,15 +76,11 @@ import Foundation
     
     // Function to reset the download state
     func resetDownloadState() {
-        finishAnimationTask?.cancel()
         progress = 1.0
         isActive = false
+        isFinished = true
         recordingFileSize = ""
         recentSpeeds = []
-        finishAnimationTask = Task {
-            try await Task.sleep(for: .seconds(ProgressBarView.progressBarFinishedSpeed))
-            self.isFinished = true
-        }
     }
     
     // PHASE A: Validate inputs, fetch metadata, and check for duplicates.
@@ -179,6 +174,12 @@ import Foundation
         recordingTimerTask?.cancel()
         recordingTimerTask = nil
         recordingDurationSeconds = nil
+#if DEBUG
+        if isSimulatedRecordingActive {
+            stopSimulatedRecording()
+            return
+        }
+#endif
         activeProcess?.terminate()
         activeProcess = nil
     }

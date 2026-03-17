@@ -12,10 +12,9 @@ private enum Style {
     static let shimmerOpacity: Double = 0.42
     static let stripeOpacity: Double = 0.40
     static let animationSpeed: Double = 0.5
-    static let finishedDelay: Double = 2.5
     static let downloadActive: [Color] = [.blue, .cyan]
     static let downloadFinished: [Color] = [.green, .mint]
-    static let recordingActive: [Color] = [.blue, Color(red: 0.52, green: 0.72, blue: 0.92)]
+    static let indeterminateActive: [Color] = [.blue, Color(red: 0.52, green: 0.72, blue: 0.92)]
 }
 
 struct ProgressBarView: View {
@@ -23,9 +22,7 @@ struct ProgressBarView: View {
     let progress: Double
     let isActive: Bool
     let isFinished: Bool
-    let isRecording: Bool
-
-    static let progressBarFinishedSpeed = Style.finishedDelay
+    let showsIndeterminateProgress: Bool
 
     @State private var shimmerOffset: CGFloat = -1.0
 
@@ -59,7 +56,7 @@ struct ProgressBarView: View {
                 gradientBar(
                     colors: Style.downloadActive,
                     trackProgress: true,
-                    visible: progress > 0
+                    visible: progress > 0 && !isFinished
                 )
             }
             .overlay(alignment: .leading) {
@@ -83,13 +80,13 @@ struct ProgressBarView: View {
                     }
                     .frame(height: Style.barHeight)
                     .blendMode(.screen)
-                    .opacity(isActive && !isRecording ? 1.0 : 0.0)
+                    .opacity(isActive && !showsIndeterminateProgress ? 1.0 : 0.0)
             }
             .overlay {
                 gradientBar(
-                    colors: Style.recordingActive,
+                    colors: Style.indeterminateActive,
                     trackProgress: false,
-                    visible: isRecording
+                    visible: showsIndeterminateProgress
                 )
             }
             .overlay {
@@ -118,11 +115,12 @@ struct ProgressBarView: View {
                 }
                 .frame(height: Style.barHeight)
                 .blendMode(.screen)
-                .opacity(isRecording ? 1.0 : 0.0)
+                .opacity(showsIndeterminateProgress ? 1.0 : 0.0)
             }
             .clipped()
             .animation(.easeInOut(duration: Style.animationSpeed), value: progress)
-            .animation(nil, value: isFinished)
+            .animation(.easeInOut(duration: Style.animationSpeed), value: isFinished)
+            .animation(.easeInOut(duration: Style.animationSpeed), value: showsIndeterminateProgress)
             .onAppear {
                 withAnimation(.linear(duration: 2).repeatForever(autoreverses: false)) {
                     shimmerOffset = 2.0
@@ -152,28 +150,28 @@ private struct ProgressWidthModifier: ViewModifier {
             progress: 0.0,
             isActive: false,
             isFinished: false,
-            isRecording: false
+            showsIndeterminateProgress: false
         )
 
         ProgressBarView(
             progress: 0.65,
             isActive: true,
             isFinished: false,
-            isRecording: false
+            showsIndeterminateProgress: false
         )
 
         ProgressBarView(
             progress: 1.0,
             isActive: false,
             isFinished: true,
-            isRecording: false
+            showsIndeterminateProgress: false
         )
 
         ProgressBarView(
             progress: 0,
             isActive: false,
             isFinished: false,
-            isRecording: true
+            showsIndeterminateProgress: true
         )
     }
     .padding()

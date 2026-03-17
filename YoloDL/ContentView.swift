@@ -98,12 +98,15 @@ struct ContentView: View {
                 progress: downloader.progress,
                 isActive: downloader.isActive,
                 isFinished: downloader.isFinished,
-                isRecording: downloader.appState == .recording
+                showsIndeterminateProgress: downloader.appState.showsIndeterminateProgress
             )
 
             let downloadInfoParts: [String] = appMode == .download && downloader.appState == .downloading ? [
                 downloader.recordingFileSize.isEmpty ? nil : downloader.recordingFileSize,
-                downloader.timeRemaining.map { DurationFormatter.formatEstimate(seconds: $0) + " remaining" }
+                downloader.timeRemaining.map {
+                    let estimate = DurationFormatter.formatEstimate(seconds: $0)
+                    return estimate == "Almost done" ? estimate : estimate + " remaining"
+                }
             ].compactMap { $0 } : []
             Text(downloadInfoParts.isEmpty ? " " : downloadInfoParts.joined(separator: " · "))
                 .foregroundStyle(.secondary)

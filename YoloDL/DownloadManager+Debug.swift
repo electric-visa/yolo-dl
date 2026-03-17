@@ -9,6 +9,10 @@ import Foundation
 
 #if DEBUG
 extension DownloadManager {
+
+    var isSimulatedRecordingActive: Bool {
+        isActive && appState == .recording && activeProcess == nil
+    }
     
     // Function for a simulated download to test and/or debug the progress bar.
     // Calls resetForSimulation() and resetDownloadState() from DownloadManager.
@@ -41,11 +45,7 @@ extension DownloadManager {
             }
             guard !Task.isCancelled else { return }
             resetDownloadState()
-            do {
-                try await Task.sleep(for: .seconds(ProgressBarView.progressBarFinishedSpeed))
-                appState = .finished
-            } catch {
-            }
+            appState = .finished
         }
     }
     
@@ -56,6 +56,14 @@ extension DownloadManager {
         resetForSimulation()
         appState = .recording
         logger.appendLog("Simulated recording started.", from: .stdout)
+    }
+
+    func stopSimulatedRecording() {
+        simulationTask?.cancel()
+        simulationTask = nil
+        resetDownloadState()
+        appState = .finished
+        logger.appendLog("Simulated recording stopped.", from: .stdout)
     }
 
     // Function to simulate metadata failure
