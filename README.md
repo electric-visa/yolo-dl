@@ -29,7 +29,8 @@ The app might work on older macOS versions, but it has not been tested in any ca
 
 # AI Disclaimer
 
-### **Large language models (LLMs), also known as AI, were heavily used in the development.**
+### Large language models (LLMs), also known as AI, were heavily used in the development.
 
-### **The project goal, besides building an app, was to personally experience and investigate long-term human-LLM interaction, as well as its possibilities and pitfalls when learning programming and software development.**
----A LINK TO THE PROJECT REPORT HERE ONCE IT'S COMPLETE---
+### The project goal, besides building an app, was to personally experience and investigate focused human-LLM interaction, as well as its possibilities and pitfalls when learning programming and software development.
+
+### Full report on the methods and my personal experience coming later.

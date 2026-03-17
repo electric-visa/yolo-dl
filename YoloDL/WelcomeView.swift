@@ -15,12 +15,16 @@ struct WelcomeView: View {
         VStack(alignment: .leading, spacing: 8) {
             Text("Welcome to YOLO-DL!")
                 .font(.largeTitle)
-                .padding()
+            HStack (spacing: 8) {
+                Text("Licensed under [GPLv3](https://www.gnu.org/licenses/gpl-3.0.html).")
+                Text("Source code on [GitHub](https://github.com/electric-visa/yolo-dl).")
+            }
+            .foregroundStyle(.secondary)
             Text("YOLO-DL allows you to download content from Yle Areena by utilizing yle-dl without touching the terminal.")
             Label("Paste in an Areena URL", systemImage: "doc.on.clipboard")
             Label("Choose a destination folder", systemImage: "folder.badge.plus")
             Label("Press download", systemImage: "arrow.down.circle")
-            Button("Get started") {
+            Button("Get Started") {
                 isPresented = false
             }
             .keyboardShortcut(.defaultAction)

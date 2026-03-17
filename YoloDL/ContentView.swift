@@ -79,7 +79,7 @@ struct ContentView: View {
             }
             .frame(maxWidth: .infinity, minHeight: 120, alignment: .top)
 
-            Text(downloadLocation.isEmpty ? "No folder selected" : "Download location: \(downloadLocation)")
+            Text(downloadLocation.isEmpty ? "No folder selected" : "Download folder: \(downloadLocation)")
 
             HStack {
                 Button(downloader.isActive ? "Stop" : appMode == .download ? "Download" : "Record") {
@@ -88,7 +88,7 @@ struct ContentView: View {
                     }
                 }
                 .buttonStyle(.borderedProminent)
-                Button("Choose folder") {
+                Button("Choose Folder") {
                     chooseFolder()
                 }
                 .disabled(downloader.isActive)
