@@ -8,10 +8,16 @@
 
 /* Begin PBXBuildFile section */
 		5C484B8A2F646C6E006D4A14 /* Credits.html in Resources */ = {isa = PBXBuildFile; fileRef = 5C484B892F646C6E006D4A14 /* Credits.html */; };
+		5C4E80052F6921B600645081 /* ffmpeg in Resources */ = {isa = PBXBuildFile; fileRef = 5C4E80022F6921B600645081 /* ffmpeg */; };
+		5C4E80062F6921B600645081 /* yle-dl in Resources */ = {isa = PBXBuildFile; fileRef = 5C4E80042F6921B600645081 /* yle-dl */; };
+		5C4E80072F6921B600645081 /* ffprobe in Resources */ = {isa = PBXBuildFile; fileRef = 5C4E80032F6921B600645081 /* ffprobe */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
 		5C484B892F646C6E006D4A14 /* Credits.html */ = {isa = PBXFileReference; lastKnownFileType = text.html; path = Credits.html; sourceTree = "<group>"; };
+		5C4E80022F6921B600645081 /* ffmpeg */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.executable"; path = ffmpeg; sourceTree = "<group>"; };
+		5C4E80032F6921B600645081 /* ffprobe */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.executable"; path = ffprobe; sourceTree = "<group>"; };
+		5C4E80042F6921B600645081 /* yle-dl */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.executable"; path = "yle-dl"; sourceTree = "<group>"; };
 		5C8038A22F5ED511005B1C05 /* YoloDL.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = YoloDL.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
@@ -47,9 +53,20 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		5C4E80012F69219300645081 /* Binaries */ = {
+			isa = PBXGroup;
+			children = (
+				5C4E80022F6921B600645081 /* ffmpeg */,
+				5C4E80032F6921B600645081 /* ffprobe */,
+				5C4E80042F6921B600645081 /* yle-dl */,
+			);
+			path = Binaries;
+			sourceTree = "<group>";
+		};
 		5C790CE22F599DB90049E87A = {
 			isa = PBXGroup;
 			children = (
+				5C4E80012F69219300645081 /* Binaries */,
 				5C484B892F646C6E006D4A14 /* Credits.html */,
 				5C790CED2F599DB90049E87A /* YoloDL */,
 				5C8038A22F5ED511005B1C05 /* YoloDL.app */,
@@ -120,6 +137,9 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				5C4E80052F6921B600645081 /* ffmpeg in Resources */,
+				5C4E80062F6921B600645081 /* yle-dl in Resources */,
+				5C4E80072F6921B600645081 /* ffprobe in Resources */,
 				5C484B8A2F646C6E006D4A14 /* Credits.html in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

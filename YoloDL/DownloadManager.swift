@@ -16,9 +16,13 @@ import Foundation
 #endif
     
     // Paths to binaries
-    let pathToYleDl: String = "/opt/homebrew/bin/yle-dl"
-    let pathToFfmpeg: String = "/opt/homebrew/bin/ffmpeg"
-    let pathToFfprobe: String = "/opt/homebrew/bin/ffprobe"
+    let pathToYleDl: String = DownloadManager.bundledPath(for: "yle-dl", fallback: "/opt/homebrew/bin/yle-dl")
+    let pathToFfmpeg: String = DownloadManager.bundledPath(for: "ffmpeg", fallback: "/opt/homebrew/bin/ffmpeg")
+    let pathToFfprobe: String = DownloadManager.bundledPath(for: "ffprobe", fallback: "/opt/homebrew/bin/ffprobe")
+
+    private static func bundledPath(for name: String, fallback: String) -> String {
+        Bundle.main.path(forResource: name, ofType: nil) ?? fallback
+    }
     
     // Wiring ErrorParser to DownloadManager for parsing stderr outputs.
     let errorParser = ErrorParser()
