@@ -1,10 +1,10 @@
+Binaries/
 xcuserdata/
 .claude/
 .DS_Store
 CLAUDE.md
+*REVIEW.MD
 project-CLAUDE.md
 swiftui.md
 status.md
-yolodl-review.txt
-*TO_REVIEW.md
 YoloDL-design-plan*.md
