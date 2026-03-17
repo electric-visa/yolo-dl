@@ -75,7 +75,7 @@ struct SettingsView: View {
             }
             Button("Cancel", role: .cancel) {}
         } message: {
-            Text("These settings are for experienced users. Incorrect values may cause downloads to fail. YoloDL cannot validate custom flags.")
+            Text("These settings are for experienced users. Incorrect values may cause downloads to fail. YOLO-DL cannot validate custom flags.")
         }
     }
 }

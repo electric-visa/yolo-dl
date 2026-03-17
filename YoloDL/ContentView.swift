@@ -1,6 +1,6 @@
 //
 //  ContentView.swift
-//  YoloDL 0.1
+//  YoloDL
 //
 //  Created on 5.3.2026.
 //
@@ -23,6 +23,8 @@ struct ContentView: View {
     // AppStorage properties for storing user selections
     @AppStorage("lastFolder") private var downloadLocation: String = ""
     @AppStorage("namingTemplate") private var namingPreset: NamingPreset = .seriesDateTitle
+    @AppStorage("hasSeenWelcome") private var hasSeenWelcome: Bool = false
+    @State private var showWelcome: Bool = true
 
 
     // Function to choose the download location.
@@ -138,7 +140,7 @@ struct ContentView: View {
 #endif
         }
 
-        .navigationTitle("YoloDL \(appVersion)")
+        .navigationTitle("YOLO-DL \(appVersion)")
 
         .alert(
             downloader.alertToShow?.title ?? "Error",
@@ -180,8 +182,13 @@ struct ContentView: View {
         } message: {
             Text("A file with this name already exists. If you continue, it will be overwritten.")
         }
-        .frame(minWidth: 480, minHeight: 324)
-        .padding()
+        .sheet(isPresented: $showWelcome, onDismiss: {
+            hasSeenWelcome = true
+        }) {
+            WelcomeView(isPresented: $showWelcome)
+        }
+        .padding(EdgeInsets(top: 16, leading: 20, bottom: 28, trailing: 20))
+        .frame(minWidth: 561, minHeight: 358)
     }
 }
 

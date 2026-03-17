@@ -38,6 +38,10 @@ struct DebugWindow: View {
                 downloadManager.simulateOverwriteConfirmation()
             }
             .disabled(downloadManager.isActive)
+            
+            Button("Reset Splash Screen") {
+                UserDefaults.standard.set(false, forKey: "hasSeenWelcome")
+            }
         }
         .padding()
     }
