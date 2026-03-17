@@ -4,6 +4,7 @@
 //
 //  Created by Visa Uotila on 8.3.2026.
 //
+#if DEBUG
 
 import SwiftUI
 
@@ -47,3 +48,4 @@ struct DebugWindow: View {
     }
 }
 
+#endif
