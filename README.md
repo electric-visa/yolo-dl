@@ -1,7 +1,7 @@
 # YOLO-DL <br> 
 ## A graphical macOS frontend for yle-dl 
 
-## [Download (DMG) v0.31](https://github.com/electric-visa/yolo-dl/releases/download/0.31/YOLO-DL.dmg)
+## [Download (DMG) v0.32](https://github.com/electric-visa/yolo-dl/releases/download/latest/YOLO-DL.dmg)
 
 **Please note: The code is NOT signed.** <br> You will have to bypass any macOS security preventing you from opening the DMG and/or launching the app. <br>
 **YOU DO THIS AT YOUR OWN RISK.** <br>
