@@ -93,8 +93,8 @@ import Foundation
             isCancelled = false
             
             // Validate user inputs.
-            appState = .preparing
             guard validateInputs(downloadLocation: downloadLocation) else { return }
+            appState = .preparing
             
             // Reset isFinished state to false
             // and flush the log buffer.
