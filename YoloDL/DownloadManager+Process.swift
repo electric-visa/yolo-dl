@@ -129,7 +129,7 @@ import Foundation
             stderrPipe.fileHandleForReading.readabilityHandler = nil
             outputPipe.fileHandleForReading.readabilityHandler = nil
             Task { @MainActor in
-                if !self.isCancelled {
+                if !self.isCancelled && self.appState != .error {
                     onTermination?()
                 }
             }

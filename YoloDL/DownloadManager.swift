@@ -48,7 +48,10 @@ import Foundation
     
     var isShowingAlert: Bool {
         get { alertToShow != nil }
-        set { if !newValue { alertToShow = nil } }
+        set { if !newValue {
+            alertToShow = nil
+            if appState == .error { appState = .ready }
+        }}
     }
 
     var appState: AppState = .ready
