@@ -161,6 +161,7 @@ struct ContentView: View {
             Button("Record") {
                 appMode = .record
                 recordingInput.prefillStream(url: downloader.sourceURL)
+                downloader.appState = .ready
             }
 
             Button("Cancel", role: .cancel) {

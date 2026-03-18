@@ -177,6 +177,9 @@ import Foundation
 
         let sublang = UserDefaults.standard.string(forKey: "subtitleLanguage") ?? SubtitleLanguage.finnish.rawValue
         arguments += ["--sublang", sublang]
+        
+        let fileFormat = UserDefaults.standard.string(forKey: "fileFormat") ?? FileFormat.mp4.rawValue
+        arguments += ["--preferformat", fileFormat]
 
         appendAdvancedArguments(to: &arguments)
 
@@ -255,6 +258,9 @@ import Foundation
 
         let sublang = UserDefaults.standard.string(forKey: "subtitleLanguage") ?? SubtitleLanguage.finnish.rawValue
         arguments += ["--sublang", sublang]
+        
+        let fileFormat = UserDefaults.standard.string(forKey: "fileFormat") ?? FileFormat.mp4.rawValue
+        arguments += ["--preferformat", fileFormat]
 
         appendAdvancedArguments(to: &arguments)
 
