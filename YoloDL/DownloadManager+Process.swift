@@ -228,6 +228,13 @@ import Foundation
         isCancelled = false
         isFinished = false
         logger.clearLog()
+        recordingElapsed = ""
+        recordingElapsedSeconds = 0
+        recordingFileSize = ""
+
+        guard !downloadLocation.isEmpty else { handleError(.noFolderSelected); return }
+        guard !source.isEmpty else { handleError(.emptyURL); return }
+        
         if let duration {
             recordingDurationSeconds = duration
             recordingTimerTask = Task {
@@ -235,12 +242,6 @@ import Foundation
                 stopRecording()
             }
         }
-        recordingElapsed = ""
-        recordingElapsedSeconds = 0
-        recordingFileSize = ""
-
-        guard !downloadLocation.isEmpty else { handleError(.noFolderSelected); return }
-        guard !source.isEmpty else { handleError(.emptyURL); return }
 
         var arguments = [
             "--ffmpeg", pathToFfmpeg,
