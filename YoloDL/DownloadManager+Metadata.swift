@@ -33,6 +33,7 @@ import Foundation
         }
 
         return await withCheckedContinuation { continuation in
+            nonisolated(unsafe) var hasResumed = false
 
             metadataParsing.terminationHandler = { _ in
                 stdoutPipe.fileHandleForReading.readabilityHandler = nil
@@ -52,6 +53,8 @@ import Foundation
 
                 let episodes = try? JSONDecoder().decode([EpisodeMetadata].self, from: stdoutAccumulator.data)
 
+                guard !hasResumed else { return }
+                hasResumed = true
                 continuation.resume(returning: episodes)
             }
 
@@ -64,6 +67,8 @@ import Foundation
                     self.logger.appendLog(error.localizedDescription, from: .stderr)
                     self.showError(title: "Metadata error", text: "Metadata error Details: \(error.localizedDescription)")
                 }
+                guard !hasResumed else { return }
+                hasResumed = true
                 continuation.resume(returning: nil)
             }
         }
