@@ -8,9 +8,9 @@
 import SwiftUI
 
 struct WelcomeView: View {
-    
-    @Binding var isPresented: Bool
-    
+
+    @Environment(\.dismiss) private var dismiss
+
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
             Text("Welcome to YOLO-DL!")
@@ -25,7 +25,7 @@ struct WelcomeView: View {
             Label("Choose a destination folder", systemImage: "folder.badge.plus")
             Label("Press download", systemImage: "arrow.down.circle")
             Button("Get Started") {
-                isPresented = false
+                dismiss()
             }
             .keyboardShortcut(.defaultAction)
         }
