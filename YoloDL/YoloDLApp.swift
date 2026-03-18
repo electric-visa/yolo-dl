@@ -16,6 +16,7 @@ struct YoloDLApp: App {
     @AppStorage("appMode") private var appMode: AppMode = .download
     @AppStorage("lastFolder") private var downloadLocation: String = ""
     @AppStorage("namingTemplate") private var namingPreset: NamingPreset = .seriesDateTitle
+    @AppStorage("customNamingTemplate") private var customNamingTemplate: String = ""
 
     @Environment(\.openWindow) private var openWindow
 
@@ -39,7 +40,7 @@ struct YoloDLApp: App {
                     Task {
                         await downloadManager.downloadFiles(
                             downloadLocation: downloadLocation,
-                            fileNamingPattern: namingPreset.rawValue,
+                            fileNamingPattern: namingPreset == .custom ? customNamingTemplate : namingPreset.rawValue,
                             namingPreset: namingPreset,
                             appMode: appMode
                         )

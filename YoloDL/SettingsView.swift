@@ -11,6 +11,7 @@ struct SettingsView: View {
     @AppStorage("fileFormat") private var fileFormat: FileFormat = .mp4
     @AppStorage("subtitleLanguage") private var subtitleLanguage: SubtitleLanguage = .finnish
     @AppStorage("maxBitrate") private var qualityPreset: QualityPreset = .best
+    @AppStorage("customNamingTemplate") private var customNamingTemplate: String = ""
     @AppStorage("rateLimit") private var rateLimit: String = ""
     @AppStorage("customFlags") private var customFlags: String = ""
     @AppStorage("hasAcceptedAdvancedDisclaimer") private var hasAcceptedDisclaimer: Bool = false
@@ -36,6 +37,13 @@ struct SettingsView: View {
                     ForEach(QualityPreset.allCases, id: \.self) { preset in
                         Text(preset.label).tag(preset)
                     }
+                }
+
+                VStack(alignment: .leading, spacing: 4) {
+                    TextField("Custom naming template", text: $customNamingTemplate)
+                    Text("Template passed to yle-dl's --output-template. Tokens: ${title}, ${series_separator}, ${episode_or_date}")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
                 }
 
                 TextField("Bandwidth limit (kB/s)", text: $rateLimit)

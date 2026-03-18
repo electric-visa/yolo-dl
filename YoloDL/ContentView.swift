@@ -23,6 +23,7 @@ struct ContentView: View {
     // AppStorage properties for storing user selections
     @AppStorage("lastFolder") private var downloadLocation: String = ""
     @AppStorage("namingTemplate") private var namingPreset: NamingPreset = .seriesDateTitle
+    @AppStorage("customNamingTemplate") private var customNamingTemplate: String = ""
     @AppStorage("hasSeenWelcome") private var hasSeenWelcome: Bool = false
 
 
@@ -48,7 +49,7 @@ struct ContentView: View {
                 }
                 downloader.startRecording(source: source, downloadLocation: downloadLocation, recordSource: recordingInput.recordSource, duration: recordingInput.totalMinutes > 0 ? recordingInput.totalMinutes * 60 : nil)
             } else {
-                await downloader.downloadFiles(downloadLocation: downloadLocation, fileNamingPattern: namingPreset.rawValue, namingPreset: namingPreset, appMode: appMode)
+                await downloader.downloadFiles(downloadLocation: downloadLocation, fileNamingPattern: namingPreset == .custom ? customNamingTemplate : namingPreset.rawValue, namingPreset: namingPreset, appMode: appMode)
             }
         }
     }
