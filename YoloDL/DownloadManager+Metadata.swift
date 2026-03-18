@@ -22,11 +22,26 @@ import Foundation
         let stdoutPipe = Pipe()
         metadataParsing.standardOutput = stdoutPipe
 
+        let stdoutAccumulator = PipeAccumulator()
+        let stderrAccumulator = PipeAccumulator()
+
+        stdoutPipe.fileHandleForReading.readabilityHandler = { handle in
+            stdoutAccumulator.append(handle.availableData)
+        }
+        stderrPipe.fileHandleForReading.readabilityHandler = { handle in
+            stderrAccumulator.append(handle.availableData)
+        }
+
         return await withCheckedContinuation { continuation in
 
             metadataParsing.terminationHandler = { _ in
-                let rawErrorData = stderrPipe.fileHandleForReading.readDataToEndOfFile()
-                let rawErrorString = String(data: rawErrorData, encoding: .utf8) ?? ""
+                stdoutPipe.fileHandleForReading.readabilityHandler = nil
+                stderrPipe.fileHandleForReading.readabilityHandler = nil
+
+                stdoutAccumulator.append(stdoutPipe.fileHandleForReading.readDataToEndOfFile())
+                stderrAccumulator.append(stderrPipe.fileHandleForReading.readDataToEndOfFile())
+
+                let rawErrorString = stderrAccumulator.string
 
                 Task { @MainActor in
                     self.logger.appendLog(rawErrorString, from: .stderr)
@@ -35,8 +50,7 @@ import Foundation
                     }
                 }
 
-                let parsedMetaData = stdoutPipe.fileHandleForReading.readDataToEndOfFile()
-                let episodes = try? JSONDecoder().decode([EpisodeMetadata].self, from: parsedMetaData)
+                let episodes = try? JSONDecoder().decode([EpisodeMetadata].self, from: stdoutAccumulator.data)
 
                 continuation.resume(returning: episodes)
             }
@@ -44,6 +58,8 @@ import Foundation
             do {
                 try metadataParsing.run()
             } catch {
+                stdoutPipe.fileHandleForReading.readabilityHandler = nil
+                stderrPipe.fileHandleForReading.readabilityHandler = nil
                 Task { @MainActor in
                     self.logger.appendLog(error.localizedDescription, from: .stderr)
                     self.showError(title: "Metadata error", text: "Metadata error Details: \(error.localizedDescription)")
