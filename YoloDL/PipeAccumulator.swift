@@ -1,6 +1,8 @@
 import Foundation
 
-final class PipeAccumulator: @unchecked Sendable {
+// This helper is used from Process pipe callbacks, so it must not inherit
+// the app target's default MainActor isolation.
+nonisolated final class PipeAccumulator: @unchecked Sendable {
     private var buffer = Data()
     private let lock = NSLock()
 
