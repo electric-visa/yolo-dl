@@ -51,7 +51,15 @@ import Foundation
                     }
                 }
 
-                let episodes = try? JSONDecoder().decode([EpisodeMetadata].self, from: stdoutAccumulator.data)
+                var episodes: [EpisodeMetadata]? = nil
+                do {
+                    episodes = try JSONDecoder().decode([EpisodeMetadata].self, from: stdoutAccumulator.data)
+                } catch {
+                    Task { @MainActor in
+                        self.logger.appendLog("Metadata decode failed: \(error.localizedDescription)", from: .stderr)
+                        self.showError(title: "Metadata error", text: "Failed to read metadata from yle-dl. The content may not be available.")
+                    }
+                }
 
                 guard !hasResumed else { return }
                 hasResumed = true
