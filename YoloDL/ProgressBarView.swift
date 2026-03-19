@@ -22,7 +22,10 @@ struct ProgressBarView: View {
     let isActive: Bool
     let isFinished: Bool
     let showsIndeterminateProgress: Bool
+    let appState: AppState
 
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @Environment(\.accessibilityDifferentiateWithoutColor) private var differentiateWithoutColor
     @State private var shimmerOffset: CGFloat = -1.0
 
     @ViewBuilder
@@ -44,6 +47,13 @@ struct ProgressBarView: View {
             .frame(height: Style.barHeight)
             .blendMode(blendMode)
             .opacity(visible ? 1.0 : 0.0)
+    }
+
+    private var stateLabel: String? {
+        if isFinished { return "Done" }
+        if appState == .downloading { return "Downloading" }
+        if appState == .recording { return "Recording" }
+        return nil
     }
 
     var body: some View {
@@ -79,7 +89,7 @@ struct ProgressBarView: View {
                     }
                     .frame(height: Style.barHeight)
                     .blendMode(.screen)
-                    .opacity(isActive && !showsIndeterminateProgress ? 1.0 : 0.0)
+                    .opacity(isActive && !showsIndeterminateProgress && !reduceMotion ? 1.0 : 0.0)
             }
             .overlay {
                 gradientBar(
@@ -96,7 +106,7 @@ struct ProgressBarView: View {
                         let step = stripeWidth + spacing
                         let cycleLength: CGFloat = 20.0
                         let elapsed = timeline.date.timeIntervalSinceReferenceDate
-                        let offset = CGFloat(elapsed.truncatingRemainder(dividingBy: 0.7)) / 0.7 * cycleLength
+                        let offset: CGFloat = reduceMotion ? 0 : CGFloat(elapsed.truncatingRemainder(dividingBy: 0.7)) / 0.7 * cycleLength
 
                         let diagonal = size.width + size.height
                         var x = -diagonal + offset
@@ -116,13 +126,43 @@ struct ProgressBarView: View {
                 .blendMode(.screen)
                 .opacity(showsIndeterminateProgress ? 1.0 : 0.0)
             }
+            .overlay(alignment: .trailing) {
+                Group {
+                    if isFinished {
+                        Image(systemName: "checkmark.circle")
+                            .foregroundStyle(.white)
+                            .shadow(color: .black.opacity(0.3), radius: 2, x: 0, y: 1)
+                            .transition(reduceMotion ? .identity : .opacity)
+                    } else if appState == .downloading {
+                        Image(systemName: "arrow.down.circle")
+                            .foregroundStyle(.primary)
+                            .shadow(color: .black.opacity(0.3), radius: 2, x: 0, y: 1)
+                    } else if appState == .recording {
+                        Image(systemName: "record.circle.fill")
+                            .foregroundStyle(.white)
+                            .shadow(color: .black.opacity(0.5), radius: 3, x: 0, y: 1)
+                    }
+                }
+                .font(.system(size: 16, weight: .semibold))
+                .padding(.trailing, 8)
+            }
+            .overlay(alignment: .center) {
+                if differentiateWithoutColor, let label = stateLabel {
+                    Text(label)
+                        .font(.caption.weight(.semibold))
+                        .foregroundStyle(.white)
+                        .shadow(color: .black.opacity(0.3), radius: 2, x: 0, y: 1)
+                }
+            }
             .clipped()
-            .animation(.easeInOut(duration: Style.animationSpeed), value: progress)
-            .animation(.easeInOut(duration: Style.animationSpeed), value: isFinished)
-            .animation(.easeInOut(duration: Style.animationSpeed), value: showsIndeterminateProgress)
+            .animation(reduceMotion ? nil : .easeInOut(duration: Style.animationSpeed), value: progress)
+            .animation(reduceMotion ? nil : .easeInOut(duration: Style.animationSpeed), value: isFinished)
+            .animation(reduceMotion ? nil : .easeInOut(duration: Style.animationSpeed), value: showsIndeterminateProgress)
             .onAppear {
-                withAnimation(.linear(duration: 2).repeatForever(autoreverses: false)) {
-                    shimmerOffset = 2.0
+                if !reduceMotion {
+                    withAnimation(.linear(duration: 2).repeatForever(autoreverses: false)) {
+                        shimmerOffset = 2.0
+                    }
                 }
             }
     }
@@ -149,28 +189,32 @@ private struct ProgressWidthModifier: ViewModifier {
             progress: 0.0,
             isActive: false,
             isFinished: false,
-            showsIndeterminateProgress: false
+            showsIndeterminateProgress: false,
+            appState: .ready
         )
 
         ProgressBarView(
             progress: 0.65,
             isActive: true,
             isFinished: false,
-            showsIndeterminateProgress: false
+            showsIndeterminateProgress: false,
+            appState: .downloading
         )
 
         ProgressBarView(
             progress: 1.0,
             isActive: false,
             isFinished: true,
-            showsIndeterminateProgress: false
+            showsIndeterminateProgress: false,
+            appState: .finished
         )
 
         ProgressBarView(
             progress: 0,
             isActive: false,
             isFinished: false,
-            showsIndeterminateProgress: true
+            showsIndeterminateProgress: true,
+            appState: .recording
         )
     }
     .padding()

@@ -101,7 +101,8 @@ struct ContentView: View {
                 progress: downloader.progress,
                 isActive: downloader.isActive,
                 isFinished: downloader.isFinished,
-                showsIndeterminateProgress: downloader.appState.showsIndeterminateProgress
+                showsIndeterminateProgress: downloader.appState.showsIndeterminateProgress,
+                appState: downloader.appState
             )
 
             let downloadInfoParts: [String] = appMode == .download && downloader.appState == .downloading ? [
