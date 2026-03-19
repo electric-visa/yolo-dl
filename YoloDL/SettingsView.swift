@@ -57,7 +57,7 @@ struct SettingsView: View {
 
                 VStack(alignment: .leading, spacing: 4) {
                     TextField("Custom yle-dl flags", text: $customFlags)
-                    Text("Space-separated flags passed directly to yle-dl")
+                    Text("Space-separated flags passed directly to yle-dl. Paths or values containing spaces are not supported.")
                         .font(.caption)
                         .foregroundStyle(.secondary)
                 }

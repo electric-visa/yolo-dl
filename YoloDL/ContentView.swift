@@ -10,14 +10,17 @@ import SwiftUI
 
 struct ContentView: View {
 
+    // MARK: - Constants
     let appVersion = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "?"
 
+    // MARK: - Environment
     // Open debug window on startup.
     @Environment(\.openWindow) var openWindow
 
     @Environment(DownloadManager.self) private var downloader
     @Environment(RecordingInput.self) private var recordingInput
 
+    // MARK: - User preferences
     // App mode selection
     @AppStorage("appMode") private var appMode: AppMode = .download
 
@@ -26,6 +29,8 @@ struct ContentView: View {
     @AppStorage("namingTemplate") private var namingPreset: NamingPreset = .seriesDateTitle
     @AppStorage("customNamingTemplate") private var customNamingTemplate: String = ""
     @AppStorage("hasSeenWelcome") private var hasSeenWelcome: Bool = false
+
+    // MARK: - Local state
     @State private var updateResult: UpdateResult?
     @State private var showUpdateAvailable = false
 
