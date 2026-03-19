@@ -81,6 +81,7 @@ import Foundation
     func validateInputs(downloadLocation: String) -> Bool {
         guard !sourceURL.isEmpty else { handleError(.emptyURL); return false }
         guard !downloadLocation.isEmpty else { handleError(.noFolderSelected); return false }
+        guard FileManager.default.fileExists(atPath: downloadLocation) else { handleError(.folderNotFound); return false }
         return true
     }
 

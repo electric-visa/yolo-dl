@@ -84,6 +84,9 @@ struct YoloDLApp: App {
                             namingPreset: namingPreset,
                             appMode: appMode
                         )
+                        if !FileManager.default.fileExists(atPath: downloadLocation) {
+                            downloadLocation = ""
+                        }
                     }
                 }
                 .keyboardShortcut("d")

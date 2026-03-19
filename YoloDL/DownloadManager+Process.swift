@@ -239,6 +239,8 @@ import Foundation
 
         guard !downloadLocation.isEmpty else { handleError(.noFolderSelected); return }
         guard !source.isEmpty else { handleError(.emptyURL); return }
+        guard FileManager.default.fileExists(atPath: downloadLocation) else { handleError(.folderNotFound); return }
+        
         
         if let duration {
             recordingDurationSeconds = duration

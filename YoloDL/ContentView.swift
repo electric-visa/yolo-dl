@@ -53,6 +53,9 @@ struct ContentView: View {
                 downloader.startRecording(source: source, downloadLocation: downloadLocation, recordSource: recordingInput.recordSource, duration: recordingInput.totalMinutes > 0 ? recordingInput.totalMinutes * 60 : nil)
             } else {
                 await downloader.downloadFiles(downloadLocation: downloadLocation, fileNamingPattern: namingPreset == .custom ? customNamingTemplate : namingPreset.rawValue, namingPreset: namingPreset, appMode: appMode)
+                if !FileManager.default.fileExists(atPath: downloadLocation) {
+                    downloadLocation = ""
+                }
             }
         }
     }
@@ -83,6 +86,8 @@ struct ContentView: View {
             .frame(maxWidth: .infinity, minHeight: 120, alignment: .top)
 
             Text(downloadLocation.isEmpty ? "No folder selected" : "Download folder: \(downloadLocation)")
+                .lineLimit(1)
+                .truncationMode(.middle)
 
             HStack {
                 Button(downloader.isActive ? "Stop" : appMode == .download ? "Download" : "Record") {
