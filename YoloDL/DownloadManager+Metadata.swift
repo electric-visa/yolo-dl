@@ -47,9 +47,11 @@ import Foundation
                 let rawErrorString = stderrAccumulator.string
 
                 Task { @MainActor in
-                    self.logger.appendLog(rawErrorString, from: .stderr)
-                    if let errorMessage = self.errorParser.parseErrors(rawErrorString) {
-                        self.showError(title: "Metadata error", text: errorMessage)
+                    if !self.isCancelled {
+                        self.logger.appendLog(rawErrorString, from: .stderr)
+                        if let errorMessage = self.errorParser.parseErrors(rawErrorString) {
+                            self.showError(title: "Metadata error", text: errorMessage)
+                        }
                     }
                 }
 
@@ -59,7 +61,9 @@ import Foundation
                 } catch {
                     Task { @MainActor in
                         self.logger.appendLog("Metadata decode failed: \(error.localizedDescription)", from: .stderr)
-                        self.showError(title: "Metadata error", text: "Failed to read metadata from yle-dl. The content may not be available.")
+                        if !self.isCancelled {
+                            self.showError(title: "Metadata error", text: "Failed to read metadata from yle-dl. The content may not be available.")
+                        }
                     }
                 }
 
@@ -69,13 +73,16 @@ import Foundation
             }
 
             do {
+                self.activeProcess = metadataParsing
                 try metadataParsing.run()
             } catch {
                 stdoutPipe.fileHandleForReading.readabilityHandler = nil
                 stderrPipe.fileHandleForReading.readabilityHandler = nil
                 Task { @MainActor in
                     self.logger.appendLog(error.localizedDescription, from: .stderr)
-                    self.showError(title: "Metadata error", text: "Metadata error Details: \(error.localizedDescription)")
+                    if !self.isCancelled {
+                        self.showError(title: "Metadata error", text: "Metadata error Details: \(error.localizedDescription)")
+                    }
                 }
                 guard !hasResumed else { return }
                 hasResumed = true

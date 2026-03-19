@@ -106,6 +106,7 @@ import Foundation
             // Reset isFinished state to false
             // and flush the log buffer.
             isFinished = false
+            isActive = true
             logger.clearLog()
             recordingElapsed = ""
             recordingElapsedSeconds = 0
@@ -116,6 +117,8 @@ import Foundation
             // Includes guards for invalid metadata.
             appState = .fetchingMetadata
             let episodes = await fetchMetadata()
+            guard !isCancelled else { return }
+            activeProcess = nil
 
             totalDuration = episodes?.reduce(0) { $0 + ($1.durationSeconds ?? 0) } ?? 0
 
