@@ -45,6 +45,15 @@ import Foundation
 
     // Booleans to trigger confirmation dialogs
     var showLiveContentAlert: Bool = false
+    var showQuitConfirmation: Bool = false
+
+    var quitConfirmationTitle: String {
+        appState == .recording ? "Recording in Progress" : "Download in Progress"
+    }
+
+    var quitConfirmationMessage: String {
+        appState == .recording ? "Quitting now will lose your current recording." : "Quitting now will lose your current download progress."
+    }
 
     // MARK: - Internal state (managed by DownloadManager methods)
 

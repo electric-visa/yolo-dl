@@ -230,6 +230,18 @@ struct ContentView: View {
         } message: {
             Text("A file with this name already exists. If you continue, it will be overwritten.")
         }
+        .confirmationDialog(
+            downloader.quitConfirmationTitle,
+            isPresented: $downloader.showQuitConfirmation,
+            titleVisibility: .visible
+        ) {
+            Button("Quit", role: .destructive) {
+                NSApplication.shared.terminate(nil)
+            }
+            Button("Cancel", role: .cancel) { }
+        } message: {
+            Text(downloader.quitConfirmationMessage)
+        }
         .sheet(isPresented: Binding(
             get: { !hasSeenWelcome },
             set: { hasSeenWelcome = !$0 }

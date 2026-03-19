@@ -134,6 +134,34 @@ struct YoloDLApp: App {
                     openWindow(id: "logWindow")
                 }
             }
+
+            CommandGroup(replacing: .appTermination) {
+                Button("Quit YOLO-DL") {
+                    if downloadManager.isActive {
+                        let alert = NSAlert()
+                        alert.alertStyle = .critical
+
+                        if downloadManager.appState == .recording {
+                            alert.messageText = "Recording in Progress"
+                            alert.informativeText = "Quitting now will lose your current recording."
+                        } else {
+                            alert.messageText = "Download in Progress"
+                            alert.informativeText = "Quitting now will lose your current download progress."
+                        }
+
+                        alert.addButton(withTitle: "Quit")
+                        alert.addButton(withTitle: "Cancel")
+                        alert.buttons[0].hasDestructiveAction = true
+
+                        if alert.runModal() == .alertFirstButtonReturn {
+                            NSApplication.shared.terminate(nil)
+                        }
+                    } else {
+                        NSApplication.shared.terminate(nil)
+                    }
+                }
+                .keyboardShortcut("q")
+            }
         }
 
         Window("Log Window", id: "logWindow") {
