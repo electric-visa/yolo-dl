@@ -11,6 +11,7 @@ struct SettingsView: View {
     @AppStorage("fileFormat") private var fileFormat: FileFormat = .mp4
     @AppStorage("subtitleLanguage") private var subtitleLanguage: SubtitleLanguage = .finnish
     @AppStorage("maxBitrate") private var qualityPreset: QualityPreset = .best
+    @AppStorage("updateCheckFrequency") private var updateCheckFrequency: UpdateCheckFrequency = .daily
     @AppStorage("customNamingTemplate") private var customNamingTemplate: String = ""
     @AppStorage("rateLimit") private var rateLimit: String = ""
     @AppStorage("customFlags") private var customFlags: String = ""
@@ -29,6 +30,12 @@ struct SettingsView: View {
             Picker("Subtitles", selection: $subtitleLanguage) {
                 ForEach(SubtitleLanguage.allCases, id: \.self) { lang in
                     Text(lang.label).tag(lang)
+                }
+            }
+
+            Picker("Check for updates", selection: $updateCheckFrequency) {
+                ForEach(UpdateCheckFrequency.allCases, id: \.self) { freq in
+                    Text(freq.label).tag(freq)
                 }
             }
 

@@ -2,8 +2,9 @@
 //  WelcomeView.swift
 //  YoloDL
 //
-//  Created by Visa Uotila on 17.3.2026.
-//
+// WelcomeView.swift
+// Onboarding sheet displayed on first launch.
+// Links to GitHub and the GPL-3 licence.
 
 import SwiftUI
 

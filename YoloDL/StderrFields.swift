@@ -2,8 +2,8 @@
 //  StderrFields.swift
 //  YoloDL
 //
-//  Created on 15.3.2026.
-//
+// Value type that parses a single ffmpeg stderr progress line intos tructured fields.
+// Consumed by DownloadManager+Process to drive the progress bar.
 
 struct StderrFields {
     var progress: Double?

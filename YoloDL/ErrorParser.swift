@@ -2,8 +2,9 @@
 //  ErrorParser.swift
 //  YoloDL
 //
-//  Created by Visa Uotila on 9.3.2026.
-//
+// Maps yle-dl / ffmpeg stderr patterns to localised user-facing
+// error strings by using regex-style patterns.
+// Called by DownloadManager to convert raw process output into alerts.
 
 struct ErrorParser {
 

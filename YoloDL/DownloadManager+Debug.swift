@@ -2,8 +2,10 @@
 //  DownloadManager+Debug.swift
 //  YoloDL
 //
-//  Created by Visa Uotila on 9.3.2026.
-//
+// DEBUG-only DownloadManager extension. Provides simulation methods
+// (simulateDownload, simulateRecording, simulateMetadataFailure,
+// simulateLiveContentAlert, simulateOverwriteConfirmation) so UI states
+// can be exercised without running a real yle-dl process.
 
 import Foundation
 
@@ -109,6 +111,14 @@ extension DownloadManager {
         showFileExistsDialog = true
         
         logger.appendLog("Simulated duplicate file detection. Confirmation dialog should appear.", from: .stdout)
+    }
+
+    func simulateUpdateAvailable() {
+        debugUpdateResult = UpdateResult(
+            version: "99.0",
+            url: URL(string: "https://github.com/electric-visa/yolo-dl/releases/latest")!
+        )
+        showDebugUpdateAlert = true
     }
     
 }

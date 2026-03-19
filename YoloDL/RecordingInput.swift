@@ -2,8 +2,9 @@
 //  RecordingInput.swift
 //  YoloDL
 //
-//  Created on 15.3.2026.
-//
+// @Observable @MainActor model holding the user's recording parameters.
+// Exposes totalMinutes and a prefillStream() helper for populating
+// the URL field from a URL paste.
 
 import Foundation
 

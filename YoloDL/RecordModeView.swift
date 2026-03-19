@@ -1,9 +1,8 @@
 //
 //  RecordModeView.swift
-//  YoloDL 0.1
+//  YoloDL
 //
-//  Created on 13.3.2026.
-//
+// Subview rendered when the app is in Record mode.
 
 import SwiftUI
 

@@ -2,8 +2,9 @@
 //  EpisodeMetadata.swift
 //  YoloDL
 //
-//  Created by Visa Uotila on 9.3.2026.
-//
+// Codable model decoded from yle-dl's JSON metadata output.
+// Provides computed properties for each NamingPreset,
+// used to detect potential filename collisions before downloading.
 
 import Foundation
 

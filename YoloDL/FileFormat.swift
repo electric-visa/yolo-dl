@@ -2,8 +2,9 @@
 //  FileFormat.swift
 //  YoloDL
 //
-//  Created on 15.3.2026.
-//
+// Enum for the supported output container formats.
+// The raw value is passed directly to yle-dl via --preferformat.
+// User-facing labels are provided for the SettingsView picker.
 
 enum FileFormat: String, CaseIterable {
     case mp4

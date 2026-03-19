@@ -2,8 +2,9 @@
 //  DebugWindow.swift
 //  YoloDL
 //
-//  Created by Visa Uotila on 8.3.2026.
-//
+// DEBUG-only Window scene used during development.
+// Mostly used for UI/UX testing with various simulated events.
+
 #if DEBUG
 
 import SwiftUI
@@ -46,6 +47,10 @@ struct DebugWindow: View {
             
             Button("Reset Splash Screen") {
                 UserDefaults.standard.set(false, forKey: "hasSeenWelcome")
+            }
+
+            Button("Simulate Update Available") {
+                downloadManager.simulateUpdateAvailable()
             }
         }
         .padding()

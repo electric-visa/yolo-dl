@@ -2,8 +2,10 @@
 //  LogManager.swift
 //  YoloDL
 //
-//  Created by Visa Uotila on 8.3.2026.
-//
+// @Observable @MainActor log buffer capped at 1 MB of LogEntry objects.
+// Receives lines from both stdout and stderr of child processes, enforces
+// the size cap by dropping the oldest entries, and exposes clearLog().
+// Consumed by LogWindow for display.
 
 import Foundation
 

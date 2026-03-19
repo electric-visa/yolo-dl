@@ -1,7 +1,13 @@
-import Foundation
-
+// Thread-safe Data collector for Process pipe callbacks.
+// Uses NSLock to serialise appends from arbitrary threads, and exposes
+// the accumulated Data and its UTF-8 string representation as properties
+// safe to read from any isolation context.
+//
 // This helper is used from Process pipe callbacks, so it must not inherit
 // the app target's default MainActor isolation.
+
+import Foundation
+
 nonisolated final class PipeAccumulator: @unchecked Sendable {
     private var buffer = Data()
     private let lock = NSLock()

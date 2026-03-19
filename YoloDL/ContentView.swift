@@ -5,6 +5,7 @@
 //  Created on 5.3.2026.
 //
 
+import AppKit
 import SwiftUI
 
 struct ContentView: View {
@@ -25,6 +26,8 @@ struct ContentView: View {
     @AppStorage("namingTemplate") private var namingPreset: NamingPreset = .seriesDateTitle
     @AppStorage("customNamingTemplate") private var customNamingTemplate: String = ""
     @AppStorage("hasSeenWelcome") private var hasSeenWelcome: Bool = false
+    @State private var updateResult: UpdateResult?
+    @State private var showUpdateAvailable = false
 
 
     // Function to choose the download location.
@@ -142,6 +145,30 @@ struct ContentView: View {
             openWindow(id:"debug")
 #endif
         }
+#if DEBUG
+        .onChange(of: downloader.showDebugUpdateAlert) {
+            if downloader.showDebugUpdateAlert {
+                updateResult = downloader.debugUpdateResult
+                showUpdateAvailable = true
+                downloader.showDebugUpdateAlert = false
+            }
+        }
+#endif
+        .task {
+            let frequency = UpdateCheckFrequency(
+                rawValue: UserDefaults.standard.string(forKey: "updateCheckFrequency") ?? "daily"
+            ) ?? .daily
+            guard let interval = frequency.intervalSeconds else { return }
+            let lastCheck = UserDefaults.standard.double(forKey: "lastUpdateCheck")
+            let now = Date.timeIntervalSinceReferenceDate
+            guard now - lastCheck >= interval else { return }
+
+            if case .available(let result) = await UpdateChecker.checkForUpdate() {
+                updateResult = result
+                showUpdateAvailable = true
+            }
+            UserDefaults.standard.set(now, forKey: "lastUpdateCheck")
+        }
 
         .navigationTitle("YOLO-DL \(appVersion)")
 
@@ -152,6 +179,17 @@ struct ContentView: View {
 
         } message: {
             Text(downloader.alertToShow?.text ?? "")
+        }
+        .alert("Update available", isPresented: $showUpdateAvailable) {
+            Button("Download") {
+                if let url = updateResult?.url {
+                    NSWorkspace.shared.open(url)
+                }
+            }
+            Button("Later", role: .cancel) {}
+        } message: {
+            let current = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "?"
+            Text("A new YOLO-DL version \(updateResult?.version ?? "") is available. You are currently running \(current).")
         }
 
         .confirmationDialog(

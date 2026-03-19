@@ -1,9 +1,10 @@
 //
 //  TVChannel.swift
-//  YoloDL 0.1
+//  YoloDL
 //
-//  Created on 13.3.2026.
-//
+// Enum for the supported TV channel streams.
+// Each case carries a display label and the keyword string passed to
+// yle-dl to identify the live channel stream.
 
 enum TVChannel: String, CaseIterable {
     case tv1

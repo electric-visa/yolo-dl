@@ -2,8 +2,7 @@
 //  FolderPicker.swift
 //  YoloDL
 //
-//  Created on 16.3.2026.
-//
+// Thin AppKit wrapper around NSOpenPanel.
 
 import AppKit
 

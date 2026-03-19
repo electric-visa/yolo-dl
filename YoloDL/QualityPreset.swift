@@ -2,8 +2,9 @@
 //  QualityPreset.swift
 //  YoloDL
 //
-//  Created on 16.3.2026.
-//
+// Enum for quality settings.
+// The selected value maps to a bitrate argument passed to yle-dl via
+// --maxbitrate. Exposed in the Advanced Options section of SettingsView.
 
 enum QualityPreset: String, CaseIterable {
     case best = "best"

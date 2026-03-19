@@ -2,8 +2,10 @@
 //  DownloadManager+Process.swift
 //  YoloDL
 //
-//  Created on 15.3.2026.
-//
+// DownloadManager extension responsible for invoking yle-dl.
+// Builds argument lists, captures stderr via PipeAccumulator,
+// drives progress parsing (StderrFields), and calls 
+// startDownloadProcess() and startRecording().
 
 import Foundation
 

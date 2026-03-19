@@ -2,8 +2,7 @@
 //  LogWindow.swift
 //  YoloDL
 //
-//  Created by Visa Uotila on 9.3.2026.
-//
+// Separate Window scene showing the live yle-dl / ffmpeg log output.
 
 import SwiftUI
 

@@ -2,8 +2,9 @@
 //  SubtitleLanguage.swift
 //  YoloDL
 //
-//  Created on 15.3.2026.
-//
+// Enum for subtitle embedding options.
+// Provides both the yle-dl language code and a localised label shown
+// in the SettingsView subtitle picker.
 
 enum SubtitleLanguage: String, CaseIterable {
     case finnish = "fin"

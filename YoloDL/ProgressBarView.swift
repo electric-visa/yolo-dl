@@ -2,8 +2,7 @@
 //  ProgressBarView.swift
 //  YoloDL 0.1
 //
-//  Created on 13.3.2026.
-//
+// Custom animated progress bar built with Canvas and TimelineView.
 
 import SwiftUI
 

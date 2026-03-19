@@ -2,8 +2,8 @@
 //  AlertTypes.swift
 //  YoloDL
 //
-//  Created by Visa Uotila on 9.3.2026.
-//
+// InputValidationError enum covering the three invalid-input conditions
+// (emptyURL, noFolderSelected, totalDurationIsZero).
 
 enum InputValidationError: Identifiable {
     case emptyURL

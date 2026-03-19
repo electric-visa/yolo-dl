@@ -2,8 +2,8 @@
 //  NamingPreset.swift
 //  YoloDL
 //
-//  Created by Visa Uotila on 11.3.2026.
-//
+// Enum for file-naming strategies stored in AppStorage.
+// Each case maps to the yle-dl --output template string it represents.
 
 enum NamingPreset: String, CaseIterable {
     case seriesDateTitle = "${series_separator}${episode_or_date} - ${title}"

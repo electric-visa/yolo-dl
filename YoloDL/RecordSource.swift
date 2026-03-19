@@ -1,9 +1,10 @@
 //
 //  RecordSource.swift
-//  YoloDL 0.1
+//  YoloDL
 //
-//  Created on 13.3.2026.
-//
+// Enum for the recording source types.
+// Drives the source picker in RecordModeView and determines which
+// argument yle-dl receives at launch time.
 
 enum RecordSource: String, CaseIterable {
     case streamURL

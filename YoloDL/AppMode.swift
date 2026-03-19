@@ -2,8 +2,8 @@
 //  AppMode.swift
 //  YoloDL
 //
-//  Created on 13.3.2026.
-//
+// Enum for the two top-level operating modes: .download and .record.
+// Provides a user-facing label string used by the mode picker in ContentView.
 
 enum AppMode: String, CaseIterable {
     case download

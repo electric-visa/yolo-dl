@@ -2,8 +2,10 @@
 //  DownloadManager.swift
 //  YoloDL
 //
-//  Created by Visa Uotila on 8.3.2026.
-//
+// Central @Observable @MainActor state container for the app.
+// Owns AppState, progress values, error/alert state, and AppStorage
+// preferences. Acts as the coordinator between the UI layer and the
+// Process-execution extensions (+Process, +Metadata, +Debug).
 
 import Foundation
 
@@ -13,6 +15,8 @@ import Foundation
 #if DEBUG
     // Timer variable for a simulation run.
     var simulationTask: Task<Void, Never>? = nil
+    var debugUpdateResult: UpdateResult?
+    var showDebugUpdateAlert = false
 #endif
     
     // Paths to binaries

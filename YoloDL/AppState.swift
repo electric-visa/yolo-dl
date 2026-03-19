@@ -2,8 +2,9 @@
 //  AppStates.swift
 //  YoloDL
 //
-//  Created by Visa Uotila on 9.3.2026.
-//
+// Enum representing every distinct phase of the application lifecycle.
+// Provides statusText for the UI label 
+// and showsIndeterminateProgress for the progress bar.
 
 enum AppState {
     case ready

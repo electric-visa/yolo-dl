@@ -2,8 +2,9 @@
 //  AlertMessage.swift
 //  YoloDL
 //
-//  Created by Visa Uotila on 9.3.2026.
-//
+// Identifiable wrapper used to drive SwiftUI's .alert(item:) modifier.
+// Carries a title and descriptive text so that DownloadManager can
+// publish a single optional AlertMessage? property for all generic alerts.
 
 import Foundation
 

@@ -2,8 +2,11 @@
 //  DurationFormatter.swift
 //  YoloDL
 //
-//  Created on 15.3.2026.
-//
+// DurationFormatter.swift
+// Stateless formatting helpers for time values.
+// format()          – total duration string (e.g. "1 h 23 min")
+// formatEstimate()  – rounded ETA for display during download
+// formatCountdown() – remaining time shown on the recording timer
 
 import Foundation
 

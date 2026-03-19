@@ -2,8 +2,10 @@
 //  DownloadManager+Metadata.swift
 //  YoloDL
 //
-//  Created on 15.3.2026.
-//
+// DownloadManager extension that runs yle-dl with --showmetadata to
+// fetch episode JSON before a download begins. Accumulates stdout with
+// PipeAccumulator, decodes the response into [EpisodeMetadata], and
+// transitions app state to present the overwrite-confirmation flow when needed.
 
 import Foundation
 

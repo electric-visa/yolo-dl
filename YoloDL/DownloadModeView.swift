@@ -2,8 +2,7 @@
 //  DownloadModeView.swift
 //  YoloDL
 //
-//  Created on 13.3.2026.
-//
+// Subview rendered when the app is in Download mode.
 
 import SwiftUI
 
