@@ -9,7 +9,8 @@ The app is not designed to be harmful to your Mac or files in any way, but nothi
 
 ### What is YOLO-DL?
 
-YOLO-DL is a graphical **[yle-dl](https://github.com/aajanki/yle-dl)** frontend for macOS, written in Swift. 
+YOLO-DL is a graphical **[yle-dl](https://github.com/aajanki/yle-dl)** frontend for macOS, written in Swift.
+The app is licensed under **[GPLv3](https://www.gnu.org/licenses/gpl-3.0.html)**
 
 **LLMs (AI) have been utilized in the development. See bottom of this file for full AI disclosure.**
 
@@ -27,7 +28,6 @@ YOLO-DL is aimed at two groups
 * Can be installed from a .dmg file
 * Automatic update checks
 * Written in Swift and SwiftUI and a hint of AppKit
-* Licensed under [GPLv3](https://www.gnu.org/licenses/gpl-3.0.html)
 
 ### System Requirements:  
 * A Mac with an Apple Silicon chipset
