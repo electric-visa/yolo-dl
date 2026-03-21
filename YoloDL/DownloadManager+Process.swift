@@ -204,8 +204,7 @@ import Foundation
                 }
             },
             onTermination: {
-                self.resetDownloadState()
-                self.appState = .finished
+                self.reset(for: .finished)
                 self.clearPendingState()
             }
         )
@@ -230,12 +229,7 @@ import Foundation
     }
 
     func startRecording(source: String, downloadLocation: String, recordSource: RecordSource, duration: Int? = nil) {
-        isCancelled = false
-        isFinished = false
-        logger.clearLog()
-        recordingElapsed = ""
-        recordingElapsedSeconds = 0
-        recordingFileSize = ""
+        reset(for: .starting)
 
         guard !downloadLocation.isEmpty else { handleError(.noFolderSelected); return }
         guard !source.isEmpty else { handleError(.emptyURL); return }
@@ -286,9 +280,29 @@ import Foundation
                 }
             },
             onTermination: {
-                self.resetDownloadState()
-                self.appState = .finished
+                self.reset(for: .finished)
             }
         )
+    }
+
+    func startRecordingFrom(_ input: RecordingInput, downloadLocation: String) {
+        let source: String = switch input.recordSource {
+        case .tvChannel: input.selectedChannel.keyword
+        case .streamURL: input.streamURL
+        }
+        startRecording(
+            source: source,
+            downloadLocation: downloadLocation,
+            recordSource: input.recordSource,
+            duration: input.totalMinutes > 0 ? input.totalMinutes * 60 : nil
+        )
+    }
+
+    func stop(for mode: AppMode) {
+        if mode == .record {
+            stopRecording()
+        } else {
+            cancelDownload()
+        }
     }
 }

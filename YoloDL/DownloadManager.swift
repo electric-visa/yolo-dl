@@ -9,6 +9,11 @@
 
 import Foundation
 
+enum ResetDisposition {
+    case starting
+    case finished
+    case cancelled
+}
 
 @MainActor @Observable class DownloadManager {
 
@@ -94,34 +99,47 @@ import Foundation
         return true
     }
 
-    // Function to reset the download state
-    func resetDownloadState() {
-        progress = 1.0
-        isActive = false
-        isFinished = true
-        recordingFileSize = ""
-        recentSpeeds = []
+    func reset(for disposition: ResetDisposition) {
+        switch disposition {
+        case .starting:
+            isCancelled = false
+            isFinished = false
+            progress = 0.0
+            recordingElapsed = ""
+            recordingElapsedSeconds = 0
+            recordingFileSize = ""
+            recentSpeeds = []
+            logger.clearLog()
+
+        case .finished:
+            progress = 1.0
+            isActive = false
+            isFinished = true
+            recordingFileSize = ""
+            recentSpeeds = []
+            appState = .finished
+
+        case .cancelled:
+            isCancelled = true
+            isActive = false
+            progress = 0.0
+            recentSpeeds = []
+            recordingTimerTask = nil
+            recordingDurationSeconds = nil
+            appState = .cancelled
+        }
     }
 
     // PHASE A: Validate inputs, fetch metadata, and check for duplicates.
     func downloadFiles(downloadLocation: String, fileNamingPattern: String, namingPreset: NamingPreset, appMode: AppMode) async {
 
-            // Revert from a possible cancelled state.
-            isCancelled = false
-
             // Validate user inputs.
             guard validateInputs(downloadLocation: downloadLocation) else { return }
             appState = .preparing
 
-            // Reset isFinished state to false
-            // and flush the log buffer.
-            isFinished = false
+            // Reset start-of-run state before fetching metadata.
+            reset(for: .starting)
             isActive = true
-            logger.clearLog()
-            recordingElapsed = ""
-            recordingElapsedSeconds = 0
-            recordingFileSize = ""
-            recentSpeeds = []
 
             // Fetch metadata, calculate total duration and check for duplicate files.
             // Includes guards for invalid metadata.
@@ -211,29 +229,15 @@ import Foundation
     // with additional actions during a debug simulation run.
     func cancelDownload() {
         recordingTimerTask?.cancel()
-        recordingTimerTask = nil
         recordingDurationSeconds = nil
         isCancelled = true
         activeProcess?.terminate()
         activeProcess = nil
-        appState = .cancelled
-        isActive = false
-        progress = 0.0
-        recentSpeeds = []
+        reset(for: .cancelled)
 #if DEBUG
         simulationTask?.cancel()
         simulationTask = nil
 #endif
-    }
-
-    // Function to reset download parameters for a simulated run
-    // called from DownloadManager+Debug
-    func resetForSimulation() {
-        progress = 0.0
-        isActive = true
-        appState = .downloading
-        isFinished = false
-        recentSpeeds = []
     }
 
     func setPendingState(_ download: PendingDownload) {

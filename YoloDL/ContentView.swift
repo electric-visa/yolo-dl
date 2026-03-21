@@ -44,18 +44,10 @@ struct ContentView: View {
 
     func handleDownloadButton() async {
         if downloader.isActive {
-            if appMode == .record {
-                downloader.stopRecording()
-            } else {
-                downloader.cancelDownload()
-            }
+            downloader.stop(for: appMode)
         } else {
             if appMode == .record {
-                let source: String = switch recordingInput.recordSource {
-                case .tvChannel: recordingInput.selectedChannel.keyword
-                case .streamURL: recordingInput.streamURL
-                }
-                downloader.startRecording(source: source, downloadLocation: downloadLocation, recordSource: recordingInput.recordSource, duration: recordingInput.totalMinutes > 0 ? recordingInput.totalMinutes * 60 : nil)
+                downloader.startRecordingFrom(recordingInput, downloadLocation: downloadLocation)
             } else {
                 await downloader.downloadFiles(downloadLocation: downloadLocation, fileNamingPattern: namingPreset == .custom ? customNamingTemplate : namingPreset.rawValue, namingPreset: namingPreset, appMode: appMode)
                 if !FileManager.default.fileExists(atPath: downloadLocation) {

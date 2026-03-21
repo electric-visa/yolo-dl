@@ -17,11 +17,13 @@ extension DownloadManager {
     }
     
     // Function for a simulated download to test and/or debug the progress bar.
-    // Calls resetForSimulation() and resetDownloadState() from DownloadManager.
+    // Uses shared reset state from DownloadManager.
     // The simulationTime variable is also stored in DownloadManager.
     func simulateDownload() {
         simulationTask?.cancel()
-        resetForSimulation()
+        reset(for: .starting)
+        isActive = true
+        appState = .downloading
         totalDuration = 1800
 
         simulationTask = Task {
@@ -46,8 +48,7 @@ extension DownloadManager {
                 logger.appendLog("Simulated download progress: \(progress)", from: .stdout)
             }
             guard !Task.isCancelled else { return }
-            resetDownloadState()
-            appState = .finished
+            reset(for: .finished)
         }
     }
     
@@ -55,7 +56,8 @@ extension DownloadManager {
     // Recording has no progress — it runs indefinitely until stopped.
     func simulateRecording() {
         simulationTask?.cancel()
-        resetForSimulation()
+        reset(for: .starting)
+        isActive = true
         appState = .recording
         logger.appendLog("Simulated recording started.", from: .stdout)
     }
@@ -63,8 +65,7 @@ extension DownloadManager {
     func stopSimulatedRecording() {
         simulationTask?.cancel()
         simulationTask = nil
-        resetDownloadState()
-        appState = .finished
+        reset(for: .finished)
         logger.appendLog("Simulated recording stopped.", from: .stdout)
     }
 

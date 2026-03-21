@@ -93,27 +93,13 @@ struct YoloDLApp: App {
                 .disabled(downloadManager.isActive || appMode != .download)
 
                 Button("Record") {
-                    let input = recordingInput
-                    let source: String = switch input.recordSource {
-                    case .tvChannel: input.selectedChannel.keyword
-                    case .streamURL: input.streamURL
-                    }
-                    downloadManager.startRecording(
-                        source: source,
-                        downloadLocation: downloadLocation,
-                        recordSource: input.recordSource,
-                        duration: input.totalMinutes > 0 ? input.totalMinutes * 60 : nil
-                    )
+                    downloadManager.startRecordingFrom(recordingInput, downloadLocation: downloadLocation)
                 }
                 .keyboardShortcut("r")
                 .disabled(downloadManager.isActive || appMode != .record)
 
                 Button("Stop") {
-                    if appMode == .record {
-                        downloadManager.stopRecording()
-                    } else {
-                        downloadManager.cancelDownload()
-                    }
+                    downloadManager.stop(for: appMode)
                 }
                 .keyboardShortcut(".")
                 .disabled(!downloadManager.isActive)
