@@ -16,9 +16,6 @@ extension DownloadManager {
         isActive && appState == .recording && activeProcess == nil
     }
     
-    // Function for a simulated download to test and/or debug the progress bar.
-    // Uses shared reset state from DownloadManager.
-    // The simulationTime variable is also stored in DownloadManager.
     func simulateDownload() {
         simulationTask?.cancel()
         reset(for: .starting)
@@ -52,8 +49,6 @@ extension DownloadManager {
         }
     }
     
-    // Function for a simulated recording to test recording UI states.
-    // Recording has no progress — it runs indefinitely until stopped.
     func simulateRecording() {
         simulationTask?.cancel()
         reset(for: .starting)
@@ -69,12 +64,10 @@ extension DownloadManager {
         logger.appendLog("Simulated recording stopped.", from: .stdout)
     }
 
-    // Function to simulate metadata failure
     func simulateMetadataFailure() {
         handleError(.totalDurationIsZero)
     }
     
-    // Function to simulate live content alert
     func simulateLiveContentAlert() {
         let mockMetadata = [
             EpisodeMetadata(
@@ -94,9 +87,7 @@ extension DownloadManager {
         logger.appendLog("Simulated live content detection. Live content alert should appear.", from: .stdout)
     }
 
-    // Function to simulate overwrite confirmation dialog
     func simulateOverwriteConfirmation() {
-        // Create mock metadata
         let mockMetadata = [
             EpisodeMetadata(
                 durationSeconds: 3600,

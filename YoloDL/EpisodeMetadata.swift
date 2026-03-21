@@ -64,6 +64,8 @@ struct EpisodeMetadata: Codable {
         case tvChannel
     }
 
+    // VOD flavors use normal URLs; live content has /live/ in flavor URLs.
+    // Among live content, Areena live streams report duration_seconds while TV channels don't.
     var contentType: ContentType {
         let isLive = flavors.contains { $0.url.contains("/live/") }
         

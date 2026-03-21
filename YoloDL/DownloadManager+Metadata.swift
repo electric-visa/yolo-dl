@@ -11,7 +11,6 @@ import Foundation
 
 @MainActor extension DownloadManager {
 
-    // Function to fetch metadata.
     func fetchMetadata() async -> [EpisodeMetadata]? {
 
         let metadataParsing = Process()

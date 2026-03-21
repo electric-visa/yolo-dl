@@ -24,16 +24,16 @@ enum ResetDisposition {
     var showDebugUpdateAlert = false
 #endif
 
-    // Paths to binaries
     let pathToYleDl: String = DownloadManager.bundledPath(for: "yle-dl", fallback: "/opt/homebrew/bin/yle-dl")
     let pathToFfmpeg: String = DownloadManager.bundledPath(for: "ffmpeg", fallback: "/opt/homebrew/bin/ffmpeg")
     let pathToFfprobe: String = DownloadManager.bundledPath(for: "ffprobe", fallback: "/opt/homebrew/bin/ffprobe")
 
+    // Checks the app bundle first (distribution builds bundle yle-dl and ffmpeg
+    // in Contents/Resources); falls back to Homebrew paths for local development.
     private static func bundledPath(for name: String, fallback: String) -> String {
         Bundle.main.path(forResource: name, ofType: nil) ?? fallback
     }
 
-    // Wiring ErrorParser to DownloadManager for parsing stderr outputs.
     let errorParser = ErrorParser()
 
     let logger: LogManager
@@ -44,11 +44,9 @@ enum ResetDisposition {
 
     // MARK: - View-bindable properties
 
-    // Variables to be passed to yle-dl
     var sourceURL: String = ""
     var showFileExistsDialog: Bool = false
 
-    // Booleans to trigger confirmation dialogs
     var showLiveContentAlert: Bool = false
     var showQuitConfirmation: Bool = false
 
@@ -62,7 +60,6 @@ enum ResetDisposition {
 
     // MARK: - Internal state (managed by DownloadManager methods)
 
-    // Variables and constants related to download & progress bar logic
     var isActive: Bool = false
     var isFinished: Bool = false
     var activeProcess: Process? = nil
@@ -88,9 +85,6 @@ enum ResetDisposition {
             if appState == .error { appState = .ready }
         }}
     }
-
-    // Function to check for valid user inputs.
-    // Currently guards for empty URL and destination folder.
 
     func validateInputs(downloadLocation: String) -> Bool {
         guard !sourceURL.isEmpty else { handleError(.emptyURL); return false }
@@ -206,7 +200,6 @@ enum ResetDisposition {
         showError(title: error.title, text: error.message)
     }
 
-    // Function to clear pending state after cancellation or successful download
     func clearPendingState() {
         pendingDownload = nil
     }
@@ -225,8 +218,6 @@ enum ResetDisposition {
         activeProcess = nil
     }
 
-    // Function to cancel an ongoing download
-    // with additional actions during a debug simulation run.
     func cancelDownload() {
         recordingTimerTask?.cancel()
         recordingDurationSeconds = nil

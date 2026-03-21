@@ -9,8 +9,6 @@
 
 import Foundation
 
-// Struct to handle log parsing.
-
 struct LogEntry: Identifiable {
 
     enum LogSource {
@@ -30,19 +28,16 @@ struct LogEntry: Identifiable {
     }
 }
 
-// LogManager class
-
 @MainActor
 @Observable class LogManager {
 
     var logEntries: [LogEntry] = []
     private var currentBufferSize: Int = 0
     
-    // Constant for maximum log size to be stored in memory.
+    // 1 MB cap prevents unbounded memory growth during long series downloads
+    // that can produce thousands of log lines.
     private let maxBufferSize: Int = 1_048_576
-    
-    // Function to append a log entry to the buffer 
-    // and remove oldest entries if buffer goes over the size limit.
+
     func appendLog(_ rawText: String, from pipe: LogEntry.LogSource) {
         let entry = LogEntry(text: rawText, source: pipe)
         let entrySize = rawText.utf8.count
