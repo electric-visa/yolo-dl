@@ -9,6 +9,7 @@ import SwiftUI
 struct LogWindow: View {
     
     @Environment(LogManager.self) var logManager
+    @State private var autoScroll: Bool = true
     
     var body: some View {
         VStack(alignment: .center, spacing: 12) {
@@ -26,7 +27,9 @@ struct LogWindow: View {
                 .padding()
                 }
                 .onChange(of: logManager.logEntries.count) {
-                    proxy.scrollTo(logManager.logEntries.last?.id, anchor: .bottom)
+                    if autoScroll {
+                        proxy.scrollTo(logManager.logEntries.last?.id, anchor: .bottom)
+                    }
                 }
                 .frame(minHeight: 300, maxHeight: .infinity)
                 
@@ -38,6 +41,12 @@ struct LogWindow: View {
                     
                     Text("\(logManager.logEntries.count) entries in log")
                     
+                    Divider()
+                        .frame(height: 16)
+
+                    Toggle("Follow", isOn: $autoScroll)
+                        .toggleStyle(.switch)
+
                     Divider()
                         .frame(height: 16)
                     
@@ -55,7 +64,7 @@ struct LogWindow: View {
                 }
                 .padding(.horizontal)
             }
-            .padding(.vertical, 2)
+            .padding(.vertical, 8)
         }
         
     }

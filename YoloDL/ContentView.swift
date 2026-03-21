@@ -69,7 +69,7 @@ struct ContentView: View {
         @Bindable var downloader = downloader
         @Bindable var recordingInput = recordingInput
         VStack(alignment: .leading, spacing: 12) {
-
+            Spacer()
             Picker("Mode", selection: $appMode) {
                 ForEach(AppMode.allCases, id: \.self) { mode in
                     Text(mode.label).tag(mode)
