@@ -155,6 +155,7 @@ enum ResetDisposition {
             }
 
             if !isVOD && appMode == .download {
+                appState = .ready
                 showLiveContentAlert = true
                 return
             }

@@ -241,6 +241,7 @@ struct ContentView: View {
                 downloader.startDownloadProcess()
             }
             Button("Cancel", role: .cancel) {
+                downloader.appState = .ready
                 downloader.clearPendingState()
             }
         } message: {
