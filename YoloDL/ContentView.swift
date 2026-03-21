@@ -57,6 +57,45 @@ struct ContentView: View {
         }
     }
 
+    // MARK: - Computed properties
+
+    var actionButtonLabel: String {
+        downloader.isActive ? "Stop" : appMode == .download ? "Download" : "Record"
+    }
+
+    private var downloadInfoVisible: Bool {
+        appMode == .download && downloader.appState == .downloading
+    }
+
+    var downloadInfoText: String {
+        guard downloadInfoVisible else { return " " }
+        let parts: [String] = [
+            downloader.recordingFileSize.isEmpty ? nil : downloader.recordingFileSize,
+            downloader.timeRemaining.map {
+                let estimate = DurationFormatter.formatEstimate(seconds: $0)
+                return estimate == "Almost done" ? estimate : estimate + " remaining"
+            }
+        ].compactMap { $0 }
+        return parts.isEmpty ? " " : parts.joined(separator: " · ")
+    }
+
+    private var recordingInfoVisible: Bool {
+        appMode == .record &&
+            (!downloader.recordingElapsed.isEmpty || !downloader.recordingFileSize.isEmpty)
+    }
+
+    var recordingInfoText: String {
+        guard recordingInfoVisible else { return " " }
+        let elapsed = downloader.recordingElapsed
+        let fileSize = downloader.recordingFileSize
+        if let totalSeconds = downloader.recordingDurationSeconds {
+            let remaining = max(0, totalSeconds - downloader.recordingElapsedSeconds)
+            return "\(elapsed) · \(fileSize) — stops in \(DurationFormatter.formatCountdown(seconds: remaining))"
+        } else {
+            return "\(elapsed) · \(fileSize)"
+        }
+    }
+
     var body: some View {
         @Bindable var downloader = downloader
         @Bindable var recordingInput = recordingInput
@@ -87,7 +126,7 @@ struct ContentView: View {
                 .truncationMode(.middle)
 
             HStack {
-                Button(downloader.isActive ? "Stop" : appMode == .download ? "Download" : "Record") {
+                Button(actionButtonLabel) {
                     Task {
                         await handleDownloadButton()
                     }
@@ -107,31 +146,11 @@ struct ContentView: View {
                 appState: downloader.appState
             )
 
-            let downloadInfoParts: [String] = appMode == .download && downloader.appState == .downloading ? [
-                downloader.recordingFileSize.isEmpty ? nil : downloader.recordingFileSize,
-                downloader.timeRemaining.map {
-                    let estimate = DurationFormatter.formatEstimate(seconds: $0)
-                    return estimate == "Almost done" ? estimate : estimate + " remaining"
-                }
-            ].compactMap { $0 } : []
-            Text(downloadInfoParts.isEmpty ? " " : downloadInfoParts.joined(separator: " · "))
+            Text(downloadInfoText)
                 .foregroundStyle(.secondary)
                 .monospacedDigit()
-                .opacity(downloadInfoParts.isEmpty ? 0 : 1)
+                .opacity(downloadInfoVisible ? 1 : 0)
 
-            let recordingInfoVisible = appMode == .record &&
-                (!downloader.recordingElapsed.isEmpty || !downloader.recordingFileSize.isEmpty)
-            let recordingInfoText: String = {
-                guard recordingInfoVisible else { return " " }
-                let elapsed = downloader.recordingElapsed
-                let fileSize = downloader.recordingFileSize
-                if let totalSeconds = downloader.recordingDurationSeconds {
-                    let remaining = max(0, totalSeconds - downloader.recordingElapsedSeconds)
-                    return "\(elapsed) · \(fileSize) — stops in \(DurationFormatter.formatCountdown(seconds: remaining))"
-                } else {
-                    return "\(elapsed) · \(fileSize)"
-                }
-            }()
             Text(recordingInfoText)
                 .foregroundStyle(.secondary)
                 .monospacedDigit()
