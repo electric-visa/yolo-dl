@@ -39,6 +39,7 @@ struct RecordModeView: View {
                     .frame(width: 40)
                     .textFieldStyle(.roundedBorder)
                     .accessibilityLabel("Hours")
+                    .onSubmit { recordingInput.normalize() }
                 Stepper("Hours", value: $recordingInput.durationHours, in: 0...8, step: 1)
                     .labelsHidden()
                 Text("h")
@@ -46,13 +47,20 @@ struct RecordModeView: View {
                     .frame(width: 40)
                     .textFieldStyle(.roundedBorder)
                     .accessibilityLabel("Minutes")
+                    .onSubmit { recordingInput.normalize() }
                 Stepper("Minutes", value: $recordingInput.durationMinutes, in: 0...55, step: 5)
                     .labelsHidden()
                 Text("min")
             }
-            Text(DurationFormatter.format(minutes: recordingInput.totalMinutes))
-                .foregroundStyle(.secondary)
-                .font(.caption)
+            if recordingInput.totalMinutes < 0 {
+                Text("Duration can't be negative")
+                    .foregroundStyle(.red)
+                    .font(.caption)
+            } else {
+                Text(DurationFormatter.format(minutes: recordingInput.totalMinutes))
+                    .foregroundStyle(.secondary)
+                    .font(.caption)
+            }
         }
         .frame(maxWidth: .infinity, alignment: .center)
     }

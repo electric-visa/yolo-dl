@@ -48,15 +48,7 @@ enum ResetDisposition {
     var showFileExistsDialog: Bool = false
 
     var showLiveContentAlert: Bool = false
-    var showQuitConfirmation: Bool = false
-
-    var quitConfirmationTitle: String {
-        appState == .recording ? "Recording in Progress" : "Download in Progress"
-    }
-
-    var quitConfirmationMessage: String {
-        appState == .recording ? "Quitting now will lose your current recording." : "Quitting now will lose your current download progress."
-    }
+    var showLongRecordingAlert: Bool = false
 
     // MARK: - Internal state (managed by DownloadManager methods)
 
@@ -101,6 +93,7 @@ enum ResetDisposition {
             progress = 0.0
             recordingElapsed = ""
             recordingElapsedSeconds = 0
+            recordingDurationSeconds = nil
             recordingFileSize = ""
             recentSpeeds = []
             logger.clearLog()

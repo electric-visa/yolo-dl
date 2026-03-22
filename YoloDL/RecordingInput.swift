@@ -16,6 +16,16 @@ import Foundation
     var durationMinutes: Int = 0
 
     var totalMinutes: Int { durationHours * 60 + durationMinutes }
+    var hasInvalidDuration: Bool { totalMinutes < 0 }
+
+    func normalize() {
+        if durationMinutes < 0 { durationMinutes = 0 }
+        if durationHours < 0 { durationHours = 0 }
+        if durationMinutes >= 60 {
+            durationHours += durationMinutes / 60
+            durationMinutes = durationMinutes % 60
+        }
+    }
 
     func prefillStream(url: String) {
         recordSource = .streamURL

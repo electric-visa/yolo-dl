@@ -47,6 +47,10 @@ struct ContentView: View {
             downloader.stop(for: appMode)
         } else {
             if appMode == .record {
+                if recordingInput.totalMinutes >= 360 {
+                    downloader.showLongRecordingAlert = true
+                    return
+                }
                 downloader.startRecordingFrom(recordingInput, downloadLocation: downloadLocation)
             } else {
                 await downloader.downloadFiles(downloadLocation: downloadLocation, fileNamingPattern: namingPreset == .custom ? customNamingTemplate : namingPreset.rawValue, namingPreset: namingPreset, appMode: appMode)
@@ -132,6 +136,8 @@ struct ContentView: View {
                     }
                 }
                 .buttonStyle(.borderedProminent)
+                .disabled(appMode == .record && !downloader.isActive && recordingInput.hasInvalidDuration)
+                .help(appMode == .record && recordingInput.hasInvalidDuration ? "Duration can't be negative" : "")
                 Button("Choose Folder") {
                     chooseFolder()
                 }
@@ -248,16 +254,16 @@ struct ContentView: View {
             Text("A file with this name already exists. If you continue, it will be overwritten.")
         }
         .confirmationDialog(
-            downloader.quitConfirmationTitle,
-            isPresented: $downloader.showQuitConfirmation,
+            "Long recording",
+            isPresented: $downloader.showLongRecordingAlert,
             titleVisibility: .visible
         ) {
-            Button("Quit", role: .destructive) {
-                NSApplication.shared.terminate(nil)
+            Button("Record") {
+                downloader.startRecordingFrom(recordingInput, downloadLocation: downloadLocation)
             }
             Button("Cancel", role: .cancel) { }
         } message: {
-            Text(downloader.quitConfirmationMessage)
+            Text("Recording for \(DurationFormatter.format(minutes: recordingInput.totalMinutes)) could produce a large file. Make sure you have enough free disk space.")
         }
         .sheet(isPresented: Binding(
             get: { !hasSeenWelcome },

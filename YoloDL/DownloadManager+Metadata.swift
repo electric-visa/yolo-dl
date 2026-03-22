@@ -34,8 +34,6 @@ import Foundation
         }
 
         return await withCheckedContinuation { continuation in
-            nonisolated(unsafe) var hasResumed = false
-
             metadataParsing.terminationHandler = { _ in
                 stdoutPipe.fileHandleForReading.readabilityHandler = nil
                 stderrPipe.fileHandleForReading.readabilityHandler = nil
@@ -56,8 +54,6 @@ import Foundation
                             self.showError(title: "Metadata error", text: "Failed to read metadata from yle-dl. The content may not be available.")
                         }
                     }
-                    guard !hasResumed else { return }
-                    hasResumed = true
                     continuation.resume(returning: episodes)
                 }
             }
@@ -74,8 +70,6 @@ import Foundation
                         self.showError(title: "Metadata error", text: "Metadata error Details: \(error.localizedDescription)")
                     }
                 }
-                guard !hasResumed else { return }
-                hasResumed = true
                 continuation.resume(returning: nil)
             }
         }
