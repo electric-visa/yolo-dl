@@ -67,6 +67,11 @@ struct SettingsView: View {
                     showAdvancedSection = false
                 }
                 .foregroundStyle(.secondary)
+
+                Button("Reset Indefinite Recording Warning") {
+                    UserDefaults.standard.set(false, forKey: "hasAcceptedIndefiniteRecording")
+                }
+                .foregroundStyle(.secondary)
             }
 
             Button(showAdvancedSection ? "Hide Advanced Options" : "Advanced Options") {

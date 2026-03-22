@@ -12,6 +12,7 @@ import Foundation
     var recordSource: RecordSource = .streamURL
     var selectedChannel: TVChannel = .tv1
     var streamURL: String = ""
+    var useTimeLimit: Bool = true
     var durationHours: Int = 0
     var durationMinutes: Int = 0
 

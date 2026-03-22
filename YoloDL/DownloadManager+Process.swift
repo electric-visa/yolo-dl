@@ -297,7 +297,7 @@ import Foundation
             source: source,
             downloadLocation: downloadLocation,
             recordSource: input.recordSource,
-            duration: input.totalMinutes > 0 ? input.totalMinutes * 60 : nil
+            duration: input.useTimeLimit && input.totalMinutes > 0 ? input.totalMinutes * 60 : nil
         )
     }
 

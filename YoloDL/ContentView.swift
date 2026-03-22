@@ -47,6 +47,9 @@ struct ContentView: View {
             downloader.stop(for: appMode)
         } else {
             if appMode == .record {
+                if !recordingInput.useTimeLimit {
+                    guard IndefiniteRecordingAlert.confirm() else { return }
+                }
                 if recordingInput.totalMinutes >= 360 {
                     downloader.showLongRecordingAlert = true
                     return
@@ -136,8 +139,8 @@ struct ContentView: View {
                     }
                 }
                 .buttonStyle(.borderedProminent)
-                .disabled(appMode == .record && !downloader.isActive && recordingInput.hasInvalidDuration)
-                .help(appMode == .record && recordingInput.hasInvalidDuration ? "Duration can't be negative" : "")
+                .disabled(appMode == .record && !downloader.isActive && (recordingInput.hasInvalidDuration || (recordingInput.useTimeLimit && recordingInput.totalMinutes == 0)))
+                .help(appMode == .record && recordingInput.hasInvalidDuration ? "Duration can't be negative" : appMode == .record && recordingInput.useTimeLimit && recordingInput.totalMinutes == 0 ? "Minimum recording duration is 1 minute" : "")
                 Button("Choose Folder") {
                     chooseFolder()
                 }
