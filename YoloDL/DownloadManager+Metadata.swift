@@ -44,31 +44,22 @@ import Foundation
                 stderrAccumulator.append(stderrPipe.fileHandleForReading.readDataToEndOfFile())
 
                 let rawErrorString = stderrAccumulator.string
+                let episodes = try? JSONDecoder().decode([EpisodeMetadata].self, from: stdoutAccumulator.data)
 
                 Task { @MainActor in
                     if !self.isCancelled {
                         self.logger.appendLog(rawErrorString, from: .stderr)
                         if let errorMessage = self.errorParser.parseErrors(rawErrorString) {
                             self.showError(title: "Metadata error", text: errorMessage)
-                        }
-                    }
-                }
-
-                var episodes: [EpisodeMetadata]? = nil
-                do {
-                    episodes = try JSONDecoder().decode([EpisodeMetadata].self, from: stdoutAccumulator.data)
-                } catch {
-                    Task { @MainActor in
-                        self.logger.appendLog("Metadata decode failed: \(error.localizedDescription)", from: .stderr)
-                        if !self.isCancelled {
+                        } else if episodes == nil {
+                            self.logger.appendLog("Metadata decode failed: no valid JSON in stdout", from: .stderr)
                             self.showError(title: "Metadata error", text: "Failed to read metadata from yle-dl. The content may not be available.")
                         }
                     }
+                    guard !hasResumed else { return }
+                    hasResumed = true
+                    continuation.resume(returning: episodes)
                 }
-
-                guard !hasResumed else { return }
-                hasResumed = true
-                continuation.resume(returning: episodes)
             }
 
             do {
