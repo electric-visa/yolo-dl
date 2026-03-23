@@ -8,14 +8,14 @@
 import SwiftUI
 
 struct SettingsView: View {
-    @AppStorage("fileFormat") private var fileFormat: FileFormat = .mp4
-    @AppStorage("subtitleLanguage") private var subtitleLanguage: SubtitleLanguage = .finnish
-    @AppStorage("maxBitrate") private var qualityPreset: QualityPreset = .best
-    @AppStorage("updateCheckFrequency") private var updateCheckFrequency: UpdateCheckFrequency = .daily
-    @AppStorage("customNamingTemplate") private var customNamingTemplate: String = ""
-    @AppStorage("rateLimit") private var rateLimit: String = ""
-    @AppStorage("customFlags") private var customFlags: String = ""
-    @AppStorage("hasAcceptedAdvancedDisclaimer") private var hasAcceptedDisclaimer: Bool = false
+    @AppStorage(StorageKeys.fileFormat) private var fileFormat: FileFormat = .mp4
+    @AppStorage(StorageKeys.subtitleLanguage) private var subtitleLanguage: SubtitleLanguage = .finnish
+    @AppStorage(StorageKeys.maxBitrate) private var qualityPreset: QualityPreset = .best
+    @AppStorage(StorageKeys.updateCheckFrequency) private var updateCheckFrequency: UpdateCheckFrequency = .daily
+    @AppStorage(StorageKeys.customNamingTemplate) private var customNamingTemplate: String = ""
+    @AppStorage(StorageKeys.rateLimit) private var rateLimit: String = ""
+    @AppStorage(StorageKeys.customFlags) private var customFlags: String = ""
+    @AppStorage(StorageKeys.hasAcceptedAdvancedDisclaimer) private var hasAcceptedDisclaimer: Bool = false
     @State private var showAdvancedSection: Bool = false
     @State private var showDisclaimerAlert: Bool = false
 
@@ -69,7 +69,7 @@ struct SettingsView: View {
                 .foregroundStyle(.secondary)
 
                 Button("Reset Indefinite Recording Warning") {
-                    UserDefaults.standard.set(false, forKey: "hasAcceptedIndefiniteRecording")
+                    UserDefaults.standard.set(false, forKey: StorageKeys.hasAcceptedIndefiniteRecording)
                 }
                 .foregroundStyle(.secondary)
             }

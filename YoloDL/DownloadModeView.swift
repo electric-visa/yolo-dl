@@ -10,7 +10,7 @@ struct DownloadModeView: View {
     
     @Environment(DownloadManager.self) private var downloader
     
-    @AppStorage("namingTemplate") private var namingPreset: NamingPreset = .seriesDateTitle
+    @AppStorage(StorageKeys.namingTemplate) private var namingPreset: NamingPreset = .seriesDateTitle
     
     var body: some View {
         @Bindable var downloader = downloader

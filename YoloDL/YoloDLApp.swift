@@ -15,10 +15,10 @@ struct YoloDLApp: App {
     @State private var showNoUpdate = false
     @State private var showUpdateCheckFailed = false
 
-    @AppStorage("appMode") private var appMode: AppMode = .download
-    @AppStorage("lastFolder") private var downloadLocation: String = ""
-    @AppStorage("namingTemplate") private var namingPreset: NamingPreset = .seriesDateTitle
-    @AppStorage("customNamingTemplate") private var customNamingTemplate: String = ""
+    @AppStorage(StorageKeys.appMode) private var appMode: AppMode = .download
+    @AppStorage(StorageKeys.lastFolder) private var downloadLocation: String = ""
+    @AppStorage(StorageKeys.namingTemplate) private var namingPreset: NamingPreset = .seriesDateTitle
+    @AppStorage(StorageKeys.customNamingTemplate) private var customNamingTemplate: String = ""
 
     @Environment(\.openWindow) private var openWindow
 

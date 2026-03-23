@@ -10,7 +10,7 @@ import AppKit
 enum IndefiniteRecordingAlert {
 
     static func confirm() -> Bool {
-        if UserDefaults.standard.bool(forKey: "hasAcceptedIndefiniteRecording") {
+        if UserDefaults.standard.bool(forKey: StorageKeys.hasAcceptedIndefiniteRecording) {
             return true
         }
 
@@ -27,7 +27,7 @@ enum IndefiniteRecordingAlert {
         guard response == .alertFirstButtonReturn else { return false }
 
         if alert.suppressionButton?.state == .on {
-            UserDefaults.standard.set(true, forKey: "hasAcceptedIndefiniteRecording")
+            UserDefaults.standard.set(true, forKey: StorageKeys.hasAcceptedIndefiniteRecording)
         }
         return true
     }

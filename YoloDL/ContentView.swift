@@ -22,13 +22,13 @@ struct ContentView: View {
 
     // MARK: - User preferences
     // App mode selection
-    @AppStorage("appMode") private var appMode: AppMode = .download
+    @AppStorage(StorageKeys.appMode) private var appMode: AppMode = .download
 
     // AppStorage properties for storing user selections
-    @AppStorage("lastFolder") private var downloadLocation: String = ""
-    @AppStorage("namingTemplate") private var namingPreset: NamingPreset = .seriesDateTitle
-    @AppStorage("customNamingTemplate") private var customNamingTemplate: String = ""
-    @AppStorage("hasSeenWelcome") private var hasSeenWelcome: Bool = false
+    @AppStorage(StorageKeys.lastFolder) private var downloadLocation: String = ""
+    @AppStorage(StorageKeys.namingTemplate) private var namingPreset: NamingPreset = .seriesDateTitle
+    @AppStorage(StorageKeys.customNamingTemplate) private var customNamingTemplate: String = ""
+    @AppStorage(StorageKeys.hasSeenWelcome) private var hasSeenWelcome: Bool = false
 
     // MARK: - Local state
     @State private var updateResult: UpdateResult?
@@ -187,10 +187,10 @@ struct ContentView: View {
 #endif
         .task {
             let frequency = UpdateCheckFrequency(
-                rawValue: UserDefaults.standard.string(forKey: "updateCheckFrequency") ?? "daily"
+                rawValue: UserDefaults.standard.string(forKey: StorageKeys.updateCheckFrequency) ?? "daily"
             ) ?? .daily
             guard let interval = frequency.intervalSeconds else { return }
-            let lastCheck = UserDefaults.standard.double(forKey: "lastUpdateCheck")
+            let lastCheck = UserDefaults.standard.double(forKey: StorageKeys.lastUpdateCheck)
             let now = Date.timeIntervalSinceReferenceDate
             guard now - lastCheck >= interval else { return }
 
@@ -198,7 +198,7 @@ struct ContentView: View {
                 updateResult = result
                 showUpdateAvailable = true
             }
-            UserDefaults.standard.set(now, forKey: "lastUpdateCheck")
+            UserDefaults.standard.set(now, forKey: StorageKeys.lastUpdateCheck)
         }
 
         .navigationTitle("YOLO-DL \(appVersion)")

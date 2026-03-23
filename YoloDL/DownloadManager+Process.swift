@@ -180,10 +180,10 @@ import Foundation
             sourceURL
         ]
 
-        let sublang = UserDefaults.standard.string(forKey: "subtitleLanguage") ?? SubtitleLanguage.finnish.rawValue
+        let sublang = UserDefaults.standard.string(forKey: StorageKeys.subtitleLanguage) ?? SubtitleLanguage.finnish.rawValue
         arguments += ["--sublang", sublang]
-        
-        let fileFormat = UserDefaults.standard.string(forKey: "fileFormat") ?? FileFormat.mp4.rawValue
+
+        let fileFormat = UserDefaults.standard.string(forKey: StorageKeys.fileFormat) ?? FileFormat.mp4.rawValue
         arguments += ["--preferformat", fileFormat]
 
         appendAdvancedArguments(to: &arguments)
@@ -214,17 +214,17 @@ import Foundation
     }
 
     private func appendAdvancedArguments(to arguments: inout [String]) {
-        let quality = UserDefaults.standard.string(forKey: "maxBitrate") ?? QualityPreset.best.rawValue
+        let quality = UserDefaults.standard.string(forKey: StorageKeys.maxBitrate) ?? QualityPreset.best.rawValue
         if quality != QualityPreset.best.rawValue {
             arguments += ["--maxbitrate", quality]
         }
 
-        let rateLimit = UserDefaults.standard.string(forKey: "rateLimit") ?? ""
+        let rateLimit = UserDefaults.standard.string(forKey: StorageKeys.rateLimit) ?? ""
         if !rateLimit.isEmpty {
             arguments += ["--ratelimit", rateLimit]
         }
 
-        let customFlags = UserDefaults.standard.string(forKey: "customFlags") ?? ""
+        let customFlags = UserDefaults.standard.string(forKey: StorageKeys.customFlags) ?? ""
         if !customFlags.isEmpty {
             let flags = customFlags.split(separator: " ").map(String.init)
             arguments += flags
@@ -257,10 +257,10 @@ import Foundation
             arguments += ["--duration", String(duration)]
         }
 
-        let sublang = UserDefaults.standard.string(forKey: "subtitleLanguage") ?? SubtitleLanguage.finnish.rawValue
+        let sublang = UserDefaults.standard.string(forKey: StorageKeys.subtitleLanguage) ?? SubtitleLanguage.finnish.rawValue
         arguments += ["--sublang", sublang]
-        
-        let fileFormat = UserDefaults.standard.string(forKey: "fileFormat") ?? FileFormat.mp4.rawValue
+
+        let fileFormat = UserDefaults.standard.string(forKey: StorageKeys.fileFormat) ?? FileFormat.mp4.rawValue
         arguments += ["--preferformat", fileFormat]
 
         appendAdvancedArguments(to: &arguments)
