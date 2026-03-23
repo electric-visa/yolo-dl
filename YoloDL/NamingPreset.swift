@@ -11,6 +11,10 @@ enum NamingPreset: String, CaseIterable {
     case titleOnly = "${title}"
     case custom = ""
     
+    func resolvedPattern(custom: String) -> String {
+        self == .custom ? custom : self.rawValue
+    }
+
     var label: String {
         
         switch self {

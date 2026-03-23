@@ -56,7 +56,7 @@ struct ContentView: View {
                 }
                 downloader.startRecordingFrom(recordingInput, downloadLocation: downloadLocation)
             } else {
-                await downloader.downloadFiles(downloadLocation: downloadLocation, fileNamingPattern: namingPreset == .custom ? customNamingTemplate : namingPreset.rawValue, namingPreset: namingPreset, appMode: appMode)
+                await downloader.downloadFiles(downloadLocation: downloadLocation, fileNamingPattern: namingPreset.resolvedPattern(custom: customNamingTemplate), namingPreset: namingPreset, appMode: appMode)
                 if !FileManager.default.fileExists(atPath: downloadLocation) {
                     downloadLocation = ""
                 }

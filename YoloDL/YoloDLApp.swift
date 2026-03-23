@@ -80,7 +80,7 @@ struct YoloDLApp: App {
                     Task {
                         await downloadManager.downloadFiles(
                             downloadLocation: downloadLocation,
-                            fileNamingPattern: namingPreset == .custom ? customNamingTemplate : namingPreset.rawValue,
+                            fileNamingPattern: namingPreset.resolvedPattern(custom: customNamingTemplate),
                             namingPreset: namingPreset,
                             appMode: appMode
                         )
@@ -93,6 +93,13 @@ struct YoloDLApp: App {
                 .disabled(downloadManager.isActive || appMode != .download)
 
                 Button("Record") {
+                    if !recordingInput.useTimeLimit {
+                        guard IndefiniteRecordingAlert.confirm() else { return }
+                    }
+                    if recordingInput.totalMinutes >= 360 {
+                        downloadManager.showLongRecordingAlert = true
+                        return
+                    }
                     downloadManager.startRecordingFrom(recordingInput, downloadLocation: downloadLocation)
                 }
                 .keyboardShortcut("r")
