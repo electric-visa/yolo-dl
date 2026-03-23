@@ -49,6 +49,18 @@ struct ProgressBarView: View {
             .opacity(visible ? 1.0 : 0.0)
     }
 
+    private var shimmerShouldAnimate: Bool {
+        isActive && !showsIndeterminateProgress && !reduceMotion
+    }
+
+    private var accessibilityProgressValue: String {
+        if isFinished { return "Complete" }
+        if showsIndeterminateProgress && appState == .recording { return "Recording" }
+        if showsIndeterminateProgress { return "In progress" }
+        if isActive { return "\(Int(progress * 100)) percent" }
+        return "Idle"
+    }
+
     private var stateLabel: String? {
         if isFinished { return "Done" }
         if appState == .downloading { return "Downloading" }
@@ -99,32 +111,33 @@ struct ProgressBarView: View {
                 )
             }
             .overlay {
-                TimelineView(.animation) { timeline in
-                    Canvas { context, size in
-                        let stripeWidth: CGFloat = 10
-                        let spacing: CGFloat = 10
-                        let step = stripeWidth + spacing
-                        let cycleLength: CGFloat = 20.0
-                        let elapsed = timeline.date.timeIntervalSinceReferenceDate
-                        let offset: CGFloat = reduceMotion ? 0 : CGFloat(elapsed.truncatingRemainder(dividingBy: 0.7)) / 0.7 * cycleLength
+                if showsIndeterminateProgress {
+                    TimelineView(.animation) { timeline in
+                        Canvas { context, size in
+                            let stripeWidth: CGFloat = 10
+                            let spacing: CGFloat = 10
+                            let step = stripeWidth + spacing
+                            let cycleLength: CGFloat = 20.0
+                            let elapsed = timeline.date.timeIntervalSinceReferenceDate
+                            let offset: CGFloat = reduceMotion ? 0 : CGFloat(elapsed.truncatingRemainder(dividingBy: 0.7)) / 0.7 * cycleLength
 
-                        let diagonal = size.width + size.height
-                        var x = -diagonal + offset
-                        while x < diagonal {
-                            var path = Path()
-                            path.move(to: CGPoint(x: x, y: size.height))
-                            path.addLine(to: CGPoint(x: x + stripeWidth, y: size.height))
-                            path.addLine(to: CGPoint(x: x + size.height + stripeWidth, y: 0))
-                            path.addLine(to: CGPoint(x: x + size.height, y: 0))
-                            path.closeSubpath()
-                            context.fill(path, with: .color(.white.opacity(Style.stripeOpacity)))
-                            x += step
+                            let diagonal = size.width + size.height
+                            var x = -diagonal + offset
+                            while x < diagonal {
+                                var path = Path()
+                                path.move(to: CGPoint(x: x, y: size.height))
+                                path.addLine(to: CGPoint(x: x + stripeWidth, y: size.height))
+                                path.addLine(to: CGPoint(x: x + size.height + stripeWidth, y: 0))
+                                path.addLine(to: CGPoint(x: x + size.height, y: 0))
+                                path.closeSubpath()
+                                context.fill(path, with: .color(.white.opacity(Style.stripeOpacity)))
+                                x += step
+                            }
                         }
                     }
+                    .frame(height: Style.barHeight)
+                    .blendMode(.screen)
                 }
-                .frame(height: Style.barHeight)
-                .blendMode(.screen)
-                .opacity(showsIndeterminateProgress ? 1.0 : 0.0)
             }
             .overlay(alignment: .trailing) {
                 Group {
@@ -155,13 +168,20 @@ struct ProgressBarView: View {
                 }
             }
             .clipped()
+            .accessibilityElement(children: .ignore)
+            .accessibilityLabel("Progress")
+            .accessibilityValue(accessibilityProgressValue)
             .animation(reduceMotion ? nil : .easeInOut(duration: Style.animationSpeed), value: progress)
             .animation(reduceMotion ? nil : .easeInOut(duration: Style.animationSpeed), value: isFinished)
             .animation(reduceMotion ? nil : .easeInOut(duration: Style.animationSpeed), value: showsIndeterminateProgress)
-            .onAppear {
-                if !reduceMotion {
+            .onChange(of: shimmerShouldAnimate, initial: true) { _, shouldAnimate in
+                if shouldAnimate {
                     withAnimation(.linear(duration: 2).repeatForever(autoreverses: false)) {
                         shimmerOffset = 2.0
+                    }
+                } else {
+                    withAnimation(nil) {
+                        shimmerOffset = -1.0
                     }
                 }
             }
