@@ -16,15 +16,15 @@ struct DownloadModeView: View {
         @Bindable var downloader = downloader
         
         VStack(spacing: 8) {
+            TextField("Enter source URL", text: $downloader.sourceURL)
+                .disabled(downloader.isActive)
+                .accessibilityLabel("Source URL")
+
             Picker("File naming", selection: $namingPreset) {
                 ForEach(NamingPreset.allCases, id: \.self) { preset in
                     Text(preset.label)
                 }
             }
-
-            TextField("Enter source URL", text: $downloader.sourceURL)
-                .disabled(downloader.isActive)
-                .accessibilityLabel("Source URL")
         }
         .frame(maxWidth: .infinity, alignment: .center)
     }

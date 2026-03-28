@@ -13,14 +13,6 @@ struct RecordModeView: View {
     var body: some View {
         @Bindable var recordingInput = recordingInput
         VStack(spacing: 8) {
-            Picker("Source", selection: $recordingInput.recordSource) {
-                ForEach(RecordSource.allCases, id: \.self) { source in
-                    Text(source.label)
-                }
-            }
-            .pickerStyle(.segmented)
-            .labelsHidden()
-
             switch recordingInput.recordSource {
             case .tvChannel:
                 Picker("Channel", selection: $recordingInput.selectedChannel) {
