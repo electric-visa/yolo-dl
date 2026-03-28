@@ -202,11 +202,17 @@ struct ContentView: View {
 
         .alert(
             downloader.alertToShow?.title ?? "Error",
-            isPresented: $downloader.isShowingAlert
-        ) {
-
-        } message: {
-            Text(downloader.alertToShow?.text ?? "")
+            isPresented: $downloader.isShowingAlert,
+            presenting: downloader.alertToShow
+        ) { _ in
+            // default OK button
+        } message: { alert in
+            Text(alert.text)
+        }
+        .onChange(of: downloader.alertToShow) {
+            if downloader.alertToShow == nil && downloader.appState == .error {
+                downloader.appState = .ready
+            }
         }
         .alert("Update available", isPresented: $showUpdateAvailable) {
             Button("Download") {

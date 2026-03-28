@@ -27,7 +27,7 @@ extension DownloadManager {
             while progress < 1.0 && !Task.isCancelled {
                 try? await Task.sleep(for: .milliseconds(80))
                 guard !Task.isCancelled else { break }
-                setDownloadProgress(to: progress + 0.01)
+                progress += 0.01
 
                 let simulatedMB = progress * 500.0
                 if simulatedMB >= 1000 {
@@ -79,7 +79,7 @@ extension DownloadManager {
                 flavors: [EpisodeMetadata.Flavor(url: "https://example.com/live/test-stream")]
             )
         ]
-        setPendingState(PendingDownload(metadata: mockMetadata, downloadLocation: "tmp/test", fileNamingPattern: "test-pattern", existingFilePath: nil))
+        pendingDownload = PendingDownload(metadata: mockMetadata, downloadLocation: "tmp/test", fileNamingPattern: "test-pattern", existingFilePath: nil)
         totalDuration = mockMetadata.reduce(0) { $0 + ($1.durationSeconds ?? 0) }
 
         showLiveContentAlert = true
@@ -97,7 +97,7 @@ extension DownloadManager {
                 flavors: [EpisodeMetadata.Flavor(url: "Test URL")]
             )
         ]
-        setPendingState(PendingDownload(metadata: mockMetadata, downloadLocation: "tmp/test", fileNamingPattern: "test-pattern", existingFilePath: nil))
+        pendingDownload = PendingDownload(metadata: mockMetadata, downloadLocation: "tmp/test", fileNamingPattern: "test-pattern", existingFilePath: nil)
         totalDuration = mockMetadata.reduce(0) { $0 + ($1.durationSeconds ?? 0) }
 
         showFileExistsDialog = true

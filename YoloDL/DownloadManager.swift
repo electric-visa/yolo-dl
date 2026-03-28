@@ -68,14 +68,9 @@ enum ResetDisposition {
     var appState: AppState = .ready
     var pendingDownload: PendingDownload? = nil
 
-    // MARK: - Computed properties
-
     var isShowingAlert: Bool {
         get { alertToShow != nil }
-        set { if !newValue {
-            alertToShow = nil
-            if appState == .error { appState = .ready }
-        }}
+        set { if !newValue { alertToShow = nil } }
     }
 
     func validateInputs(downloadLocation: String) -> Bool {
@@ -225,11 +220,4 @@ enum ResetDisposition {
 #endif
     }
 
-    func setPendingState(_ download: PendingDownload) {
-        pendingDownload = download
-    }
-
-    func setDownloadProgress(to value: Double) {
-        progress = value
-    }
 }

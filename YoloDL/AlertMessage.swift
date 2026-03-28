@@ -8,7 +8,7 @@
 
 import Foundation
 
-struct AlertMessage: Identifiable {
+struct AlertMessage: Identifiable, Equatable {
     
     let id = UUID()
     let title: String
