@@ -3,7 +3,7 @@
 //  YoloDL
 //
 
-enum UpdateCheckResult {
+enum UpdateCheckResult: Sendable {
     case available(UpdateResult)
     case upToDate
     case failed

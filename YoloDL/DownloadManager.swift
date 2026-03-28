@@ -64,7 +64,7 @@ import Foundation
     var currentFileSize: String = ""
     var recordingElapsedSeconds: Int = 0
     var recordingDurationSeconds: Int? = nil
-    var recordingTimerTask: Task<Void, any Error>?
+    var recordingTimerTask: Task<Void, Never>?
     var alertToShow: AlertMessage? = nil
     var appState: AppState = .ready
     var pendingDownload: PendingDownload? = nil

@@ -5,7 +5,7 @@
 
 import Foundation
 
-struct UpdateResult {
+struct UpdateResult: Sendable {
     let version: String
     let url: URL
 }

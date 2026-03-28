@@ -8,7 +8,7 @@
 
 import Foundation
 
-struct EpisodeMetadata: Codable {
+struct EpisodeMetadata: Codable, Sendable {
     let durationSeconds: Int?
     let title: String
     let episodeTitle: String
@@ -54,7 +54,7 @@ struct EpisodeMetadata: Codable {
         }
     }
     
-    struct Flavor: Codable {
+    struct Flavor: Codable, Sendable {
         let url: String
     }
     

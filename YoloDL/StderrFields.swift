@@ -5,7 +5,7 @@
 // Value type that parses a single ffmpeg stderr progress line intos tructured fields.
 // Consumed by DownloadManager+Process to drive the progress bar.
 
-struct StderrFields {
+struct StderrFields: Sendable {
     var progress: Double?
     var fileSize: String?
     var elapsed: String?

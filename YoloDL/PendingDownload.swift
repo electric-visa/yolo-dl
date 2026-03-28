@@ -3,7 +3,7 @@
 
 import Foundation
 
-struct PendingDownload {
+struct PendingDownload: Sendable {
     let metadata: [EpisodeMetadata]
     let downloadLocation: String
     let fileNamingPattern: String

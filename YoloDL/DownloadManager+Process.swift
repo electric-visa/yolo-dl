@@ -242,7 +242,8 @@ import Foundation
         if let duration {
             recordingDurationSeconds = duration
             recordingTimerTask = Task {
-                try await Task.sleep(for: .seconds(duration))
+                try? await Task.sleep(for: .seconds(duration))
+                guard !Task.isCancelled else { return }
                 stopRecording()
             }
         }

@@ -9,9 +9,9 @@
 
 import Foundation
 
-struct LogEntry: Identifiable {
+struct LogEntry: Identifiable, Sendable {
 
-    enum LogSource {
+    enum LogSource: Sendable {
         case stdout
         case stderr
     }
