@@ -15,7 +15,7 @@ struct RecordModeView: View {
         VStack(spacing: 8) {
             Picker("Source", selection: $recordingInput.recordSource) {
                 ForEach(RecordSource.allCases, id: \.self) { source in
-                    Text(source.label).tag(source)
+                    Text(source.label)
                 }
             }
             .pickerStyle(.segmented)
@@ -25,7 +25,7 @@ struct RecordModeView: View {
             case .tvChannel:
                 Picker("Channel", selection: $recordingInput.selectedChannel) {
                     ForEach(TVChannel.allCases, id: \.self) { channel in
-                        Text(channel.label).tag(channel)
+                        Text(channel.label)
                     }
                 }
 

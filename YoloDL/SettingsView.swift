@@ -23,26 +23,26 @@ struct SettingsView: View {
         Form {
             Picker("Format", selection: $fileFormat) {
                 ForEach(FileFormat.allCases, id: \.self) { format in
-                    Text(format.label).tag(format)
+                    Text(format.label)
                 }
             }
 
             Picker("Subtitles", selection: $subtitleLanguage) {
                 ForEach(SubtitleLanguage.allCases, id: \.self) { lang in
-                    Text(lang.label).tag(lang)
+                    Text(lang.label)
                 }
             }
 
             Picker("Check for updates", selection: $updateCheckFrequency) {
                 ForEach(UpdateCheckFrequency.allCases, id: \.self) { freq in
-                    Text(freq.label).tag(freq)
+                    Text(freq.label)
                 }
             }
 
             if showAdvancedSection {
                 Picker("Quality", selection: $qualityPreset) {
                     ForEach(QualityPreset.allCases, id: \.self) { preset in
-                        Text(preset.label).tag(preset)
+                        Text(preset.label)
                     }
                 }
 

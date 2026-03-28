@@ -107,7 +107,7 @@ struct ContentView: View {
             Spacer()
             Picker("Mode", selection: $appMode) {
                 ForEach(AppMode.allCases, id: \.self) { mode in
-                    Text(mode.label).tag(mode)
+                    Text(mode.label)
                 }
             }
             .pickerStyle(.segmented)
@@ -271,10 +271,9 @@ struct ContentView: View {
         } message: {
             Text("Recording for \(DurationFormatter.format(minutes: recordingInput.totalMinutes)) could produce a large file. Make sure you have enough free disk space.")
         }
-        .sheet(isPresented: Binding(
-            get: { !hasSeenWelcome },
-            set: { hasSeenWelcome = !$0 }
-        )) {
+        .sheet(isPresented: .constant(!hasSeenWelcome), onDismiss: {
+            hasSeenWelcome = true
+        }) {
             WelcomeView()
         }
         .padding(EdgeInsets(top: 16, leading: 20, bottom: 28, trailing: 20))

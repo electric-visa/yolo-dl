@@ -18,7 +18,7 @@ struct DownloadModeView: View {
         VStack(spacing: 8) {
             Picker("File naming", selection: $namingPreset) {
                 ForEach(NamingPreset.allCases, id: \.self) { preset in
-                    Text(preset.label).tag(preset)
+                    Text(preset.label)
                 }
             }
             .labelsHidden()

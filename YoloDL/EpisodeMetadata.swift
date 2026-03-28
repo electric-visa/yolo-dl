@@ -75,9 +75,9 @@ struct EpisodeMetadata: Codable {
     
     enum CodingKeys: String, CodingKey {
         case durationSeconds = "duration_seconds"
-        case title = "title"
+        case title
         case episodeTitle = "episode_title"
         case publishedTimestamp = "publish_timestamp"
-        case flavors = "flavors"
+        case flavors
     }
 }

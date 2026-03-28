@@ -13,23 +13,17 @@ enum TVChannel: String, CaseIterable {
     
     var label: String {
         switch self {
-        case .tv1:
-            return "Yle TV1"
-        case .tv2:
-            return "Yle TV2"
-        case .teemaFem:
-            return "Yle Teema & Fem"
+        case .tv1: "Yle TV1"
+        case .tv2: "Yle TV2"
+        case .teemaFem: "Yle Teema & Fem"
         }
     }
-    
+
     var keyword: String {
         switch self {
-        case .tv1:
-            return "tv1"
-        case .tv2:
-            return "tv2"
-        case .teemaFem:
-            return "teema"
+        case .tv1: "tv1"
+        case .tv2: "tv2"
+        case .teemaFem: "teema"
         }
     }
 }
