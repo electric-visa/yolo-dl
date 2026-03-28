@@ -74,7 +74,7 @@ struct ContentView: View {
     var downloadInfoText: String {
         guard downloadInfoVisible else { return " " }
         let parts: [String] = [
-            downloader.recordingFileSize.isEmpty ? nil : downloader.recordingFileSize,
+            downloader.currentFileSize.isEmpty ? nil : downloader.currentFileSize,
             downloader.timeRemaining.map {
                 let estimate = DurationFormatter.formatEstimate(seconds: $0)
                 return estimate == "Almost done" ? estimate : estimate + " remaining"
@@ -85,13 +85,13 @@ struct ContentView: View {
 
     private var recordingInfoVisible: Bool {
         appMode == .record &&
-            (!downloader.recordingElapsed.isEmpty || !downloader.recordingFileSize.isEmpty)
+            (!downloader.recordingElapsed.isEmpty || !downloader.currentFileSize.isEmpty)
     }
 
     var recordingInfoText: String {
         guard recordingInfoVisible else { return " " }
         let elapsed = downloader.recordingElapsed
-        let fileSize = downloader.recordingFileSize
+        let fileSize = downloader.currentFileSize
         if let totalSeconds = downloader.recordingDurationSeconds {
             let remaining = max(0, totalSeconds - downloader.recordingElapsedSeconds)
             return "\(elapsed) · \(fileSize) — stops in \(DurationFormatter.formatCountdown(seconds: remaining))"

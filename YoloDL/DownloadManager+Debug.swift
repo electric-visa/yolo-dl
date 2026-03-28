@@ -31,9 +31,9 @@ extension DownloadManager {
 
                 let simulatedMB = progress * 500.0
                 if simulatedMB >= 1000 {
-                    recordingFileSize = String(format: "%.1f GB", simulatedMB / 1000)
+                    currentFileSize = String(format: "%.1f GB", simulatedMB / 1000)
                 } else {
-                    recordingFileSize = String(format: "%.1f MB", simulatedMB)
+                    currentFileSize = String(format: "%.1f MB", simulatedMB)
                 }
 
                 let speed = 25.0 + Double.random(in: -3.0...3.0)

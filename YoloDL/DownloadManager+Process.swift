@@ -191,7 +191,7 @@ import Foundation
                     self.progress = progress
                 }
                 if let fileSize = fields.fileSize {
-                    self.recordingFileSize = fileSize
+                    self.currentFileSize = fileSize
                 }
                 if let speed = fields.speed {
                     self.recentSpeeds.append(speed)
@@ -273,7 +273,7 @@ import Foundation
                     self.recordingElapsedSeconds = elapsedSeconds
                 }
                 if let fileSize = fields.fileSize {
-                    self.recordingFileSize = fileSize
+                    self.currentFileSize = fileSize
                 }
             },
             onTermination: {

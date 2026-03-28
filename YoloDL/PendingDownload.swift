@@ -4,8 +4,8 @@
 import Foundation
 
 struct PendingDownload {
-    var metadata: [EpisodeMetadata]
-    var downloadLocation: String
-    var fileNamingPattern: String
-    var existingFilePath: String?
+    let metadata: [EpisodeMetadata]
+    let downloadLocation: String
+    let fileNamingPattern: String
+    let existingFilePath: String?
 }

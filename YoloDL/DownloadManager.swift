@@ -9,13 +9,14 @@
 
 import Foundation
 
-enum ResetDisposition {
-    case starting
-    case finished
-    case cancelled
-}
-
 @MainActor @Observable class DownloadManager {
+
+    enum ResetDisposition {
+        case starting
+        case finished
+        case cancelled
+    }
+
 
 #if DEBUG
     // Debug-only; written by +Debug extension
@@ -60,7 +61,7 @@ enum ResetDisposition {
     var progress: Double = 0
     var recentSpeeds: [Double] = []
     var recordingElapsed: String = ""
-    var recordingFileSize: String = ""
+    var currentFileSize: String = ""
     var recordingElapsedSeconds: Int = 0
     var recordingDurationSeconds: Int? = nil
     var recordingTimerTask: Task<Void, any Error>?
@@ -89,7 +90,7 @@ enum ResetDisposition {
             recordingElapsed = ""
             recordingElapsedSeconds = 0
             recordingDurationSeconds = nil
-            recordingFileSize = ""
+            currentFileSize = ""
             recentSpeeds = []
             logger.clearLog()
 
@@ -97,7 +98,7 @@ enum ResetDisposition {
             progress = 1.0
             isActive = false
             isFinished = true
-            recordingFileSize = ""
+            currentFileSize = ""
             recentSpeeds = []
             appState = .finished
 
