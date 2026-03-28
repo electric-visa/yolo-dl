@@ -180,12 +180,6 @@ import Foundation
             sourceURL
         ]
 
-        let sublang = UserDefaults.standard.string(forKey: StorageKeys.subtitleLanguage) ?? SubtitleLanguage.finnish.rawValue
-        arguments += ["--sublang", sublang]
-
-        let fileFormat = UserDefaults.standard.string(forKey: StorageKeys.fileFormat) ?? FileFormat.mp4.rawValue
-        arguments += ["--preferformat", fileFormat]
-
         appendAdvancedArguments(to: &arguments)
 
         launchProcess(
@@ -214,6 +208,12 @@ import Foundation
     }
 
     private func appendAdvancedArguments(to arguments: inout [String]) {
+        let sublang = UserDefaults.standard.string(forKey: StorageKeys.subtitleLanguage) ?? SubtitleLanguage.finnish.rawValue
+        arguments += ["--sublang", sublang]
+
+        let fileFormat = UserDefaults.standard.string(forKey: StorageKeys.fileFormat) ?? FileFormat.mp4.rawValue
+        arguments += ["--preferformat", fileFormat]
+
         let quality = UserDefaults.standard.string(forKey: StorageKeys.maxBitrate) ?? QualityPreset.best.rawValue
         if quality != QualityPreset.best.rawValue {
             arguments += ["--maxbitrate", quality]
@@ -256,12 +256,6 @@ import Foundation
         if recordSource == .streamURL, let duration {
             arguments += ["--duration", String(duration)]
         }
-
-        let sublang = UserDefaults.standard.string(forKey: StorageKeys.subtitleLanguage) ?? SubtitleLanguage.finnish.rawValue
-        arguments += ["--sublang", sublang]
-
-        let fileFormat = UserDefaults.standard.string(forKey: StorageKeys.fileFormat) ?? FileFormat.mp4.rawValue
-        arguments += ["--preferformat", fileFormat]
 
         appendAdvancedArguments(to: &arguments)
 

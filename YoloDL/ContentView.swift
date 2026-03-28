@@ -10,9 +10,6 @@ import SwiftUI
 
 struct ContentView: View {
 
-    // MARK: - Constants
-    let appVersion = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "?"
-
     // MARK: - Environment
     // Open debug window on startup.
     @Environment(\.openWindow) var openWindow
@@ -201,7 +198,7 @@ struct ContentView: View {
             UserDefaults.standard.set(now, forKey: StorageKeys.lastUpdateCheck)
         }
 
-        .navigationTitle("YOLO-DL \(appVersion)")
+        .navigationTitle("YOLO-DL \(Bundle.main.appVersion)")
 
         .alert(
             downloader.alertToShow?.title ?? "Error",
@@ -219,7 +216,7 @@ struct ContentView: View {
             }
             Button("Later", role: .cancel) {}
         } message: {
-            let current = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "?"
+            let current = Bundle.main.appVersion
             Text("A new YOLO-DL version \(updateResult?.version ?? "") is available. You are currently running \(current).")
         }
 

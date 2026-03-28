@@ -42,7 +42,7 @@ struct YoloDLApp: App {
                     }
                     Button("Later", role: .cancel) {}
                 } message: {
-                    let current = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "?"
+                    let current = Bundle.main.appVersion
                     Text("YOLO-DL \(manualUpdateResult?.version ?? "") is available. You are currently running \(current).")
                 }
                 .alert("No Update Available", isPresented: $showNoUpdate) {

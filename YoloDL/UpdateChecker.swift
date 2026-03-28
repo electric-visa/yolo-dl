@@ -21,7 +21,7 @@ enum UpdateChecker {
               let url = URL(string: urlString)
         else { return .failed }
 
-        let current = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "0"
+        let current = Bundle.main.appVersion
 
         if isNewer(version, than: current) {
             return .available(UpdateResult(version: version, url: url))
