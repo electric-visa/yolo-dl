@@ -104,17 +104,6 @@ struct ContentView: View {
         @Bindable var downloader = downloader
         @Bindable var recordingInput = recordingInput
         VStack(alignment: .leading, spacing: 12) {
-            Spacer()
-            Picker("Mode", selection: $appMode) {
-                ForEach(AppMode.allCases, id: \.self) { mode in
-                    Text(mode.label)
-                }
-            }
-            .pickerStyle(.segmented)
-            .labelsHidden()
-            .disabled(downloader.isActive)
-            .frame(maxWidth: .infinity, alignment: .center)
-
             Group {
                 switch appMode {
                 case .download:
@@ -208,7 +197,22 @@ struct ContentView: View {
             UserDefaults.standard.set(now, forKey: StorageKeys.lastUpdateCheck)
         }
 
-        .navigationTitle("YOLO-DL \(Bundle.main.appVersion)")
+        .toolbar {
+            ToolbarItem(placement: .principal) {
+                Picker("Mode", selection: $appMode) {
+                    Image(systemName: "arrow.down.circle")
+                        .tag(AppMode.download)
+                        .help("Download")
+                    Image(systemName: "record.circle")
+                        .tag(AppMode.record)
+                        .help("Record")
+                }
+                .pickerStyle(.segmented)
+                .labelsHidden()
+                .disabled(downloader.isActive)
+                .frame(width: 100)
+            }
+        }
 
         .alert(
             downloader.alertToShow?.title ?? "Error",

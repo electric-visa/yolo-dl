@@ -56,6 +56,7 @@ struct YoloDLApp: App {
                     Text("Couldn't check for updates. Verify your internet connection and try again.")
                 }
         }
+        .windowToolbarStyle(.unified)
         .defaultSize(width: 561, height: 358)
         .commands {
             CommandGroup(after: .appInfo) {
