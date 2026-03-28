@@ -21,10 +21,10 @@ struct DownloadModeView: View {
                     Text(preset.label)
                 }
             }
-            .labelsHidden()
 
             TextField("Enter source URL", text: $downloader.sourceURL)
                 .disabled(downloader.isActive)
+                .accessibilityLabel("Source URL")
         }
         .frame(maxWidth: .infinity, alignment: .center)
     }

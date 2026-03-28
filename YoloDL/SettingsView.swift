@@ -46,20 +46,22 @@ struct SettingsView: View {
                     }
                 }
 
-                VStack(alignment: .leading, spacing: 4) {
-                    TextField("Custom naming template", text: $customNamingTemplate)
-                    Text("Template passed to yle-dl's --output-template. Tokens: ${title}, ${series_separator}, ${episode_or_date}")
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
+                LabeledContent {
+                    TextField("Template", text: $customNamingTemplate)
+                } label: {
+                    Text("Naming template")
+                    Text("Tokens: ${title}, ${series_separator}, ${episode_or_date}")
                 }
 
-                TextField("Bandwidth limit (kB/s)", text: $rateLimit)
+                LabeledContent("Bandwidth limit") {
+                    TextField("kB/s", text: $rateLimit)
+                }
 
-                VStack(alignment: .leading, spacing: 4) {
-                    TextField("Custom yle-dl flags", text: $customFlags)
-                    Text("Space-separated flags passed directly to yle-dl. Paths or values containing spaces are not supported.")
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
+                LabeledContent {
+                    TextField("Flags", text: $customFlags)
+                } label: {
+                    Text("Custom flags")
+                    Text("Space-separated. Paths with spaces are not supported.")
                 }
 
                 Button("Reset Advanced Disclaimer") {

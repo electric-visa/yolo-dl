@@ -22,9 +22,9 @@ struct WelcomeView: View {
             }
             .foregroundStyle(.secondary)
             Text("YOLO-DL allows you to download content from Yle Areena by utilizing yle-dl without touching the terminal.")
-            Label("Paste in an Areena URL", systemImage: "doc.on.clipboard")
-            Label("Choose a destination folder", systemImage: "folder.badge.plus")
-            Label("Press download", systemImage: "arrow.down.circle")
+            Label("Paste in an Areena URL", systemImage: "1.circle")
+            Label("Choose a destination folder", systemImage: "2.circle")
+            Label("Press download", systemImage: "3.circle")
             Button("Get Started") {
                 dismiss()
             }

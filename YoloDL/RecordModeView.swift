@@ -31,6 +31,7 @@ struct RecordModeView: View {
 
             case .streamURL:
                 TextField("Enter live stream URL", text: $recordingInput.streamURL)
+                    .accessibilityLabel("Live stream URL")
             }
 
             Toggle("Set time limit", isOn: $recordingInput.useTimeLimit)
