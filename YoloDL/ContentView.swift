@@ -130,9 +130,19 @@ struct ContentView: View {
                 .truncationMode(.middle)
 
             HStack {
-                Button(actionButtonLabel) {
+                Button {
                     Task {
                         await handleDownloadButton()
+                    }
+                } label: {
+                    ZStack {
+                        // Hidden baselines to reserve width for the longest possible label
+                        Text("Download").hidden()
+                        Text("Record").hidden()
+                        Text("Stop").hidden()
+
+                        // Visible label
+                        Text(actionButtonLabel)
                     }
                 }
                 .buttonStyle(.borderedProminent)
@@ -288,3 +298,4 @@ struct ContentView: View {
         .environment(downloadManager)
         .environment(recordingInput)
 }
+
