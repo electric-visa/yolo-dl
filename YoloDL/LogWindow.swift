@@ -7,21 +7,22 @@
 import SwiftUI
 
 struct LogWindow: View {
-    
+
     @Environment(LogManager.self) var logManager
     @State private var autoScroll: Bool = true
-    
+
     var body: some View {
         ScrollViewReader { proxy in
-            ScrollView { LazyVStack(spacing: 1) {
-                ForEach(logManager.logEntries) { entry in
-                    Text(entry.text)
-                        .id(entry.id)
-                        .frame(maxWidth: .infinity, alignment: .leading)
+            ScrollView {
+                LazyVStack(spacing: 1) {
+                    ForEach(logManager.logEntries) { entry in
+                        Text(entry.text)
+                            .id(entry.id)
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                    }
                 }
-            }
-            .textSelection(.enabled)
-            .padding()
+                .textSelection(.enabled)
+                .padding()
             }
             .onChange(of: logManager.logEntries.count) {
                 if autoScroll {
@@ -29,26 +30,42 @@ struct LogWindow: View {
                 }
             }
             .frame(minHeight: 300, maxHeight: .infinity)
+            .safeAreaInset(edge: .bottom) {
+                Text("\(logManager.logEntries.count) entries")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                    .monospacedDigit()
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .padding(.horizontal)
+                    .padding(.vertical, 6)
+                    .background(.bar)
+            }
         }
         .toolbar {
             ToolbarItemGroup(placement: .automatic) {
-                Text("\(logManager.logEntries.count) entries")
-                    .foregroundStyle(.secondary)
-                    .monospacedDigit()
+                Toggle(isOn: $autoScroll) {
+                    Label("Follow", systemImage: "arrow.down.to.line")
+                }
+                .toggleStyle(.button)
+                .help("Auto-scroll to latest entry")
 
-                Spacer()
-
-                Toggle("Follow", isOn: $autoScroll)
-                    .toggleStyle(.switch)
-
-                Button("Copy Log") {
+                Button {
                     NSPasteboard.general.clearContents()
-                    NSPasteboard.general.setString(logManager.logEntries.map(\.text).joined(separator: "\n"), forType: .string)
+                    NSPasteboard.general.setString(
+                        logManager.logEntries.map(\.text).joined(separator: "\n"),
+                        forType: .string
+                    )
+                } label: {
+                    Label("Copy Log", systemImage: "doc.on.doc")
                 }
+                .help("Copy log to clipboard")
 
-                Button("Clear Log") {
+                Button {
                     logManager.clearLog()
+                } label: {
+                    Label("Clear Log", systemImage: "trash")
                 }
+                .help("Clear all log entries")
             }
         }
     }
