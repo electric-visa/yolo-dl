@@ -31,7 +31,7 @@ struct LogWindow: View {
             .frame(minHeight: 300, maxHeight: .infinity)
         }
         .toolbar {
-            ToolbarItemGroup(placement: .bottomBar) {
+            ToolbarItemGroup(placement: .automatic) {
                 Text("\(logManager.logEntries.count) entries")
                     .foregroundStyle(.secondary)
                     .monospacedDigit()
