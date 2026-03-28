@@ -165,7 +165,6 @@ import Foundation
             }
 
             pendingDownload = PendingDownload(
-                metadata: episodes ?? [],
                 downloadLocation: downloadLocation,
                 fileNamingPattern: fileNamingPattern,
                 existingFilePath: existingFilePath

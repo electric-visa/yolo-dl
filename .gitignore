@@ -1,6 +1,7 @@
 *.xcodeproj
 Binaries/
 xcuserdata/
+YOLO-DL-Tests/
 .claude/
 .DS_Store
 CLAUDE.md

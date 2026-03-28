@@ -79,7 +79,7 @@ extension DownloadManager {
                 flavors: [EpisodeMetadata.Flavor(url: "https://example.com/live/test-stream")]
             )
         ]
-        pendingDownload = PendingDownload(metadata: mockMetadata, downloadLocation: "tmp/test", fileNamingPattern: "test-pattern", existingFilePath: nil)
+        pendingDownload = PendingDownload(downloadLocation: "tmp/test", fileNamingPattern: "test-pattern", existingFilePath: nil)
         totalDuration = mockMetadata.reduce(0) { $0 + ($1.durationSeconds ?? 0) }
 
         showLiveContentAlert = true
@@ -97,7 +97,7 @@ extension DownloadManager {
                 flavors: [EpisodeMetadata.Flavor(url: "Test URL")]
             )
         ]
-        pendingDownload = PendingDownload(metadata: mockMetadata, downloadLocation: "tmp/test", fileNamingPattern: "test-pattern", existingFilePath: nil)
+        pendingDownload = PendingDownload(downloadLocation: "tmp/test", fileNamingPattern: "test-pattern", existingFilePath: nil)
         totalDuration = mockMetadata.reduce(0) { $0 + ($1.durationSeconds ?? 0) }
 
         showFileExistsDialog = true

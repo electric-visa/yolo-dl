@@ -14,7 +14,7 @@ import Foundation
     // Parses ffmpeg progress lines piped through yle-dl's stderr.
     // Each chunk contains \r-separated lines (ffmpeg overwrites the same terminal line),
     // with fields: time=HH:MM:SS.ms, size= or Lsize=NNNkB, elapsed=HH:MM:SS.ms, speed=Nx.
-    private func parseStderr(_ output: String) -> StderrFields {
+    func parseStderr(_ output: String) -> StderrFields {
         var fields = StderrFields()
 
         for line in output.components(separatedBy: "\r") {
