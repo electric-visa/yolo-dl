@@ -16,6 +16,21 @@ struct DownloadModeView: View {
         @Bindable var downloader = downloader
         
         VStack(spacing: 8) {
+            HStack {
+                Spacer()
+                Picker("Source", selection: .constant(RecordSource.streamURL)) {
+                    ForEach(RecordSource.allCases, id: \.self) { source in
+                        Text(source.label).tag(source)
+                    }
+                }
+                .pickerStyle(.menu)
+                .labelsHidden()
+                .accessibilityHidden(true)
+                .disabled(true)
+                .hidden()
+                Spacer()
+            }
+            
             TextField("Enter source URL", text: $downloader.sourceURL)
                 .disabled(downloader.isActive)
                 .accessibilityLabel("Source URL")

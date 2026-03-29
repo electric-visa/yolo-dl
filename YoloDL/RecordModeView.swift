@@ -9,16 +9,84 @@ import SwiftUI
 struct RecordModeView: View {
 
     @Environment(RecordingInput.self) private var recordingInput
+    @State private var computedPickerWidth: CGFloat = 0
+    @State private var computedLabelWidth: CGFloat = 0
+
+    private struct MenuWidthKey: PreferenceKey {
+        static var defaultValue: CGFloat = 0
+        static func reduce(value: inout CGFloat, nextValue: () -> CGFloat) {
+            value = max(value, nextValue())
+        }
+    }
+
+    private struct LabelWidthKey: PreferenceKey {
+        static var defaultValue: CGFloat = 0
+        static func reduce(value: inout CGFloat, nextValue: () -> CGFloat) {
+            value = max(value, nextValue())
+        }
+    }
 
     var body: some View {
         @Bindable var recordingInput = recordingInput
         VStack(spacing: 8) {
+            HStack {
+                Spacer()
+                HStack(spacing: 8) {
+                    Text("Source")
+                        .background(
+                            GeometryReader { proxy in
+                                Color.clear.preference(key: LabelWidthKey.self, value: proxy.size.width)
+                            }
+                        )
+                        .frame(width: computedLabelWidth, alignment: .trailing)
+
+                    Picker("Source", selection: $recordingInput.recordSource) {
+                        ForEach(RecordSource.allCases, id: \.self) { source in
+                            Text(source.label).tag(source)
+                        }
+                    }
+                    .pickerStyle(.menu)
+                    .labelsHidden()
+                    .accessibilityLabel("Source")
+                    .background(
+                        GeometryReader { proxy in
+                            Color.clear.preference(key: MenuWidthKey.self, value: proxy.size.width)
+                        }
+                    )
+                    .frame(width: computedPickerWidth == 0 ? nil : computedPickerWidth, alignment: .leading)
+                }
+                Spacer()
+            }
             switch recordingInput.recordSource {
             case .tvChannel:
-                Picker("Channel", selection: $recordingInput.selectedChannel) {
-                    ForEach(TVChannel.allCases, id: \.self) { channel in
-                        Text(channel.label)
+                HStack {
+                    Spacer()
+                    HStack(spacing: 8) {
+                        Text("Channel")
+                            .hidden()
+                            .background(
+                                GeometryReader { proxy in
+                                    Color.clear.preference(key: LabelWidthKey.self, value: proxy.size.width)
+                                }
+                            )
+                            .frame(width: computedLabelWidth, alignment: .trailing)
+
+                        Picker("Channel", selection: $recordingInput.selectedChannel) {
+                            ForEach(TVChannel.allCases, id: \.self) { channel in
+                                Text(channel.label)
+                            }
+                        }
+                        .pickerStyle(.menu)
+                        .labelsHidden()
+                        .accessibilityLabel("Channel")
+                        .background(
+                            GeometryReader { proxy in
+                                Color.clear.preference(key: MenuWidthKey.self, value: proxy.size.width)
+                            }
+                        )
+                        .frame(width: computedPickerWidth == 0 ? nil : computedPickerWidth, alignment: .leading)
                     }
+                    Spacer()
                 }
 
             case .streamURL:
@@ -62,6 +130,12 @@ struct RecordModeView: View {
                     .foregroundStyle(.secondary)
                     .font(.caption)
             }
+        }
+        .onPreferenceChange(MenuWidthKey.self) { width in
+            computedPickerWidth = width
+        }
+        .onPreferenceChange(LabelWidthKey.self) { width in
+            computedLabelWidth = width
         }
         .frame(maxWidth: .infinity, alignment: .center)
     }
