@@ -104,15 +104,7 @@ struct ContentView: View {
         @Bindable var downloader = downloader
         @Bindable var recordingInput = recordingInput
         VStack(alignment: .leading, spacing: 12) {
-            Group {
-                switch appMode {
-                case .download:
-                    DownloadModeView()
-                case .record:
-                    RecordModeView()
-                }
-            }
-            .frame(maxWidth: .infinity, minHeight: 120, alignment: .top)
+            ModeControlsView()
 
             Text(downloadLocation.isEmpty ? "No folder selected" : "Download folder: \(downloadLocation)")
                 .lineLimit(1)
@@ -164,6 +156,8 @@ struct ContentView: View {
             Text(downloader.appState.statusText)
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .foregroundStyle(.secondary)
+
+            Spacer()
         }
 
         // Show debug window on startup.
@@ -302,4 +296,3 @@ struct ContentView: View {
         .environment(downloadManager)
         .environment(recordingInput)
 }
-

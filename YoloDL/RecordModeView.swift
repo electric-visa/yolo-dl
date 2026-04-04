@@ -3,139 +3,35 @@
 //  YoloDL
 //
 // Subview rendered when the app is in Record mode.
+// Assembles source selection, timing controls, and input field.
 
 import SwiftUI
 
 struct RecordModeView: View {
 
     @Environment(RecordingInput.self) private var recordingInput
-    @State private var computedPickerWidth: CGFloat = 0
-    @State private var computedLabelWidth: CGFloat = 0
-
-    private struct MenuWidthKey: PreferenceKey {
-        static var defaultValue: CGFloat = 0
-        static func reduce(value: inout CGFloat, nextValue: () -> CGFloat) {
-            value = max(value, nextValue())
-        }
-    }
-
-    private struct LabelWidthKey: PreferenceKey {
-        static var defaultValue: CGFloat = 0
-        static func reduce(value: inout CGFloat, nextValue: () -> CGFloat) {
-            value = max(value, nextValue())
-        }
-    }
 
     var body: some View {
         @Bindable var recordingInput = recordingInput
         VStack(spacing: 8) {
-            HStack {
-                Spacer()
-                HStack(spacing: 8) {
-                    Text("Source")
-                        .background(
-                            GeometryReader { proxy in
-                                Color.clear.preference(key: LabelWidthKey.self, value: proxy.size.width)
-                            }
-                        )
-                        .frame(width: computedLabelWidth, alignment: .trailing)
+            RecordSourceView()
+            RecordTimingView()
 
-                    Picker("Source", selection: $recordingInput.recordSource) {
-                        ForEach(RecordSource.allCases, id: \.self) { source in
-                            Text(source.label).tag(source)
-                        }
-                    }
-                    .pickerStyle(.menu)
-                    .labelsHidden()
-                    .accessibilityLabel("Source")
-                    .background(
-                        GeometryReader { proxy in
-                            Color.clear.preference(key: MenuWidthKey.self, value: proxy.size.width)
-                        }
-                    )
-                    .frame(width: computedPickerWidth == 0 ? nil : computedPickerWidth, alignment: .leading)
-                }
-                Spacer()
-            }
             switch recordingInput.recordSource {
             case .tvChannel:
-                HStack {
-                    Spacer()
-                    HStack(spacing: 8) {
-                        Text("Channel")
-                            .hidden()
-                            .background(
-                                GeometryReader { proxy in
-                                    Color.clear.preference(key: LabelWidthKey.self, value: proxy.size.width)
-                                }
-                            )
-                            .frame(width: computedLabelWidth, alignment: .trailing)
-
-                        Picker("Channel", selection: $recordingInput.selectedChannel) {
-                            ForEach(TVChannel.allCases, id: \.self) { channel in
-                                Text(channel.label)
-                            }
-                        }
-                        .pickerStyle(.menu)
-                        .labelsHidden()
-                        .accessibilityLabel("Channel")
-                        .background(
-                            GeometryReader { proxy in
-                                Color.clear.preference(key: MenuWidthKey.self, value: proxy.size.width)
-                            }
-                        )
-                        .frame(width: computedPickerWidth == 0 ? nil : computedPickerWidth, alignment: .leading)
+                Picker("Channel", selection: $recordingInput.selectedChannel) {
+                    ForEach(TVChannel.allCases, id: \.self) { channel in
+                        Text(channel.label)
                     }
-                    Spacer()
                 }
+                .pickerStyle(.menu)
+                .labelsHidden()
+                .accessibilityLabel("Channel")
 
             case .streamURL:
                 TextField("Enter live stream URL", text: $recordingInput.streamURL)
                     .accessibilityLabel("Live stream URL")
             }
-
-            Toggle("Set time limit", isOn: $recordingInput.useTimeLimit)
-
-            if recordingInput.useTimeLimit {
-                HStack {
-                    Text("Duration:")
-                    TextField("h", value: $recordingInput.durationHours, format: .number)
-                        .frame(width: 40)
-                        .textFieldStyle(.roundedBorder)
-                        .accessibilityLabel("Hours")
-                        .onSubmit { recordingInput.normalize() }
-                    Stepper("Hours", value: $recordingInput.durationHours, in: 0...8, step: 1)
-                        .labelsHidden()
-                    Text("h")
-                    TextField("min", value: $recordingInput.durationMinutes, format: .number)
-                        .frame(width: 40)
-                        .textFieldStyle(.roundedBorder)
-                        .accessibilityLabel("Minutes")
-                        .onSubmit { recordingInput.normalize() }
-                    Stepper("Minutes", value: $recordingInput.durationMinutes, in: 0...55, step: 5)
-                        .labelsHidden()
-                    Text("min")
-                }
-                if recordingInput.totalMinutes < 0 {
-                    Text("Duration can't be negative")
-                        .foregroundStyle(.red)
-                        .font(.caption)
-                } else {
-                    Text(DurationFormatter.format(minutes: recordingInput.totalMinutes))
-                        .foregroundStyle(.secondary)
-                        .font(.caption)
-                }
-            } else {
-                Text("Recording will continue until you press Stop")
-                    .foregroundStyle(.secondary)
-                    .font(.caption)
-            }
-        }
-        .onPreferenceChange(MenuWidthKey.self) { width in
-            computedPickerWidth = width
-        }
-        .onPreferenceChange(LabelWidthKey.self) { width in
-            computedLabelWidth = width
         }
         .frame(maxWidth: .infinity, alignment: .center)
     }
