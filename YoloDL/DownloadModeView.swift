@@ -23,7 +23,7 @@ struct DownloadModeView: View {
                     Text(preset.label)
                 }
             }
-
+            Spacer()
             TextField("Enter source URL", text: $downloader.sourceURL)
                 .disabled(downloader.isActive)
                 .accessibilityLabel("Source URL")
