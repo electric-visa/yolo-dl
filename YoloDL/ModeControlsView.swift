@@ -13,15 +13,17 @@ struct ModeControlsView: View {
 
     var body: some View {
         ZStack(alignment: .top) {
-            RecordModeView()
-                .opacity(appMode == .record ? 1 : 0)
-                .disabled(appMode != .record)
-                .accessibilityHidden(appMode != .record)
-
             DownloadModeView()
-                .opacity(appMode == .download ? 1 : 0)
                 .disabled(appMode != .download)
                 .accessibilityHidden(appMode != .download)
+
+            RecordModeView()
+                .background(Color(nsColor: .windowBackgroundColor))
+                .offset(y: appMode == .record ? 0 : -300)
+                .animation(.easeOut(duration: 0.3), value: appMode)
+                .disabled(appMode != .record)
+                .accessibilityHidden(appMode != .record)
         }
+        .clipped()
     }
 }

@@ -10,10 +10,7 @@ import SwiftUI
 struct RecordSourceView: View {
 
     var labelWidth: CGFloat = 0
-    @AppStorage(StorageKeys.appMode) private var appMode: AppMode = .download
     @Environment(RecordingInput.self) private var recordingInput
-
-    private var isActive: Bool { appMode == .record }
 
     var body: some View {
         @Bindable var recordingInput = recordingInput
@@ -30,9 +27,6 @@ struct RecordSourceView: View {
             .accessibilityLabel("Source")
         }
         .frame(maxWidth: .infinity)
-        .opacity(isActive ? 1 : 0)
-        .offset(y: isActive ? 0 : -8)
-        .animation(.easeOut(duration: 0.25), value: isActive)
         .padding(.top, 8)
     }
 }
