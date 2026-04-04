@@ -51,7 +51,7 @@ struct ContentView: View {
                     downloader.showLongRecordingAlert = true
                     return
                 }
-                downloader.startRecordingFrom(recordingInput, downloadLocation: downloadLocation)
+                await downloader.startRecordingFrom(recordingInput, downloadLocation: downloadLocation)
             } else {
                 await downloader.downloadFiles(downloadLocation: downloadLocation, fileNamingPattern: namingPreset.resolvedPattern(custom: customNamingTemplate), namingPreset: namingPreset, appMode: appMode)
                 if !FileManager.default.fileExists(atPath: downloadLocation) {
@@ -65,39 +65,6 @@ struct ContentView: View {
 
     var actionButtonLabel: String {
         downloader.isActive ? "Stop" : appMode == .download ? "Download" : "Record"
-    }
-
-    private var downloadInfoVisible: Bool {
-        appMode == .download && downloader.appState == .downloading
-    }
-
-    var downloadInfoText: String {
-        guard downloadInfoVisible else { return " " }
-        let parts: [String] = [
-            downloader.currentFileSize.isEmpty ? nil : downloader.currentFileSize,
-            downloader.timeRemaining.map {
-                let estimate = DurationFormatter.formatEstimate(seconds: $0)
-                return estimate == "Almost done" ? estimate : estimate + " remaining"
-            }
-        ].compactMap { $0 }
-        return parts.isEmpty ? " " : parts.joined(separator: " · ")
-    }
-
-    private var recordingInfoVisible: Bool {
-        appMode == .record &&
-            (!downloader.recordingElapsed.isEmpty || !downloader.currentFileSize.isEmpty)
-    }
-
-    var recordingInfoText: String {
-        guard recordingInfoVisible else { return " " }
-        let elapsed = downloader.recordingElapsed
-        let fileSize = downloader.currentFileSize
-        if let totalSeconds = downloader.recordingDurationSeconds {
-            let remaining = max(0, totalSeconds - downloader.recordingElapsedSeconds)
-            return "\(elapsed) · \(fileSize) — stops in \(DurationFormatter.formatCountdown(seconds: remaining))"
-        } else {
-            return "\(elapsed) · \(fileSize)"
-        }
     }
 
     var body: some View {
@@ -143,19 +110,7 @@ struct ContentView: View {
                 appState: downloader.appState
             )
 
-            Text(downloadInfoText)
-                .foregroundStyle(.secondary)
-                .monospacedDigit()
-                .opacity(downloadInfoVisible ? 1 : 0)
-
-            Text(recordingInfoText)
-                .foregroundStyle(.secondary)
-                .monospacedDigit()
-                .opacity(recordingInfoVisible ? 1 : 0)
-
-            Text(downloader.appState.statusText)
-                .frame(maxWidth: .infinity, alignment: .leading)
-                .foregroundStyle(.secondary)
+            StatusStripView()
 
             Spacer()
         }
@@ -273,7 +228,9 @@ struct ContentView: View {
             titleVisibility: .visible
         ) {
             Button("Record") {
-                downloader.startRecordingFrom(recordingInput, downloadLocation: downloadLocation)
+                Task {
+                    await downloader.startRecordingFrom(recordingInput, downloadLocation: downloadLocation)
+                }
             }
             Button("Cancel", role: .cancel) { }
         } message: {

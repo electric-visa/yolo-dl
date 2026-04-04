@@ -231,8 +231,9 @@ import Foundation
         }
     }
 
-    func startRecording(source: String, downloadLocation: String, recordSource: RecordSource, duration: Int? = nil) {
+    func startRecording(source: String, downloadLocation: String, recordSource: RecordSource, duration: Int? = nil) async {
         reset(for: .starting)
+        appState = .preparing
 
         guard !downloadLocation.isEmpty else { handleError(.noFolderSelected); return }
         guard !source.isEmpty else { handleError(.emptyURL); return }
@@ -261,11 +262,28 @@ import Foundation
         appendAdvancedArguments(to: &arguments)
 
         arguments.append(source)
+        try? await Task.sleep(for: .milliseconds(100))
 
         launchProcess(
             arguments: arguments,
-            initialState: .recording,
+            initialState: .preparing,
             onStderr: { output in
+                if self.appState == .preparing {
+                    let fields = self.parseStderr(output)
+                    if fields.elapsed != nil || fields.fileSize != nil {
+                        self.appState = .recording
+                    }
+                    if let elapsed = fields.elapsed {
+                        self.recordingElapsed = elapsed
+                    }
+                    if let elapsedSeconds = fields.elapsedSeconds {
+                        self.recordingElapsedSeconds = elapsedSeconds
+                    }
+                    if let fileSize = fields.fileSize {
+                        self.currentFileSize = fileSize
+                    }
+                    return
+                }
                 let fields = self.parseStderr(output)
                 if let elapsed = fields.elapsed {
                     self.recordingElapsed = elapsed
@@ -283,12 +301,12 @@ import Foundation
         )
     }
 
-    func startRecordingFrom(_ input: RecordingInput, downloadLocation: String) {
+    func startRecordingFrom(_ input: RecordingInput, downloadLocation: String) async {
         let source: String = switch input.recordSource {
         case .tvChannel: input.selectedChannel.keyword
         case .streamURL: input.streamURL
         }
-        startRecording(
+        await startRecording(
             source: source,
             downloadLocation: downloadLocation,
             recordSource: input.recordSource,

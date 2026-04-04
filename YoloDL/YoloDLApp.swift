@@ -101,7 +101,9 @@ struct YoloDLApp: App {
                         downloadManager.showLongRecordingAlert = true
                         return
                     }
-                    downloadManager.startRecordingFrom(recordingInput, downloadLocation: downloadLocation)
+                    Task {
+                        await downloadManager.startRecordingFrom(recordingInput, downloadLocation: downloadLocation)
+                    }
                 }
                 .keyboardShortcut("r")
                 .disabled(downloadManager.isActive || appMode != .record)

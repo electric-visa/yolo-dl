@@ -31,7 +31,7 @@ enum AppState {
 
     var showsIndeterminateProgress: Bool {
         switch self {
-        case .fetchingMetadata, .recording:
+        case .preparing, .fetchingMetadata, .recording:
             true
         default:
             false
