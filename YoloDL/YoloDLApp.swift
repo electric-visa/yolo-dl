@@ -57,7 +57,8 @@ struct YoloDLApp: App {
                 }
         }
         .windowToolbarStyle(.unified)
-        .defaultSize(width: 561, height: 358)
+        .windowResizability(.contentSize)
+        .defaultSize(width: 561, height: 315)
         .commands {
             CommandGroup(after: .appInfo) {
                 Button("Check for Updates…") {

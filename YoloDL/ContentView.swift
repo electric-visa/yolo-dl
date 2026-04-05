@@ -112,7 +112,7 @@ struct ContentView: View {
 
             StatusStripView()
 
-            Spacer()
+
         }
 
         // Show debug window on startup.
@@ -242,7 +242,7 @@ struct ContentView: View {
             WelcomeView()
         }
         .padding(EdgeInsets(top: 16, leading: 20, bottom: 28, trailing: 20))
-        .frame(minWidth: 561, minHeight: 358)
+        .frame(width: 561, height: 315)
     }
 }
 
