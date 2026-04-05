@@ -163,11 +163,11 @@ import Foundation
 
         if let existingFilePath = pending.existingFilePath {
             do {
-                try FileManager.default.removeItem(atPath: existingFilePath)
-                logger.appendLog("Deleted existing file: \(existingFilePath)", from: .stdout)
+                try FileManager.default.trashItem(at: URL(fileURLWithPath: existingFilePath), resultingItemURL: nil)
+                logger.appendLog("Moved existing file to Trash: \(existingFilePath)", from: .stdout)
             } catch {
-                logger.appendLog("Failed to delete existing file: \(error.localizedDescription)", from: .stderr)
-                showError(title: "File Deletion Error", text: "Could not delete existing file: \(error.localizedDescription)")
+                logger.appendLog("Failed to move existing file to Trash: \(error.localizedDescription)", from: .stderr)
+                showError(title: "Error Moving File to Trash", text: "Could not move the existing file to Trash: \(error.localizedDescription)")
                 return
             }
         }
