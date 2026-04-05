@@ -1,3 +1,11 @@
+**YOLO-DL v0.6**
+
+**New features:**
+
+* Improved user interface logic and implemented a more responsive user interface.
+* The UI now more clearly communicates a waiting state when the app is preparing or fetching metadata.
+* The "Overwrite" function now moves the old file to Trash instead of directly overwriting it.
+
 **YOLO-DL v0.51**
 
 **Bug fixes:**
