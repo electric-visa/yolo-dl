@@ -53,7 +53,7 @@ import Foundation
 
     // MARK: - Internal state (managed by DownloadManager methods)
 
-    var isActive: Bool = false
+    var isActive: Bool { appState.isActive }
     var isFinished: Bool = false
     var activeProcess: Process? = nil
     var isCancelled: Bool = false
@@ -96,7 +96,6 @@ import Foundation
 
         case .finished:
             progress = 1.0
-            isActive = false
             isFinished = true
             currentFileSize = ""
             recentSpeeds = []
@@ -104,7 +103,6 @@ import Foundation
 
         case .cancelled:
             isCancelled = true
-            isActive = false
             progress = 0.0
             recentSpeeds = []
             recordingTimerTask = nil
@@ -122,7 +120,6 @@ import Foundation
 
             // Reset start-of-run state before fetching metadata.
             reset(for: .starting)
-            isActive = true
 
             // Fetch metadata, calculate total duration and check for duplicate files.
             // Includes guards for invalid metadata.

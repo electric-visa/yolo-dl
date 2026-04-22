@@ -19,7 +19,6 @@ extension DownloadManager {
     func simulateDownload() {
         simulationTask?.cancel()
         reset(for: .starting)
-        isActive = true
         appState = .downloading
         totalDuration = 1800
 
@@ -52,7 +51,6 @@ extension DownloadManager {
     func simulateRecording() {
         simulationTask?.cancel()
         reset(for: .starting)
-        isActive = true
         appState = .recording
         logger.appendLog("Simulated recording started.", from: .stdout)
     }

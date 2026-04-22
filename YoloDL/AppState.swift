@@ -37,4 +37,13 @@ enum AppState {
             false
         }
     }
+
+    var isActive: Bool {
+        switch self {
+        case .preparing, .fetchingMetadata, .downloading, .recording:
+            true
+        case .ready, .finished, .cancelled, .error:
+            false
+        }
+    }
 }

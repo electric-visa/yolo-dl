@@ -104,7 +104,6 @@ import Foundation
         onStderr: (@MainActor @Sendable (String) -> Void)? = nil,
         onTermination: (@MainActor @Sendable () -> Void)? = nil
     ) throws {
-        isActive = true
         appState = initialState
 
         let process = Process()
@@ -145,7 +144,12 @@ import Foundation
         process.executableURL = URL(fileURLWithPath: self.pathToYleDl)
         process.arguments = arguments
 
-        try process.run()
+        do {
+            try process.run()
+        } catch {
+            activeProcess = nil
+            throw error
+        }
     }
 
     // PHASE B: Execute the actual download process using stored metadata.
