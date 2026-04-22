@@ -103,7 +103,7 @@ import Foundation
         initialState: AppState,
         onStderr: (@MainActor @Sendable (String) -> Void)? = nil,
         onTermination: (@MainActor @Sendable () -> Void)? = nil
-    ) {
+    ) throws {
         isActive = true
         appState = initialState
 
@@ -145,12 +145,7 @@ import Foundation
         process.executableURL = URL(fileURLWithPath: self.pathToYleDl)
         process.arguments = arguments
 
-        do {
-            try process.run()
-        } catch {
-            self.logger.appendLog(error.localizedDescription, from: .stderr)
-            self.showError(title: "Process error", text: "Failed to start. Details: \(error.localizedDescription)")
-        }
+        try process.run()
     }
 
     // PHASE B: Execute the actual download process using stored metadata.
@@ -159,17 +154,6 @@ import Foundation
         guard let pending = pendingDownload else {
             handleError(.totalDurationIsZero)
             return
-        }
-
-        if let existingFilePath = pending.existingFilePath {
-            do {
-                try FileManager.default.trashItem(at: URL(fileURLWithPath: existingFilePath), resultingItemURL: nil)
-                logger.appendLog("Moved existing file to Trash: \(existingFilePath)", from: .stdout)
-            } catch {
-                logger.appendLog("Failed to move existing file to Trash: \(error.localizedDescription)", from: .stderr)
-                showError(title: "Error Moving File to Trash", text: "Could not move the existing file to Trash: \(error.localizedDescription)")
-                return
-            }
         }
 
         var arguments = [
@@ -182,29 +166,42 @@ import Foundation
 
         appendAdvancedArguments(to: &arguments)
 
-        launchProcess(
-            arguments: arguments,
-            initialState: .downloading,
-            onStderr: { output in
-                let fields = self.parseStderr(output)
-                if let progress = fields.progress {
-                    self.progress = progress
-                }
-                if let fileSize = fields.fileSize {
-                    self.currentFileSize = fileSize
-                }
-                if let speed = fields.speed {
-                    self.recentSpeeds.append(speed)
-                    if self.recentSpeeds.count > 5 {
-                        self.recentSpeeds.removeFirst()
+        do {
+            try launchProcess(
+                arguments: arguments,
+                initialState: .downloading,
+                onStderr: { output in
+                    let fields = self.parseStderr(output)
+                    if let progress = fields.progress {
+                        self.progress = progress
                     }
+                    if let fileSize = fields.fileSize {
+                        self.currentFileSize = fileSize
+                    }
+                    if let speed = fields.speed {
+                        self.recentSpeeds.append(speed)
+                        if self.recentSpeeds.count > 5 {
+                            self.recentSpeeds.removeFirst()
+                        }
+                    }
+                },
+                onTermination: {
+                    self.reset(for: .finished)
+                    self.clearPendingState()
                 }
-            },
-            onTermination: {
-                self.reset(for: .finished)
-                self.clearPendingState()
+            )
+            if let existingFilePath = pending.existingFilePath {
+                do {
+                    try FileManager.default.trashItem(at: URL(fileURLWithPath: existingFilePath), resultingItemURL: nil)
+                    logger.appendLog("Moved existing file to Trash: \(existingFilePath)", from: .stdout)
+                } catch {
+                    logger.appendLog("Failed to move existing file to Trash: \(error.localizedDescription)", from: .stderr)
+                }
             }
-        )
+        } catch {
+            logger.appendLog(error.localizedDescription, from: .stderr)
+            showError(title: "Process error", text: "Failed to start. Details: \(error.localizedDescription)")
+        }
     }
 
     private func appendAdvancedArguments(to arguments: inout [String]) {
@@ -264,15 +261,28 @@ import Foundation
         arguments.append(source)
         try? await Task.sleep(for: .milliseconds(100))
 
-        launchProcess(
-            arguments: arguments,
-            initialState: .preparing,
-            onStderr: { output in
-                if self.appState == .preparing {
-                    let fields = self.parseStderr(output)
-                    if fields.elapsed != nil || fields.fileSize != nil {
-                        self.appState = .recording
+        do {
+            try launchProcess(
+                arguments: arguments,
+                initialState: .preparing,
+                onStderr: { output in
+                    if self.appState == .preparing {
+                        let fields = self.parseStderr(output)
+                        if fields.elapsed != nil || fields.fileSize != nil {
+                            self.appState = .recording
+                        }
+                        if let elapsed = fields.elapsed {
+                            self.recordingElapsed = elapsed
+                        }
+                        if let elapsedSeconds = fields.elapsedSeconds {
+                            self.recordingElapsedSeconds = elapsedSeconds
+                        }
+                        if let fileSize = fields.fileSize {
+                            self.currentFileSize = fileSize
+                        }
+                        return
                     }
+                    let fields = self.parseStderr(output)
                     if let elapsed = fields.elapsed {
                         self.recordingElapsed = elapsed
                     }
@@ -282,23 +292,15 @@ import Foundation
                     if let fileSize = fields.fileSize {
                         self.currentFileSize = fileSize
                     }
-                    return
+                },
+                onTermination: {
+                    self.reset(for: .finished)
                 }
-                let fields = self.parseStderr(output)
-                if let elapsed = fields.elapsed {
-                    self.recordingElapsed = elapsed
-                }
-                if let elapsedSeconds = fields.elapsedSeconds {
-                    self.recordingElapsedSeconds = elapsedSeconds
-                }
-                if let fileSize = fields.fileSize {
-                    self.currentFileSize = fileSize
-                }
-            },
-            onTermination: {
-                self.reset(for: .finished)
-            }
-        )
+            )
+        } catch {
+            logger.appendLog(error.localizedDescription, from: .stderr)
+            showError(title: "Process error", text: "Failed to start. Details: \(error.localizedDescription)")
+        }
     }
 
     func startRecordingFrom(_ input: RecordingInput, downloadLocation: String) async {
