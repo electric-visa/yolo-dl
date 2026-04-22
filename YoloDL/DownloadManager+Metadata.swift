@@ -64,12 +64,11 @@ import Foundation
             } catch {
                 stdoutPipe.fileHandleForReading.readabilityHandler = nil
                 stderrPipe.fileHandleForReading.readabilityHandler = nil
-                Task { @MainActor in
-                    self.logger.appendLog(error.localizedDescription, from: .stderr)
-                    if !self.isCancelled {
-                        self.showError(title: "Metadata error", text: "Metadata error Details: \(error.localizedDescription)")
+                activeProcess = nil
+                    logger.appendLog(error.localizedDescription, from: .stderr)
+                    if !isCancelled {
+                        showError(title: "Metadata error", text: "Metadata error Details: \(error.localizedDescription)")
                     }
-                }
                 continuation.resume(returning: nil)
             }
         }
